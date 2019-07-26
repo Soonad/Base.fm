@@ -1,0 +1,43 @@
+import Rec@1 open
+import Bool@1 open
+
+// succ : {n : Nat} -> Nat = {n, ~P, S, Z} => (S n)
+// zero : Nat              = {~P, S, Z} => Z
+T Nat
+| succ {pred : Nat}
+| zero
+
+pred : {|n : Nat} -> Nat
+| succ = n.pred
+| zero = zero
+
+pred.example
+  pred(succ(succ(zero)))
+
+pred_if : {|n : Nat, |b : Bool} -> Nat
+| succ | true  = n.pred
+       | false = succ(n.pred)
+| zero | true  = zero
+       | false = zero
+
+// Recursive functions must be boxed (annotated with `:!`). They must also
+// provide a "halt" case with `*`, which will be returned in the case the
+// function runs out of "gas". That's because Formality is terminating. This is
+// NOT a "native" "bounded recursion" feature, instead, it is desugared to
+// `rec(TYPE, {r} => func[func <- r], halt)`. Notice that the `rec`, the
+// function that repeatedly calls `func` as many times as needed, must be in
+// scope. See `rec` below to see how Church nats can be used for that.
+// Note: if the halt value isn't any of the function arguments, you can simply
+// provide it after the end of the function by writting `* halt_value` there.
+double :! {|*n : Nat} -> Nat
+| succ = succ(succ(double(n.pred)))
+| zero = zero
+
+// Non-recursive functions that use recursive functions must also be boxed.
+// They must unbox the recursive functions they use.
+double.example :! Nat
+  unbox double
+  double(succ(zero))
+
+main
+  double.example

@@ -1,0 +1,42 @@
+T Bool
+| true
+| false 
+
+// Simple not
+not : {|b : Bool} -> Bool
+| true  = false
+| false = true
+
+// Simple and
+and : {|b0 : Bool, |b1 : Bool} -> Bool
+| true  | true  = true
+        | false = false
+| false | true  = false
+        | false = false
+
+// Simple or
+or : {|b0 : Bool, |b1 : Bool} -> Bool
+| true  | true  = true
+        | false = true
+| false | true  = true
+        | false = false
+
+// Not with runtime fusion
+not.fuse : {b : Bool} -> Bool
+  new Bool {~P, T, F} =>
+    let moti       = {b} => P(not_f(b))
+    let case_true  = F
+    let case_false = T
+    (%b)(~moti, case_true, case_false)
+
+// Boolean induction is just `%b`.
+induce : {b : Bool} -> 
+  {~P : {b : Bool} -> Type
+  , T : P(true)
+  , F : P(false)
+  } -> P(b)
+  %b
+
+// Boolean example
+main
+  and(or(true, false), true)
