@@ -1,0 +1,20 @@
+T Eq <A : Type, a : A> {b : A}
+| refl : Eq(A, a, a)
+
+sym : {~A : Type, ~a : A, ~b : A, e : Eq(A, a, b)} -> Eq(A, b, a)
+  case<Eq> e
+  | refl => refl<A>(~a)
+  : Eq(A, b, a)
+  
+cong : {~A : Type, ~B : Type, ~a : A, ~b : A, e : Eq(A, a, b), ~f : {a : A} -> B} -> Eq(B, f(a), f(b))
+  case<Eq> e
+  | refl => refl<B>(~f(a))
+  : Eq(B, f(a), f(b))
+
+rewrite : {~A : Type, ~a : A, ~b : A, e : Eq(A, a, b), ~P : {a : A} -> Type, x : P(a)} -> P(b)
+  case<Eq> e
+  | refl => x
+  : P(b)
+
+main
+  rewrite

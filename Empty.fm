@@ -1,0 +1,8 @@
+T Empty
+
+efq : {e : Empty, P : Type} -> P
+  case<Empty> e
+  : P
+
+main
+  efq

@@ -1,0 +1,26 @@
+import Rec@1 open
+import Nat@3 open
+
+Array : {n : Nat} -> Type
+  case<Nat> n
+  | succ => [x : Array(pred), Array(pred)]
+  | zero => U32
+  : Type
+
+clear_first :! {~n : Nat, *arr : Array(n)} -> Array(n)
+  ( case<Nat> n
+  | succ => {arr}
+    get [a, b] = arr
+    [clear_first(~pred, a), b]
+  | zero => {val}
+    0
+  : {arr : Array(self)} -> Array(self))(arr)
+  
+n0 : Nat = zero
+n1 : Nat = succ(n0)
+n2 : Nat = succ(n1)
+n3 : Nat = succ(n2)
+
+main :! Array(n3)
+  unbox clear_first
+  clear_first<n3>([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])

@@ -1,0 +1,39 @@
+import Rec@1 open
+
+T List <A : Type>
+| push {head : A, tail : List(A)}
+| empty
+
+// The dependent pattern match syntax is still not able to deal with indices,
+// so we must use the `case` syntax
+head : {~T : Type, default : T, list : List(T)} -> T
+  case<List> list
+  | push  => head
+  | empty => default
+  : T
+
+tail : {~T : Type, list : List(T)} -> List(T)
+  case<List> list
+  | push  => tail
+  | empty => empty(~T)
+  : List(T)
+
+map :! {~A : Type, fn : !{x : A} -> A, *list : List(!A)} -> List(!A)
+  dup fn = fn
+  case<List> list
+  | push =>
+    dup head = head
+    let head = #fn(head)
+    let tail = map<A>(#fn, tail)
+    push<!A>(head, tail)
+  | empty =>
+    empty<!A>
+  : List(!A)
+  
+main
+  dup map = map
+  let list = empty<!U32>
+  let list = push<!U32>(#1, list)
+  let list = push<!U32>(#2, list)
+  let list = push<!U32>(#3, list)
+  # map<U32>(#{x} => |x * 2|, list)

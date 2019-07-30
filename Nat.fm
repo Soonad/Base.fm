@@ -1,8 +1,6 @@
 import Rec@1 open
-import Bool@1 open
+import Bool@2 open
 
-// succ : {n : Nat} -> Nat = {n, ~P, S, Z} => (S n)
-// zero : Nat              = {~P, S, Z} => Z
 T Nat
 | succ {pred : Nat}
 | zero
@@ -39,5 +37,24 @@ double.example :! Nat
   unbox double
   double(succ(zero))
 
-main
-  double.example
+// Converts a native U32 to a Nat
+from_u32 :! {x : U32} -> Nat
+  cpy x = x
+  if |x == 0| then:
+    zero
+  else:
+    succ(from_u32(|x - 1|))
+  * zero
+
+// Converts a Nat to a native U32
+to_u32 :! {n : Nat} -> U32
+  case<Nat> n
+  | succ => |1 + to_u32(pred)|
+  | zero => 0
+  : U32
+  * 0
+
+main :! U32
+  unbox from_u32
+  unbox to_u32
+  to_u32(from_u32(50))

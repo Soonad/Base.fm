@@ -1,0 +1,39 @@
+import Bool@2 open
+import Eq@0 open
+
+Demorgan0 : {a : Bool, b : Bool} -> Type
+  Eq(Bool, not(or(a,b)), and(not(a), not(b)))
+
+demorgan0 : {a : Bool, b : Bool} -> Demorgan0(a, b)
+  ( case<Bool> a
+  | true => {b}
+    case<Bool> b
+    | true  => refl<Bool, false>
+    | false => refl<Bool, false>
+    : Demorgan0(true, self)
+  | false => {b}
+    case<Bool> b
+    | true  => refl<Bool, false>
+    | false => refl<Bool, true>
+    : Demorgan0(false, self)
+  : {b : Bool} -> Demorgan0(self, b))(b)
+
+Demorgan1 : {a : Bool, b : Bool} -> Type
+  Eq(Bool, not(and(a,b)), or(not(a), not(b)))
+
+demorgan1 : {a : Bool, b : Bool} -> Demorgan1(a, b)
+  ( case<Bool> a
+  | true => {b}
+    case<Bool> b
+    | true  => refl<Bool, false>
+    | false => refl<Bool, true>
+    : Demorgan1(true, self)
+  | false => {b}
+    case<Bool> b
+    | true  => refl<Bool, true>
+    | false => refl<Bool, true>
+    : Demorgan1(false, self)
+  : {b : Bool} -> Demorgan1(self, b))(b)
+
+main
+  [demorgan0, demorgan1]
