@@ -1,0 +1,5 @@
+cong : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : {a : A} -> B, e : <a == b>} -> <f(a) == f(b)>
+  rewrite<e>{x in <f(a) == f(x)>}(refl<f(a)>)
+
+main
+  cong

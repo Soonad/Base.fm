@@ -54,7 +54,9 @@ to_u32 :! {n : Nat} -> U32
   : U32
   * 0
 
-main :! U32
-  unbox from_u32
-  unbox to_u32
-  to_u32(from_u32(50))
+// Converts a Rec to a Nat
+from_rec : {r : Rec} -> !Nat
+  (%r)(~{r}Nat, #{~r}succ, #zero)
+
+main : !Nat
+  from_rec(call(call(halt)))
