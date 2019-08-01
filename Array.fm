@@ -1,6 +1,6 @@
 import Rec@1 open
 import Nat@4 open
-import Eq@0 open
+import Global@2 open
 
 r0 : Rec = halt
 r1 : Rec = call(r0)
@@ -21,10 +21,6 @@ n5 : Nat = succ(n4)
 n6 : Nat = succ(n5)
 n7 : Nat = succ(n6)
 n8 : Nat = succ(n7)
-
-open : {~A : Type, x : !A} -> A
-  dup x = x
-  x
 
 Array : {n : Nat} -> Type
   case<Nat> n
@@ -54,71 +50,47 @@ a6 : Array(n6) = [a5, a5]
 a7 : Array(n7) = [a6, a6]
 a8 : Array(n8) = [a7, a7]
 
-
-// def Arr.with: {dpt}
-//   let init = {path fn} fn
-//   let loop = {cont path fn}
-//     cpy path = path
-//     get [swap0,swap1] =
-//       if |path % 2|
-//       then: [{x}x, {x}x]
-//       else: [Pair.swap, Pair.swap]
-//     (cont |path / 2| {arr}
-//       get [a,b] = (swap0 arr)
-//       get [b,x] = (fn b)
-//       [(swap1 [a,b]), x])
-//   let stop = {func} func
-//   dup fold = (for dpt #init #loop #stop)
-//   # {path fn arr} (fold path fn arr)
-
-
 add_from_rec : {r : Rec, n : !Nat} -> !Nat
   (%r)(~{r}Nat, #{~r}succ, n)
 
-theo.f : {r : Rec, n : Nat} -> !Nat
-  add_from_rec(r, #succ(n))
+with.type : {D : Rec} -> Type
+  { ~n   : Nat
+  , path : U32
+  , fun  : {x : Array(n)} -> [el : U32, Array(n)]
+  , x    : Array(open<Nat>(add_from_rec(D, #n)))
+  }     -> [el : U32, Array(open<Nat>(add_from_rec(D, #n)))]
 
-theo.g : {r : Rec, n : Nat} -> !Nat
-  add_from_rec(call(r), #n)
-
-bsucc : {x : !Nat} -> !Nat
-  dup x = x
-  # succ(x)
-
-theo : {r : Rec, n : !Nat} -> !Eq(!Nat, theo.f(r, open<Nat>(n)), theo.g(r, open<Nat>(n)))
-  dup n    = n
-  let moti = {r} {n : Nat} -> Eq(!Nat, theo.f(r, n), theo.g(r, n))
-  let call = {~r, f, n} cong<!Nat, !Nat, theo.f(r, n), theo.g(r, n)>(f(n), ~bsucc)
-  let halt = {n} refl<!Nat, bsucc(#n)>
-  //let call = {~r, f, n} cong<Nat, Nat, theo.f(r, n), theo.g(r, n)>(f(n), ~succ)
-  //let halt = {n} refl<Nat, succ(n)>
-  dup func = (%r)(~moti, #call, #halt)
-  # func(n)
-
-update {D : Rec}
-  let moti = {D} {~n : Nat, path : U32, fun : {x : Array(n)} -> Array(n)} -> {x : Array(open<Nat>(add_from_rec(D, #n)))} -> Array(open<Nat>(add_from_rec(D, #n)))
+with : {D : Rec} -> !with.type(D)
+  // A theorem that is needed internally
+  let theo
+    : {~r : Rec, ~n : !Nat} -> ! <add_from_rec(r, #succ(n)) == add_from_rec(call(r), #n)>
+    = {~r, ~n} =>
+      dup n    = n
+      let moti = {r} {n : Nat} -> <add_from_rec(r, #succ(n)) == add_from_rec(call(r), #n)>
+      let call = {~r, f, n} cong<!Nat, !Nat, add_from_rec(r, #succ(n)), add_from_rec(call(r), #n), boxed<Nat>(#succ), f(n)>
+      let halt = {n} refl<succ(n)>
+      dup func = (%r)(~moti, #call, #halt)
+      # func(n)
+  let moti = {D} with.type(D)
   let call = {~D, cont, ~n, path, fun}
-    //- Found type... {x : Array(open(~Nat, add_from_rec(D, #succ(n))))} -> Array(open(~Nat, add_from_rec(D, #succ(n))))
-    //- Instead of... {x : Array(open(~Nat, add_from_rec(call(D), #n)))} -> Array(open(~Nat, add_from_rec(call(D), #n)))
-    //rewrite : {~A : Type, ~a : A, ~b : A, e : Eq(A, a, b), ~P : {a : A} -> Type, x : P(a)} -> P(b)
-    rewrite(~Nat, ~theo.f(D, #n), ~theo.g(D, #n), theo(D, #n), ~{k} {x : Array(open<Nat>(k))} -> Array(open<Nat>(k)),
-      cont(~succ(n), path, {arr} arr))
+    let noswap = {a : Array(n), b : Array(n)} [a, b]
+    let doswap = {a : Array(n), b : Array(n)} [b, a]
+    let result = cont(~succ(n), |path / 2|, {arr}
+      get [a, b] = arr
+      get [a, b] = (if |path % 2| [doswap, noswap])(a, b)
+      get [e, a] = fun(a)
+      get [a, b] = (if |path % 2| [doswap, noswap])(a, b)
+      [e, [a, b]])
+    // Rewrites the return type to make the checker happy
+    let e = open<<add_from_rec(D, #succ(n)) == add_from_rec(call(D), #n)>>(theo<D, #n>)
+    rewrite<e>{X in {x : Array(open<Nat>(X))} -> [el : U32, Array(open<Nat>(X))]}(result)
   let halt = {~n, path, fun}
     fun
   (%D)(~moti, #call, #halt)
 
 main
-  theo
-  //update
-  //dup update = update(r8)
-  //# update(0,  a8)
-
-  //let array = a8
-  //# update(~n8, 0, {x}70, a8)
-    //a8
-
-//main :! Array(n3)
-  //update
-
-  //unbox clear_first
-  //clear_first<n3>([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+  dup u8 = with(r8)
+  let fn = {x}
+    cpy x = x
+    [x, |x * 2|]
+  # u8(~zero, 4, fn, a8)
