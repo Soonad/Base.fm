@@ -40,7 +40,7 @@ clear_first :! {~n : Nat, *arr : Array(n)} -> Array(n)
     0
   : {arr : Array(self)} -> Array(self))(arr)
   
-a0 : Array(n0) = 7
+a0 : Array(n0) = 0
 a1 : Array(n1) = [a0, a0]
 a2 : Array(n2) = [a1, a1]
 a3 : Array(n3) = [a2, a2]
@@ -50,31 +50,33 @@ a6 : Array(n6) = [a5, a5]
 a7 : Array(n7) = [a6, a6]
 a8 : Array(n8) = [a7, a7]
 
-add_from_rec : {r : Rec, n : !Nat} -> !Nat
+rec_plus_nat : {r : Rec, n : !Nat} -> !Nat
   (%r)(~{r}Nat, #{~r}succ, n)
 
 with.type : {D : Rec} -> Type
   { ~n   : Nat
   , path : U32
-  , fun  : {x : Array(n)} -> [el : U32, Array(n)]
-  , x    : Array(open<Nat>(add_from_rec(D, #n)))
-  }     -> [el : U32, Array(open<Nat>(add_from_rec(D, #n)))]
+  , fun  : {arr : Array(n)} -> [el : U32, Array(n)]
+  , arr  : Array(open<Nat>(rec_plus_nat(D, #n)))
+  }     -> [el : U32, Array(open<Nat>(rec_plus_nat(D, #n)))]
 
 with : {D : Rec} -> !with.type(D)
-  // A theorem that is needed internally
-  let theo
-    : {~r : Rec, ~n : !Nat} -> ! <add_from_rec(r, #succ(n)) == add_from_rec(call(r), #n)>
-    = {~r, ~n} =>
-      dup n    = n
-      let moti = {r} {n : Nat} -> <add_from_rec(r, #succ(n)) == add_from_rec(call(r), #n)>
-      let call = {~r, f, n} cong<!Nat, !Nat, add_from_rec(r, #succ(n)), add_from_rec(call(r), #n), boxed<Nat>(#succ), f(n)>
-      let halt = {n} refl<succ(n)>
-      dup func = (%r)(~moti, #call, #halt)
-      # func(n)
   let moti = {D} with.type(D)
   let call = {~D, cont, ~n, path, fun}
+    // A proof that `∀ (r : Rec) (n : Nat) -> r + succ(n) == call(r) + n`, used internally
+    let theo
+      : {~r : Rec, ~n : !Nat} -> ! <rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)>
+      = {~r, ~n} =>
+        dup n    = n
+        let moti = {r} {n : Nat} -> <rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)>
+        let call = {~r, f, n} cong<!Nat, !Nat, rec_plus_nat(r, #succ(n)), rec_plus_nat(call(r), #n), boxed<Nat>(#succ), f(n)>
+        let halt = {n} refl<succ(n)>
+        dup func = (%r)(~moti, #call, #halt)
+        # func(n)
+    // Swappers to navigate through the tree with the path
     let noswap = {a : Array(n), b : Array(n)} [a, b]
     let doswap = {a : Array(n), b : Array(n)} [b, a]
+    // Extends `fun` so that it updates a bigger array
     let result = cont(~succ(n), |path / 2|, {arr}
       get [a, b] = arr
       get [a, b] = (if |path % 2| [doswap, noswap])(a, b)
@@ -82,15 +84,20 @@ with : {D : Rec} -> !with.type(D)
       get [a, b] = (if |path % 2| [doswap, noswap])(a, b)
       [e, [a, b]])
     // Rewrites the return type to make the checker happy
-    let e = open<<add_from_rec(D, #succ(n)) == add_from_rec(call(D), #n)>>(theo<D, #n>)
+    let e = open<<rec_plus_nat(D, #succ(n)) == rec_plus_nat(call(D), #n)>>(theo<D, #n>)
     rewrite<e>{X in {x : Array(open<Nat>(X))} -> [el : U32, Array(open<Nat>(X))]}(result)
   let halt = {~n, path, fun}
     fun
   (%D)(~moti, #call, #halt)
 
 main
-  dup u8 = with(r8)
+  // Instantiates the update function for an array of 256 elements
+  dup w8 = with(r8)
+
+  // Our update function increases the element by `2` and returns the old one
   let fn = {x}
     cpy x = x
-    [x, |x * 2|]
-  # u8(~zero, 4, fn, a8)
+    [x, |x + 2|]
+
+  // Updates the 4th element of an array of 256 zeros
+  # w8(~zero, 4, fn, a8)
