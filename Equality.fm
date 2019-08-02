@@ -1,0 +1,15 @@
+// The equality type is built-in
+Eq : {~A : Type, ~B : Type, ~a : A, ~b : B} -> Type
+  =(a, b)
+
+// Symmetry is built-in
+symmetry : {~A : Type, ~B : Type, ~a : A, ~b : B, ~e : =(a, b)} -> =(b, a)
+  sym<e>
+
+// Substitution is built-in
+subst : {~A : Type, ~a : A, ~b : A, ~e : =(a, b), ~P : {a : A} -> Type, x : P(a)} -> P(b)
+  rewrite<e>{x in P(x)}(x)
+
+// Congruence (`a == b` implies `f(a) == f(b)`)
+cong : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : {a : A} -> B, ~e : =(a,b)} -> =(f(a), f(b))
+  rewrite<e>{x in =(f(a), f(x))}(refl<f(a)>)

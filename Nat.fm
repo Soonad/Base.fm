@@ -1,3 +1,5 @@
+// TODO: update
+
 import Rec@1 open
 import Bool@2 open
 
@@ -17,6 +19,12 @@ pred_if : {|n : Nat, |b : Bool} -> Nat
        | false = succ(n.pred)
 | zero | true  = zero
        | false = zero
+
+add :! {n : Nat, *m : Nat} -> Nat
+  (case<Nat> n
+  | succ => {m} succ(add(pred, m))
+  | zero => {m} m
+  : {m : Nat} -> Nat)(m)
 
 // Recursive functions must be boxed (annotated with `:!`). They must also
 // provide a "halt" case with `*`, which will be returned in the case the
@@ -58,5 +66,6 @@ to_u32 :! {n : Nat} -> U32
 from_rec : {r : Rec} -> !Nat
   (%r)(~{r}Nat, #{~r}succ, #zero)
 
-main : !Nat
-  from_rec(call(call(halt)))
+main
+: <succ(succ(zero)) == -add(succ(zero), succ(zero))>
+  refl<succ(succ(zero))>

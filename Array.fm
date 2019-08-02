@@ -1,3 +1,5 @@
+// TODO: update
+
 import Rec@1 open
 import Nat@4 open
 import Global@2 open
@@ -28,18 +30,6 @@ Array : {n : Nat} -> Type
   | zero => U32
   : Type
 
-ArrayR : {r : Rec} -> Type
-  Array(open<Nat>(from_rec(r)))
-
-clear_first :! {~n : Nat, *arr : Array(n)} -> Array(n)
-  ( case<Nat> n
-  | succ => {arr}
-    get [a, b] = arr
-    [clear_first(~pred, a), b]
-  | zero => {val}
-    0
-  : {arr : Array(self)} -> Array(self))(arr)
-  
 a0 : Array(n0) = 0
 a1 : Array(n1) = [a0, a0]
 a2 : Array(n2) = [a1, a1]
@@ -50,6 +40,16 @@ a6 : Array(n6) = [a5, a5]
 a7 : Array(n7) = [a6, a6]
 a8 : Array(n8) = [a7, a7]
 
+
+clear_first :! {~n : Nat, *arr : Array(n)} -> Array(n)
+  ( case<Nat> n
+  | succ => {arr}
+    get [a, b] = arr
+    [clear_first(~pred, a), b]
+  | zero => {val}
+    0
+  : {arr : Array(self)} -> Array(self))(arr)
+  
 rec_plus_nat : {r : Rec, n : !Nat} -> !Nat
   (%r)(~{r}Nat, #{~r}succ, n)
 
@@ -90,14 +90,19 @@ with : {D : Rec} -> !with.type(D)
     fun
   (%D)(~moti, #call, #halt)
 
+
 main
+  ListU32
+  //"foo"
+  //Array
+
   // Instantiates the update function for an array of 256 elements
-  dup w8 = with(r8)
+  //dup w8 = with(r8)
 
-  // Our update function increases the element by `2` and returns the old one
-  let fn = {x}
-    cpy x = x
-    [x, |x + 2|]
+  //// Our update function increases the element by `2` and returns the old one
+  //let fn = {x}
+    //cpy x = x
+    //[x, |x + 2|]
 
-  // Updates the 4th element of an array of 256 zeros
-  # w8(~zero, 4, fn, a8)
+  //// Updates the 4th element of an array of 256 zeros
+  //# w8(~zero, 4, fn, a8)

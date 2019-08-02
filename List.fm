@@ -1,39 +1,121 @@
-import Rec@1 open
+import Rec@3 open
 
 T List <A : Type>
-| push {head : A, tail : List(A)}
-| empty
+| cons {head : A, tail : List(A)}
+| nil
 
-// The dependent pattern match syntax is still not able to deal with indices,
-// so we must use the `case` syntax
 head : {~T : Type, default : T, list : List(T)} -> T
   case<List> list
-  | push  => head
-  | empty => default
+  | cons => head
+  | nil  => default
   : T
 
 tail : {~T : Type, list : List(T)} -> List(T)
   case<List> list
-  | push  => tail
-  | empty => empty(~T)
+  | cons => tail
+  | nil  => nil(~T)
   : List(T)
 
-map :! {~A : Type, fn : !{x : A} -> A, *list : List(!A)} -> List(!A)
-  dup fn = fn
+take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
   case<List> list
-  | push =>
-    dup head = head
-    let head = #fn(head)
-    let tail = map<A>(#fn, tail)
-    push<!A>(head, tail)
-  | empty =>
-    empty<!A>
-  : List(!A)
+  | cons => [head, tail]
+  | nil  => [default, nil<T>]
+  : [x : T, List(T)]
+
+// ::::::::::::::
+// :: Identity ::
+// ::::::::::::::
+
+// Normal identity
+id :! {~A : Type, &list : List(A)} -> List(A)
+  case<List> list
+  | cons => cons<A>(head, id<A>(tail))
+  | nil  => nil<A>
+  : List(A)
+
+// Fusible identity
+id-f :! {~A : Type, &list : List(A)} -> List(A)
+  new<List(A)>{~P, cons, nil}
+  case<List> list
+  | cons => cons(head, id-f<A>(tail))
+  | nil  => nil
+  : P(id-f.call(id-f, ~A, self))
+
+// from 17m to 0.08m rewrites by using -f
+id-f.test
+  let list = *Word[1, 2, 3, 4, 5, 6, 7]
+  dup id   = id-f
+  rep(0r10000, ~List(Word), #id<Word>, #list)
+
+// :::::::::::::
+// :: Mapping ::
+// :::::::::::::
+
+// Map is kinda ugly because we need to make copies of `func`
+// on level 0, so we can't use the recursive function syntax...
+map : {~A : Type, ~B : Type, func : !{x : A} -> B} -> ! {list : List(A)} -> List(B)
+  dup func = func
+  let moti = {x : List(A)} -> List(B)
+  let call = {go, list} =>
+    case<List> list
+    | cons => cons<B>(func(head), go(tail))
+    | nil  => nil<B>
+    : List(B)
+  let halt = {list} =>
+    nil<B>
+  rec(~moti, #call, #halt)
   
+map.test : !List(Word)
+  let list = *Word[1, 2, 3, 4]
+  dup mapf = map<Word, Word>(#{x} *(x, 2))
+  # mapf(list)
+
+// :::::::::::::
+// :: Zipping ::
+// :::::::::::::
+
+// Normal zipp
+zipp :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> List(B)
+  ( case<List> func
+  | cons => {list}
+    let fnh = head
+    let fnt = tail
+    case<List> list
+    | cons => cons<B>(fnh(head), zipp<A, B>(fnt, tail))
+    | nil  => nil<B>
+    : List(B)
+  | nil => {list}
+    nil<B>
+  : {list : List(A)} -> List(B))(list)
+  & nil<B>
+
+// Fusible zipp
+zipp-f :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> List(B)
+  let NIL  = nil
+  let CONS = cons
+  new<List(B)>{~P, cons, nil}
+  ( case<List> func
+  | cons => {cons, nil}
+    let fnh = head
+    let fnt = tail
+    case<List> list
+    | cons => cons(fnh(head), zipp-f<A, B>(fnt, tail))
+    | nil  => nil
+    : P(zipp-f.call(zipp-f, ~A, ~B, CONS<{x : A} -> B>(fnh, fnt), self))
+  | nil => {cons, nil}
+    nil
+  : { cons : {head : B, tail : List(B)} -> P(CONS(~B, head, tail))
+    , nil  : P(NIL<B>)}
+    -> P(zipp-f.call(zipp-f, ~A, ~B, self, list)))(cons, nil)
+  & nil<B>
+  
+// From 2.1m to 0.2m rewrites using -f
+zipp-f.test
+  let f    = {x} +(x, 1)
+  let func = * ({x : Word} -> Word) [f, f, f, f, f, f, f, f]
+  let list = * Word [1, 2, 3, 4, 5, 6, 7, 8]
+  dup zipp = zipp
+  rep(0r10000, ~List(Word), #zipp<Word, Word>(func), #list)
+
 main
-  dup map = map
-  let list = empty<!U32>
-  let list = push<!U32>(#1, list)
-  let list = push<!U32>(#2, list)
-  let list = push<!U32>(#3, list)
-  # map<U32>(#{x} => |x * 2|, list)
+  map

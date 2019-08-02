@@ -1,0 +1,10 @@
+// Removes a box from an erased term
+unbox : {~A : Type, x : !A} -> A
+  dup x = x
+  x
+
+// Creates a boxed version of a function (from `A -> A` to `!A -> !A`)
+boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
+  dup f = f
+  dup x = x
+  # f(x)

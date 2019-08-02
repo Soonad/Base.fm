@@ -3,40 +3,53 @@ T Bool
 | false 
 
 // Simple not
-not : {|b : Bool} -> Bool
-| true  = false
-| false = true
-
-// Simple and
-and : {|b0 : Bool, |b1 : Bool} -> Bool
-| true  | true  = true
-        | false = false
-| false | true  = false
-        | false = false
-
-// Simple or
-or : {|b0 : Bool, |b1 : Bool} -> Bool
-| true  | true  = true
-        | false = true
-| false | true  = true
-        | false = false
+not : {b : Bool} -> Bool
+  case<Bool> b
+  | true  => false
+  | false => true
+  : Bool
 
 // Not with runtime fusion
-not.fuse : {b : Bool} -> Bool
-  new Bool {~P, T, F} =>
-    let moti       = {b} => P(not_f(b))
-    let case_true  = F
-    let case_false = T
-    (%b)(~moti, case_true, case_false)
+not-f : {b : Bool} -> Bool
+  new<Bool>{~P, true, false}
+    case<Bool> b
+    | true  => false
+    | false => true
+    : P(not-f(self))
 
-// Boolean induction is just `%b`.
-induce : {b : Bool} -> 
-  {~P : {b : Bool} -> Type
-  , T : P(true)
-  , F : P(false)
-  } -> P(b)
-  %b
+// Simple and
+and : {b0 : Bool, b1 : Bool} -> Bool
+  ( case<Bool> b0
+  | true => {b1}
+    case<Bool> b1
+    | true  => true
+    | false => false
+    : Bool
+  | false => {b1}
+    case<Bool> b1
+    | true  => false
+    | false => false
+    : Bool
+  : {b1 : Bool} -> Bool)(b1)
 
-// Boolean example
+// Simple or
+or : {b0 : Bool, b1 : Bool} -> Bool
+  ( case<Bool> b0
+  | true => {b1}
+    case<Bool> b1
+    | true  => true
+    | false => true
+    : Bool
+  | false => {b1}
+    case<Bool> b1
+    | true  => true
+    | false => false
+    : Bool
+  : {b1 : Bool} -> Bool)(b1)
+
+// If-then-else
+bif : {b : Bool, ~P : Type, T : P, F : P} -> P
+  (%b)(~{b}P, T, F)
+
 main
-  and(or(true, false), true)
+  not-f
