@@ -7,18 +7,14 @@ T Nat
 | succ {pred : Nat}
 | zero
 
-pred : {|n : Nat} -> Nat
-| succ = n.pred
-| zero = zero
+pred : {n : Nat} -> Nat
+  case<Nat> n
+  | succ => pred
+  | zero => zero
+  : Nat
 
 pred.example
   pred(succ(succ(zero)))
-
-pred_if : {|n : Nat, |b : Bool} -> Nat
-| succ | true  = n.pred
-       | false = succ(n.pred)
-| zero | true  = zero
-       | false = zero
 
 add :! {n : Nat, *m : Nat} -> Nat
   (case<Nat> n
@@ -35,9 +31,11 @@ add :! {n : Nat, *m : Nat} -> Nat
 // scope. See `rec` below to see how Church nats can be used for that.
 // Note: if the halt value isn't any of the function arguments, you can simply
 // provide it after the end of the function by writting `* halt_value` there.
-double :! {|*n : Nat} -> Nat
-| succ = succ(succ(double(n.pred)))
-| zero = zero
+double :! {&n : Nat} -> Nat
+  case<Nat> n
+  | succ => succ(succ(double(pred)))
+  | zero => zero
+  : Nat
 
 // Non-recursive functions that use recursive functions must also be boxed.
 // They must unbox the recursive functions they use.
