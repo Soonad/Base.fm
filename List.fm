@@ -73,15 +73,13 @@ map.test : !List(Word)
 // :::::::::::::
 // :: Zipping ::
 // :::::::::::::
-
+  
 // Normal zipp
 zipp :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> List(B)
   ( case<List> func
   | cons => {list}
-    let fnh = head
-    let fnt = tail
     case<List> list
-    | cons => cons<B>(fnh(head), zipp<A, B>(fnt, tail))
+    | cons => cons<B>(head^(head), zipp<A, B>(tail^, tail))
     | nil  => nil<B>
     : List(B)
   | nil => {list}
@@ -96,12 +94,10 @@ zipp-f :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> L
   new<List(B)>{~P, cons, nil}
   ( case<List> func
   | cons => {cons, nil}
-    let fnh = head
-    let fnt = tail
     case<List> list
-    | cons => cons(fnh(head), zipp-f<A, B>(fnt, tail))
+    | cons => cons(head^(head), zipp-f<A, B>(tail^, tail))
     | nil  => nil
-    : P(zipp-f.call(zipp-f, ~A, ~B, CONS<{x : A} -> B>(fnh, fnt), self))
+    : P(zipp-f.call(zipp-f, ~A, ~B, CONS<{x : A} -> B>(head, tail), self))
   | nil => {cons, nil}
     nil
   : { cons : {head : B, tail : List(B)} -> P(CONS(~B, head, tail))
@@ -116,6 +112,3 @@ zipp-f.test
   let list = .Word[1, 2, 3, 4, 5, 6, 7, 8]
   dup zipp = zipp-f
   rep(0r10000, ~List(Word), #zipp<Word, Word>(func), #list)
-
-main
-  zipp-f.test
