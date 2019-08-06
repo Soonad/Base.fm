@@ -27,14 +27,14 @@ take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
 // ::::::::::::::
 
 // Normal identity
-id :! {~A : Type, &list : List(A)} -> List(A)
+id ! {~A : Type, &list : List(A)} -> List(A)
   case<List> list
   | cons => cons<A>(head, id<A>(tail))
   | nil  => nil<A>
   : List(A)
 
 // Fusible identity
-id-f :! {~A : Type, &list : List(A)} -> List(A)
+id-f ! {~A : Type, &list : List(A)} -> List(A)
   new<List(A)>{~P, cons, nil}
   case<List> list
   | cons => cons(head, id-f<A>(tail))
@@ -42,10 +42,10 @@ id-f :! {~A : Type, &list : List(A)} -> List(A)
   : P(id-f.call(id-f, ~A, self))
 
 // from 17m to 0.08m rewrites by using -f
-id-f.test
+id-f.test : !List(Word)
   let list = .Word[1, 2, 3, 4, 5, 6, 7]
   dup id   = id-f
-  rep(0r10000, ~List(Word), #id<Word>, #list)
+  rep(0r1000, ~List(Word), #id<Word>, #list)
 
 // :::::::::::::
 // :: Mapping ::
@@ -53,9 +53,9 @@ id-f.test
 
 // Map is kinda ugly because we need to make copies of `func`
 // on level 0, so we can't use the recursive function syntax...
-map : {~A : Type, ~B : Type, func : !{x : A} -> B} -> ! {list : List(A)} -> List(B)
+map : {~A : Type, ~B : Type, func : !A -> B} -> ! List(A) -> List(B)
   dup func = func
-  let moti = {x : List(A)} -> List(B)
+  let moti = List(A) -> List(B)
   let call = {go, list} =>
     case<List> list
     | cons => cons<B>(func(head), go(tail))
@@ -67,7 +67,7 @@ map : {~A : Type, ~B : Type, func : !{x : A} -> B} -> ! {list : List(A)} -> List
   
 map.test : !List(Word)
   let list = .Word[1, 2, 3, 4]
-  dup mapf = map<Word, Word>(#{x} *(x, 2))
+  dup mapf = map<Word, Word>(#{x} x * 2)
   # mapf(list)
 
 // :::::::::::::
@@ -75,7 +75,7 @@ map.test : !List(Word)
 // :::::::::::::
   
 // Normal zipp
-zipp :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> List(B)
+zipp ! {~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   ( case<List> func
   | cons => {list}
     case<List> list
@@ -84,11 +84,11 @@ zipp :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> Lis
     : List(B)
   | nil => {list}
     nil<B>
-  : {list : List(A)} -> List(B))(list)
+  : List(A) -> List(B))(list)
   & nil<B>
 
 // Fusible zipp
-zipp-f :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> List(B)
+zipp-f ! {~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   let NIL  = nil
   let CONS = cons
   new<List(B)>{~P, cons, nil}
@@ -97,7 +97,7 @@ zipp-f :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> L
     case<List> list
     | cons => cons(head^(head), zipp-f<A, B>(tail^, tail))
     | nil  => nil
-    : P(zipp-f.call(zipp-f, ~A, ~B, CONS<{x : A} -> B>(head, tail), self))
+    : P(zipp-f.call(zipp-f, ~A, ~B, CONS<A -> B>(head, tail), self))
   | nil => {cons, nil}
     nil
   : { cons : {head : B, tail : List(B)} -> P(CONS(~B, head, tail))
@@ -106,9 +106,22 @@ zipp-f :! {~A : Type, ~B : Type, func : List({x : A} -> B), list : List(A)} -> L
   & nil<B>
   
 // From 2.1m to 0.2m rewrites using -f
-zipp-f.test
-  let f    = {x} +(x, 1)
-  let func = .({x : Word} -> Word)[f, f, f, f, f, f, f, f]
+zipp-f.test : !List(Word)
+  let f    = {x} x + 1
+  let func = .(Word -> Word)[f, f, f, f, f, f, f, f]
   let list = .Word[1, 2, 3, 4, 5, 6, 7, 8]
   dup zipp = zipp-f
   rep(0r10000, ~List(Word), #zipp<Word, Word>(func), #list)
+
+// :::::::::::
+// :: Algos ::
+// :::::::::::
+
+reverse.go ! {~T : Type, &list : List(T), result : List(T)} -> List(T)
+  (case<List> list
+  | cons => {result} reverse.go<T>(tail, cons<T>(head, result))
+  | nil  => {result} result
+  : List(T) -> List(T))(result)
+
+reverse ! {~T : Type, list : List(T)} -> List(T)
+  reverse.go<T>(list, nil<T>)

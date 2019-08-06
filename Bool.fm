@@ -30,7 +30,7 @@ and : {b0 : Bool, b1 : Bool} -> Bool
     | true  => false
     | false => false
     : Bool
-  : {b1 : Bool} -> Bool)(b1)
+  : Bool -> Bool)(b1)
 
 // Simple or
 or : {b0 : Bool, b1 : Bool} -> Bool
@@ -45,11 +45,8 @@ or : {b0 : Bool, b1 : Bool} -> Bool
     | true  => true
     | false => false
     : Bool
-  : {b1 : Bool} -> Bool)(b1)
+  : Bool -> Bool)(b1)
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
   (%b)(~{b}P, T, F)
-
-main
-  not-f
