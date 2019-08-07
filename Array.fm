@@ -23,7 +23,7 @@ a8 : Array(0n8) [a7, a7]
 rec_plus_nat : {r : Rec, n : !Nat} -> !Nat
   rep(r, ~Nat, #succ, n)
 
-with.type : {D : Rec} -> Type
+with.moti : {D : Rec} -> Type
   { ~n   : Nat
   , path : Word
   , fun  : {arr : Array(n)} -> [el : Word, Array(n)]
@@ -38,8 +38,8 @@ with.theo : {~r : Rec, ~n : !Nat} -> ! rec_plus_nat(r, #succ(n)) == rec_plus_nat
   dup func = (%r)(~moti, #call)
   # func(halt, n)
 
-with : {D : Rec} -> !with.type(D)
-  let moti = {D} with.type(D)
+with.make : {D : Rec} -> !with.moti(D)
+  let moti = {D} with.moti(D)
   let call = {~D, cont, ~n, path, fun}
     // Swappers to navigate through the tree with the path
     let noswap = {a : Array(n), b : Array(n)} [a, b]
@@ -58,3 +58,31 @@ with : {D : Rec} -> !with.type(D)
     fun
   dup func = (%D)(~moti, #call)
   # func(halt)
+
+with : {D : Rec} -> !{path : Word, fun : {arr : Word} -> [el : Word, Word], arr : Array(unbox<Nat>(from_rec(D)))} -> [el : Word, Array(unbox<Nat>(from_rec(D)))]
+  dup with = with.make(D)
+  # {path, fun, arr}
+    with(~0n0, path, fun, arr)
+  
+write : {D : Rec} -> !{path : Word, fun : {arr : Word} -> Word, arr : Array(unbox<Nat>(from_rec(D)))} -> Array(unbox<Nat>(from_rec(D)))
+  dup with = with(D)
+  # {path, fun, arr}
+    snd(with(path, {x} [0, fun(x)], arr))
+
+read : {D : Rec} -> !{path : Word, fun : {arr : Word} -> Word, arr : Array(unbox<Nat>(from_rec(D)))} -> [el : Word, Array(unbox<Nat>(from_rec(D)))]
+  dup with = with(D)
+  # {path, fun, arr}
+    with(path, {x} cpy x = x; [x, x], arr)
+
+main
+  with.theo
+ 
+
+//main
+  //write = write(0r8)
+  //read  = read(0r8)
+  //array = V
+  
+  
+  
+  
