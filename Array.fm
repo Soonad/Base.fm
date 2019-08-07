@@ -30,17 +30,26 @@ with.moti : {D : Rec} -> Type
   , arr  : Array(unbox<Nat>(rec_plus_nat(D, #n)))
   }     -> [el : Word, Array(unbox<Nat>(rec_plus_nat(D, #n)))]
 
-with.theo : {~r : Rec, ~n : !Nat} -> ! rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)
-  dup n    = n
+//with.theo : {~r : Rec, ~n : !Nat} -> !(rec_plus_nat(r, #succ(dup n = n; n)) == rec_plus_nat(call(r), #(dup n = n; n)))
+  //dup n    = n
+  //let moti = {r} {n : Nat} -> rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)
+  //let call = {~r, f, n} cong<!Nat, !Nat, rec_plus_nat(r, #succ(n)), rec_plus_nat(call(r), #n), boxed<Nat>(#succ), f(n)>
+  //let halt = {n} refl<#succ(n)>
+  //dup func = (%r)(~moti, #call)
+  //# func(halt, n)
+
+
+with.theo : {~r : Rec} -> !{~n : Nat} -> (rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n))
   let moti = {r} {n : Nat} -> rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)
   let call = {~r, f, n} cong<!Nat, !Nat, rec_plus_nat(r, #succ(n)), rec_plus_nat(call(r), #n), boxed<Nat>(#succ), f(n)>
-  let halt = {n} refl<succ(n)>
+  let halt = {n} refl<#succ(n)>
   dup func = (%r)(~moti, #call)
-  # func(halt, n)
+  # {~n} => func(halt, n)
 
 with.make : {D : Rec} -> !with.moti(D)
   let moti = {D} with.moti(D)
   let call = {~D, cont, ~n, path, fun}
+    cpy path = path
     // Swappers to navigate through the tree with the path
     let noswap = {a : Array(n), b : Array(n)} [a, b]
     let doswap = {a : Array(n), b : Array(n)} [b, a]
@@ -51,8 +60,7 @@ with.make : {D : Rec} -> !with.moti(D)
       get [e, a] = fun(a)
       get [a, b] = (if path % 2 [doswap, noswap])(a, b)
       [e, [a, b]])
-    // Rewrites the return type to make the checker happy
-    let e = unbox<rec_plus_nat(D, #succ(n)) == rec_plus_nat(call(D), #n)>(with.theo<D, #n>)
+    let e = (dup f = with.theo<D>; f<n>)
     rewrite<e>{X in {x : Array(unbox<Nat>(X))} -> [el : Word, Array(unbox<Nat>(X))]}(result)
   let halt = {~n, path, fun}
     fun
@@ -73,16 +81,3 @@ read : {D : Rec} -> !{path : Word, fun : {arr : Word} -> Word, arr : Array(unbox
   dup with = with(D)
   # {path, fun, arr}
     with(path, {x} cpy x = x; [x, x], arr)
-
-main
-  with.theo
- 
-
-//main
-  //write = write(0r8)
-  //read  = read(0r8)
-  //array = V
-  
-  
-  
-  
