@@ -1,5 +1,5 @@
-import Rec@3 open
-import Bool@4 open
+import Rec@4 open
+import Bool@5 open
 
 T Nat
 | succ {pred : Nat}
@@ -43,16 +43,16 @@ double.example ! Nat
 // Converts a native Word to a Nat
 from_word ! {x : Word} -> Nat
   cpy x = x
-  if x === 0 then:
+  if x .== 0 then:
     zero
   else:
-    succ(from_word(x - 1))
+    succ(from_word(x .- 1))
   & zero
 
 // Converts a Nat to a native Word
 to_word ! {n : Nat} -> Word
   case<Nat> n
-  | succ => 1 + to_word(pred)
+  | succ => 1 .+ to_word(pred)
   | zero => 0
   : Word
   & 0
