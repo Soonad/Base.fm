@@ -1,6 +1,12 @@
 T Bool
 | true
-| false 
+| false
+
+
+// Unary operations
+.!! : Bool -> Bool; not
+.F : {x : Bool} -> Bool; false
+.T : {x : Bool} -> Bool; true
 
 // Simple not
 not : {b : Bool} -> Bool
@@ -17,36 +23,39 @@ not-f : {b : Bool} -> Bool
     | false => true
     : P(not-f(self))
 
-// Simple and
-and : {b0 : Bool, b1 : Bool} -> Bool
+// Binary operations
+binop : { r00 : Bool, r01 : Bool, r10 : Bool, r11 : Bool
+        , b0 : Bool, b1 : Bool
+        } -> Bool
   ( case<Bool> b0
-  | true => {b1}
-    case<Bool> b1
-    | true  => true
-    | false => false
+  | true => {b1} case<Bool> b1
+    | true  => r11
+    | false => r10
     : Bool
-  | false => {b1}
-    case<Bool> b1
-    | true  => false
-    | false => false
+  | false => {b1} case<Bool> b1
+    | true  => r01
+    | false => r00
     : Bool
   : Bool -> Bool)(b1)
 
-// Simple or
-or : {b0 : Bool, b1 : Bool} -> Bool
-  ( case<Bool> b0
-  | true => {b1}
-    case<Bool> b1
-    | true  => true
-    | false => true
-    : Bool
-  | false => {b1}
-    case<Bool> b1
-    | true  => true
-    | false => false
-    : Bool
-  : Bool -> Bool)(b1)
+and  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, false, false, true,  b0, b1)
+or   : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  true,  b0, b1)
+nand : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  true,  true,  false, b0, b1)
+nor  : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, false, b0, b1)
+xor  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  false, b0, b1)
+xnor : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, true,  b0, b1)
+
+.&& : Bool -> Bool -> Bool; and
+.|| : Bool -> Bool -> Bool; or
+.!& : Bool -> Bool -> Bool; nand
+.!| : Bool -> Bool -> Bool; nor
+./= : Bool -> Bool -> Bool; xor
+.== : Bool -> Bool -> Bool; xnor
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
   (%b)(~{b}P, T, F)
+
+test : Bool
+  true .&& (true .|| true) .&& (true .== true)
+
