@@ -1,5 +1,5 @@
 T Empty
 
-efq : {e : Empty, P : Type} -> P
-  case<Empty> e
-  : P
+absurd : {void : Empty, A : Type} -> A
+  case<Empty> void
+  : A
