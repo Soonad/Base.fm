@@ -1,6 +1,6 @@
 T Bool
 | true
-| false 
+| false
 
 // Simple not
 not : {b : Bool} -> Bool

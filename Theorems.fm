@@ -1,5 +1,5 @@
-import Bool@4 open
-import Equality@1 open
+import Bool@6 open
+import Equality@2 open
 
 Demorgan0 : {a : Bool, b : Bool} -> Type
   not(or(a,b)) == and(not(a), not(b))
@@ -34,3 +34,5 @@ demorgan1 : {a : Bool, b : Bool} -> Demorgan1(a, b)
     | false => refl<true>
     : Demorgan1(false, self)
   : {b : Bool} -> Demorgan1(self, b))(b)
+
+main [demorgan0, demorgan1]

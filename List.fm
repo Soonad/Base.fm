@@ -1,4 +1,4 @@
-import Rec@4 open
+import Rec@5 open
 
 T List <A : Type>
 | cons {head : A, tail : List(A)}
@@ -43,7 +43,7 @@ id-f ! {~A : Type, &list : List(A)} -> List(A)
 
 // from 17m to 0.08m rewrites by using -f
 id-f.test : !List(Word)
-  let list = *Word[1, 2, 3, 4, 5, 6, 7]
+  let list = Word$[1, 2, 3, 4, 5, 6, 7]
   dup id   = id-f
   rep(0r1000, ~List(Word), #id<Word>, #list)
 
@@ -66,8 +66,8 @@ map : {~A : Type, ~B : Type, func : !A -> B} -> ! List(A) -> List(B)
   rec(~moti, #call, #halt)
   
 map.test : !List(Word)
-  let list = *Word[1, 2, 3, 4]
-  dup mapf = map<Word, Word>(#{x} x .* 2)
+  let list = Word$[1, 2, 3, 4]
+  dup mapf = map<Word, Word>(#{x} x * 2)
   # mapf(list)
 
 // :::::::::::::
@@ -107,9 +107,9 @@ zipp-f ! {~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   
 // From 2.1m to 0.2m rewrites using -f
 zipp-f.test : !List(Word)
-  let f    = {x} x .+ 1
-  let func = *(Word -> Word)[f, f, f, f, f, f, f, f]
-  let list = *Word[1, 2, 3, 4, 5, 6, 7, 8]
+  let f    = {x} x + 1
+  let func = (Word -> Word)$[f, f, f, f, f, f, f, f]
+  let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
   dup zipp = zipp-f
   rep(0r10000, ~List(Word), #zipp<Word, Word>(func), #list)
 
