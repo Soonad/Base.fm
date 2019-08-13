@@ -1,0 +1,62 @@
+import Ind@0 open
+import List@12 open
+
+Char : Type
+  Word
+
+String : Type
+  List(Char)
+
+Output : Type
+  [tag : Word, String]
+
+print : {str : String} -> Output
+  [0x53484f57, str]
+
+!string.example : !Output
+  let str = "Hello, world!"
+  let str = string_to_chars*256(str)
+  let str = reverse*256<Char>(str)
+  let str = chars_to_string*256(str)
+  print(str)
+
+cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
+  cpy chr = chr
+  let fun =
+    if chr > 0:
+      {chrs : List(Char)} cons<Char>(chr, chrs)
+    else:
+      {chrs : List(Char)} chrs
+  fun(chrs)
+
+!string_to_chars*N : !{str : String} -> List(Char)
+  case<List> str
+  | cons =>
+    cpy word = head
+    let chrs = string_to_chars(tail)
+    let chrs = cons_char((word .>> 24) .& 0xFF, chrs)
+    let chrs = cons_char((word .>> 16) .& 0xFF, chrs)
+    let chrs = cons_char((word .>>  8) .& 0xFF, chrs)
+    let chrs = cons_char( word         .& 0xFF, chrs)
+    chrs
+  | nil => 
+    nil<Word>
+  : List(Word)
+  * nil<Word>
+
+!chars_to_string.go*N : !{chrs : List(Char), word : Word} -> String
+  cpy word = word
+  case<List> chrs
+  | cons =>
+    cpy word = (word .>> 8) .| (head .<< 24)
+    let done = (word .& 0xFF) > 0
+    let cons = if done: cons<Word>(word) else: {str : String} => str
+    let word = if done: 0 else: word
+    cons(chars_to_string.go(tail, word))
+  | nil =>
+    cons<Word>(word, nil<Word>)
+  : String
+  * nil<Word>
+
+!chars_to_string : {N : Ind} -> dup f = chars_to_string.go*N; !{chrs : List(Char)} -> String
+  f(chrs, 0)

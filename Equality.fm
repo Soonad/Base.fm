@@ -19,5 +19,5 @@ T EQ <A : Type, a : A> {b : A}
 | REFL : EQ(A, a, a)
 
 // Converts eq to EQ
-eq_to_EQ : {A : Type, a : A, b : A, e : a == b} -> EQ(A, a, b)
+eq_to_EQ : {~A : Type, ~a : A, ~b : A, ~e : a == b} -> EQ(A, a, b)
   rewrite<e>{X in $self {~P : {b : A, wit : EQ(A, a, b)} -> Type, REFL : P(a, REFL<A, a>)} -> P(X, self)}(REFL<A, a>)
