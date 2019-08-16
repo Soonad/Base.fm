@@ -1,0 +1,107 @@
+T Ordering
+| lt
+| eq
+| gt
+
+T Ord<A : Type>
+| mkOrd { compare : A -> A -> Ordering }
+
+cmpBool : {a : Bool,  b : Bool} -> Ordering
+  (case<Bool> a
+  | true  => {b1} case<Bool> b1 | true => eq | false => gt : Ordering
+  | false => {b1} case<Bool> b1 | true => lt | false => eq : Ordering
+  : Bool -> Ordering
+  )(b)
+
+useCompare : {a : Bool, b : Bool, c : Ord(Bool)} -> Ordering
+  case<Ord> c
+  | mkOrd => compare(a,b)
+  : Ordering
+
+testOrdBool : Ord(Bool)
+  mkOrd<Bool>(cmpBool)
+
+testUseCompare : Ordering
+  useCompare(true,false,testOrdBool)
+
+T Show<A : Type>
+| mkShow { show : A -> String }
+
+T Semigroup<A : Type>
+| mkSemigroup { bin : A -> A -> A
+              , semigroup1 : { x : A, y : A, z : A}
+                           -> bin(bin(x, y), z) == bin(x, bin(y,z))
+              }
+
+AssocAnd : {a : Bool, b : Bool, c : Bool} -> Type
+  and(and(a,b),c) == and(a,and(b,c))
+
+assocAnd : {a : Bool, b : Bool, c : Bool} -> AssocAnd(a,b,c)
+  ( case<Bool> a
+  | true => {b, c} (case<Bool> b
+    | true  => {c} case<Bool> c
+      | true => refl<true> | false => refl<false> : AssocAnd(true, true, self)
+    | false  => {c} case<Bool> c
+      | true => refl<false> | false => refl<false> : AssocAnd(true,false,self)
+    : {c : Bool} -> AssocAnd(true, self, c))(c)
+  | false => {b, c} (case<Bool> b
+    | true  => {c} case<Bool> c
+      | true => refl<false> | false => refl<false> : AssocAnd(false, true, self)
+    | false  => {c} case<Bool> c
+      | true => refl<false> | false => refl<false> : AssocAnd(false,false,self)
+    : {c : Bool} -> AssocAnd(false, self, c))(c)
+  : {b : Bool, c : Bool} -> AssocAnd(self, b, c))(b,c)
+
+testSemigroupBoolAnd : Semigroup(Bool)
+  mkSemigroup<Bool>(and, assocAnd)
+
+T Monoid<A : Type>
+| mkMonoid { mappend : A -> A -> A
+           , mempty : A
+           , monoid1 : { x : A, y : A, z : A}
+                     -> mappend(mappend(x, y), z) == mappend(x, mappend(y,z))
+           , monoid2 : {x : A} -> mappend(mempty, x) == x
+           , monoid3 : {x : A} -> mappend(x, mempty) == x
+           }
+
+// TODO: Functor, Applicative, Monad laws
+T Functor<F : Type -> Type, A : Type>
+| mkFunctor { map : {~B : Type, :F(A) -> F(B), :F(A)} -> F(B) }
+
+
+T Applicative <M : Type -> Type, A : Type>
+| mkApplicative { pure : A -> M(A)
+                , ap : {~B : Type, :M(A -> B), :M(A)} -> M(B)
+                }
+
+T Monad<M : Type -> Type, A : Type>
+| mkMonad { return : A -> M(A)
+          , bind : {~B : Type} -> M(A) -> (A -> M(B)) -> M(B)
+          }
+
+T Maybe<A : Type>
+| just {some : A}
+| none
+
+maybeReturn : {~A : Type, a : A} -> Maybe(A)
+  just<A>(a)
+
+maybeReturnTest : Maybe(Bool)
+  maybeReturn<Bool>(true)
+
+maybeBind : {~A : Type, ~B : Type
+            , ma : Maybe(A), f : A -> Maybe(B)
+            } -> Maybe(B)
+   case<Maybe> ma
+   | just => f(some)
+   | none => none<B>
+   : Maybe(B)
+
+maybeBindTest : Maybe(Ordering)
+  maybeBind<Bool, Ordering>(
+      maybeReturn<Bool>(true)
+    , {x} maybeReturn<Ordering>(cmpBool(true, x))
+    )
+
+monadMaybe : {~A : Type} -> Monad(Maybe, A)
+ mkMonad<Maybe, A>(maybeReturn<A>, maybeBind<A>)
