@@ -1,9 +1,9 @@
+import Unit@0 open
+
 T Bool
 | true
 | false
 
-
-// Unary operations
 .!! : Bool -> Bool; not
 .F : {x : Bool} -> Bool; false
 .T : {x : Bool} -> Bool; true
@@ -56,6 +56,16 @@ xnor : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, true,  b0, b1)
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
   (%b)(~{b}P, T, F)
 
-test : Bool
-  true .&& (true .|| true) .&& (true .== true)
+true_not_false : {e : true == false} -> Empty
+  let motive = {b : Bool} =>
+    case<Bool> b
+    | true => Unit
+    | false => Empty
+    : Type
+  rewrite<e>{x in motive(x)}(new)
 
+different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
+  case<Bool> a
+  | true => [false, ~true_not_false]
+  | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
+  : [b : Bool, ~{:self == b} -> Empty]

@@ -1,14 +1,25 @@
 // TODO: update
 
-import Boxes@0 open
-import Nat@8 open
-import Rec@3 open
+import Boxes@1 open
+import Nat@15 open
+import Ind@0 open
 
 Array : {n : Nat} -> Type
   case<Nat> n
   | succ => [x : Array(pred), Array(pred)]
   | zero => Word
   : Type
+
+!array.example : ![:Word, [:Word, Word]]
+  let arr      = a8
+  let arr      = write*8(0, 0, arr)
+  let arr      = write*8(1, 1, arr)
+  let arr      = write*8(2, 2, arr)
+  let arr      = update*8(2, {x} x * 10, arr)
+  get [arr, x] = read*8(0, arr)
+  get [arr, y] = read*8(1, arr)
+  get [arr, z] = read*8(2, arr)
+  [x, [y, z]]
 
 a0 : Array(0n0) 0
 a1 : Array(0n1) [a0, a0]
@@ -20,64 +31,66 @@ a6 : Array(0n6) [a5, a5]
 a7 : Array(0n7) [a6, a6]
 a8 : Array(0n8) [a7, a7]
 
-rec_plus_nat : {r : Rec, n : !Nat} -> !Nat
-  rep(r, ~Nat, #succ, n)
+rec_plus_nat : {r : Ind, n : !Nat} -> !Nat
+  rec(r, ~Nat, #succ, n)
 
-with.moti : {D : Rec} -> Type
+!with.theo*r : !{~n : !Nat} -> rec_plus_nat(r, #succ(-#(n))) == rec_plus_nat(step(r), n)
+  cong<
+    !Nat,
+    !Nat,
+    rec_plus_nat(r, #succ(-#(n))),
+    rec_plus_nat(step(r), n),
+    boxed<Nat>(#succ),
+    with.theo(~n)>
+  * refl<succ(-#(n))>
+
+!with.make*D : !
   { ~n   : Nat
   , path : Word
-  , fun  : {arr : Array(n)} -> [el : Word, Array(n)]
-  , arr  : Array(unbox<Nat>(rec_plus_nat(D, #n)))
-  }     -> [el : Word, Array(unbox<Nat>(rec_plus_nat(D, #n)))]
+  , fun  : {arr : Array(n)} -> [:Array(n), Word]}
+  -> {arr : Array(-#(rec_plus_nat(D, #n)))}
+  -> [:Array(-#(rec_plus_nat(D, #n))), Word]
+  // Swappers to navigate through the tree with the path
+  let noswap = {a : Array(n), b : Array(n)} [a, b]
+  let doswap = {a : Array(n), b : Array(n)} [b, a]
+  // Extends `fun` so that it updates a bigger array
+  let result = with.make(~succ(n), path / 2, {arr}
+    get [a, b] = arr
+    get [a, b] = (if path % 2: doswap else: noswap)(a, b)
+    get [a, e] = fun(a)
+    get [a, b] = (if path % 2: doswap else: noswap)(a, b)
+    [[a, b], e])
+  let ty = {X : !Nat} => {x : Array(-#(X))} -> [:Array(-#(X)), Word]
+  rewrite<-#(with.theo(D))(~#n)>{x in ty(x)}(result)
+  * fun
 
-//with.theo : {~r : Rec, ~n : !Nat} -> !(rec_plus_nat(r, #succ(dup n = n; n)) == rec_plus_nat(call(r), #(dup n = n; n)))
-  //dup n    = n
-  //let moti = {r} {n : Nat} -> rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)
-  //let call = {~r, f, n} cong<!Nat, !Nat, rec_plus_nat(r, #succ(n)), rec_plus_nat(call(r), #n), boxed<Nat>(#succ), f(n)>
-  //let halt = {n} refl<#succ(n)>
-  //dup func = (%r)(~moti, #call)
-  //# func(halt, n)
+!with : {D : Ind} ->
+  dup with.make = with.make(D)
+  ! { path : Word
+    , fun  : {arr : Word} -> [:Word, Word]
+    , arr  : Array(-#(from_ind(D)))}
+    -> [:Array(-#(from_ind(D))), Word]
+  with.make(~0n0, path, fun, arr)
 
-
-with.theo : {~r : Rec} -> !{~n : Nat} -> (rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n))
-  let moti = {r} {n : Nat} -> rec_plus_nat(r, #succ(n)) == rec_plus_nat(call(r), #n)
-  let call = {~r, f, n} cong<!Nat, !Nat, rec_plus_nat(r, #succ(n)), rec_plus_nat(call(r), #n), boxed<Nat>(#succ), f(n)>
-  let halt = {n} refl<#succ(n)>
-  dup func = (%r)(~moti, #call)
-  # {~n} => func(halt, n)
-
-with.make : {D : Rec} -> !with.moti(D)
-  let moti = {D} with.moti(D)
-  let call = {~D, cont, ~n, path, fun}
-    cpy path = path
-    // Swappers to navigate through the tree with the path
-    let noswap = {a : Array(n), b : Array(n)} [a, b]
-    let doswap = {a : Array(n), b : Array(n)} [b, a]
-    // Extends `fun` so that it updates a bigger array
-    let result = cont(~succ(n), path / 2, {arr}
-      get [a, b] = arr
-      get [a, b] = (if path % 2 [doswap, noswap])(a, b)
-      get [e, a] = fun(a)
-      get [a, b] = (if path % 2 [doswap, noswap])(a, b)
-      [e, [a, b]])
-    let e = (dup f = with.theo<D>; f<n>)
-    rewrite<e>{X in {x : Array(unbox<Nat>(X))} -> [el : Word, Array(unbox<Nat>(X))]}(result)
-  let halt = {~n, path, fun}
-    fun
-  dup func = (%D)(~moti, #call)
-  # func(halt)
-
-with : {D : Rec} -> !{path : Word, fun : {arr : Word} -> [el : Word, Word], arr : Array(unbox<Nat>(from_rec(D)))} -> [el : Word, Array(unbox<Nat>(from_rec(D)))]
-  dup with = with.make(D)
-  # {path, fun, arr}
-    with(~0n0, path, fun, arr)
-  
-write : {D : Rec} -> !{path : Word, fun : {arr : Word} -> Word, arr : Array(unbox<Nat>(from_rec(D)))} -> Array(unbox<Nat>(from_rec(D)))
+!update : {D : Ind} ->
   dup with = with(D)
-  # {path, fun, arr}
-    snd(with(path, {x} [0, fun(x)], arr))
+  ! { path : Word
+    , fun  : {arr : Word} -> Word
+    , arr  : Array(-#(from_ind(D)))}
+    -> Array(-#(from_ind(D)))
+  fst(with(path, {x} [fun(x), 0], arr))
 
-read : {D : Rec} -> !{path : Word, fun : {arr : Word} -> Word, arr : Array(unbox<Nat>(from_rec(D)))} -> [el : Word, Array(unbox<Nat>(from_rec(D)))]
+!write : {D : Ind} ->
   dup with = with(D)
-  # {path, fun, arr}
-    with(path, {x} cpy x = x; [x, x], arr)
+  ! { path : Word
+    , val  : Word
+    , arr  : Array(-#(from_ind(D)))}
+    -> Array(-#(from_ind(D)))
+  fst(with(path, {x} [val, 0], arr))
+
+!read : {D : Ind} ->
+  dup with = with(D)
+  ! { path : Word
+    , arr  : Array(-#(from_ind(D)))}
+    -> [:Array(-#(from_ind(D))), Word]
+  with(path, {x} cpy x = x; [x, x], arr)

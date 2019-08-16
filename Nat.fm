@@ -1,5 +1,5 @@
-import Rec@3 open
-import Bool@4 open
+import Ind@0 open
+import Bool@6 open
 
 T Nat
 | succ {pred : Nat}
@@ -14,22 +14,13 @@ pred : {n : Nat} -> Nat
 pred.example
   pred(succ(succ(zero)))
 
-add ! {n : Nat, &m : Nat} -> Nat
+!add*N : !{n : Nat, *m : Nat} -> Nat
   (case<Nat> n
   | succ => {m} succ(add(pred, m))
   | zero => {m} m
   : Nat -> Nat)(m)
 
-// Recursive functions must be boxed (annotated with `:!`). They must also
-// provide a "halt" case with `*`, which will be returned in the case the
-// function runs out of "gas". That's because Formality is terminating. This is
-// NOT a "native" "bounded recursion" feature, instead, it is desugared to
-// `rec(TYPE, {r} => func[func <- r], halt)`. Notice that the `rec`, the
-// function that repeatedly calls `func` as many times as needed, must be in
-// scope. See `rec` below to see how Church nats can be used for that.
-// Note: if the halt value isn't any of the function arguments, you can simply
-// provide it after the end of the function by writting `* halt_value` there.
-double ! {&n : Nat} -> Nat
+!double*N : !{*n : Nat} -> Nat
   case<Nat> n
   | succ => succ(succ(double(pred)))
   | zero => zero
@@ -37,27 +28,26 @@ double ! {&n : Nat} -> Nat
 
 // Non-recursive functions that use recursive functions must also be boxed.
 // They must unbox the recursive functions they use.
-double.example ! Nat
-  double(succ(zero))
+!double.example : !Nat
+  double*256(succ(zero))
 
 // Converts a native Word to a Nat
-from_word ! {x : Word} -> Nat
-  cpy x = x
-  if x === 0 then:
+!from_word*N : !{x : Word} -> Nat
+  if x === 0:
     zero
   else:
     succ(from_word(x - 1))
-  & zero
+  * zero
 
 // Converts a Nat to a native Word
-to_word ! {n : Nat} -> Word
+!to_word*N : !{n : Nat} -> Word
   case<Nat> n
   | succ => 1 + to_word(pred)
   | zero => 0
   : Word
-  & 0
+  * 0
 
-// Converts a Rec to a Nat
-from_rec : {r : Rec} -> !Nat
+// Converts a Ind to a Nat
+from_ind : {r : Ind} -> !Nat
   dup func = (%r)(~{r}Nat, #{~r}succ)
   # func(zero)
