@@ -1,0 +1,51 @@
+// Propositional Logic
+
+Not : {P : Type} -> Type; {x : P} -> Empty
+
+// Non-contradiction
+Explosion : {A : Type, x : A, nx : Not(A)} -> Empty; nx(x)
+
+// Modus ponens
+Affirms: {A : Type, B : Type, implies : A -> B, a : A} -> B; implies(a)
+
+// Modus tollens
+Denies: {A : Type, B : Type, implies : A -> B, nb : Not(B)} -> Not(A)
+  {x : A} nb(implies(x))
+
+// Conjunction
+T And<A : Type, B: Type>
+| mkAnd { left : A, right : B}
+
+// Disjunction
+T Or<A : Type, B: Type>
+| mkLeft {left : A}
+| mkRight {right : B}
+
+// Disjunction elimination
+orByCases : {~A : Type, ~B : Type, P : Or(A,B) -> Type
+         , fromLeft : {l : A} -> P(mkLeft<A,B>(l))
+         , fromRight : {r : B} -> P(mkRight<A,B>(r))
+         , or : Or(A,B)
+         } -> P(or);
+  case<Or> or
+  | mkLeft => fromLeft(left)
+  | mkRight => fromRight(right)
+  : P(self)
+
+// Biconditional
+T Iff<A : Type, B : Type>
+| mkIff { if : A -> B, onlyif : B -> A}
+
+// Disjunctive syllogism (modus tollendo ponens)
+orSyllogism : {~A : Type, ~B : Type, orAB : Or(A,B), negA : Not(A)} -> B
+  case<Or> orAB
+  | mkLeft => absurd(negA(left), B)
+  | mkRight => right
+  : B
+
+// Hypothetical syllogism
+chainRule : {~A : Type, ~B : Type, ~C : Type, f : A -> B, g : B -> C} -> A -> C
+  {x : A} g(f(x))
+
+
+

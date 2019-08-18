@@ -1,3 +1,49 @@
+import Logic@0 open
+
+// Binary Relations: A -> A -> Type
+
+Reflexive : {~A : Type, ~R : A -> A -> Type} -> Type; {x : A} -> R(x,x)
+Coreflexive : {~A : Type, ~R : A -> A -> Type} -> Type
+  {x : A, y : A, :R(x,x)} -> x == y
+
+Quasireflexive : {~A : Type, ~R : A -> A -> Type} -> Type
+  {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
+
+Transitive : {~A : Type, ~R : A -> A -> Type } -> Type
+  {x : A, y : A, z : A, :And(R(x,y), R(y,z))} -> R(x,z)
+
+Symmetric : {~A : Type, ~R : A -> A -> Type} -> Type;
+  {x : A, y : A, :R(x,y)} -> R(y,x)
+
+T Equivalence<A : Type>
+| mkEquivalence { bin : A -> A -> Type
+                , equivalence1 : Reflexive<A,bin>
+                , equivalence2 : Symmetric<A,bin>
+                , equivalence3 : Transitive<A,bin>
+                }
+
+// Binary operations, A -> A -> A
+Associative : {A : Type, f : A -> A -> A} -> Type;
+  {x : A, y : A, z : A } -> f(f(x,y),z) == f(x,f(y,z))
+
+Commutative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(x,y) == f(y,x)
+
+T AssocAndCommut<A : Type, f : A -> A -> A>
+| mkAssocAndCommut { assoc : Associative(A,f), commut : Commutative(A,f)}
+
+
+//LeftDistributive : {~A : Type, ~f : A -> A -> A, ~g : A -> A -> A} -> Type
+//  {x : A, y : A, z : A} -> f(x, g(y,z)) == g(f(x,y),f(x,z))
+//
+//RightDistributive : {~A : Type, ~f : A -> A -> A, ~g : A -> A -> A} -> Type
+//  {x : A, y : A, z : A} -> f(g(y,z), x) == g(f(y,x),f(z,x))
+//
+//T Distributive<A : Type, f : A -> A -> A, g : A -> A -> A>
+//| mkDistributive { left : LeftDistributive(A,f,g)
+//                , right : RightDistributive(A,f,g))
+
+// Ordered
 T Ordering
 | lt
 | eq
@@ -27,16 +73,8 @@ testUseCompare : Ordering
 T Show<A : Type>
 | mkShow { show : A -> String }
 
-T Semigroup<A : Type>
-| mkSemigroup { bin : A -> A -> A
-              , semigroup1 : { x : A, y : A, z : A}
-                           -> bin(bin(x, y), z) == bin(x, bin(y,z))
-              }
-
-AssocAnd : {a : Bool, b : Bool, c : Bool} -> Type
-  and(and(a,b),c) == and(a,and(b,c))
-
-assocAnd : {a : Bool, b : Bool, c : Bool} -> AssocAnd(a,b,c)
+assocAnd : {a : Bool, b : Bool, c : Bool} -> and(and(a,b),c) == and(a,and(b,c))
+  let AssocAnd = {x : Bool, y : Bool, z : Bool} and(and(x,y),z) == and(x,and(y,z))
   ( case<Bool> a
   | true => {b, c} (case<Bool> b
     | true  => {c} case<Bool> c
@@ -55,14 +93,30 @@ assocAnd : {a : Bool, b : Bool, c : Bool} -> AssocAnd(a,b,c)
 testSemigroupBoolAnd : Semigroup(Bool)
   mkSemigroup<Bool>(and, assocAnd)
 
+T Semigroup<A : Type>
+| mkSemigroup { bin : A -> A -> A
+              , semigroup1 : Associative(A,bin)
+              }
+
 T Monoid<A : Type>
 | mkMonoid { mappend : A -> A -> A
            , mempty : A
-           , monoid1 : { x : A, y : A, z : A}
-                     -> mappend(mappend(x, y), z) == mappend(x, mappend(y,z))
+           , monoid1 : Associative(A,mappend)
            , monoid2 : {x : A} -> mappend(mempty, x) == x
            , monoid3 : {x : A} -> mappend(x, mempty) == x
            }
+
+T Monoid2<A : Type>
+| mkMonoid2 { semigroup : Semigroup(A)
+           , mempty : A
+           , monoid2 : {x : A} -> getBin<A>(semigroup)(mempty, x) == x
+           , monoid3 : {x : A} -> getBin<A>(semigroup)(x, mempty) == x
+           }
+
+getBin : {~A : Type, sem : Semigroup(A)} -> (A -> A -> A)
+  case<Semigroup> sem
+  | mkSemigroup => bin
+  : A -> A -> A
 
 // TODO: Functor, Applicative, Monad laws
 T Functor<F : Type -> Type, A : Type>
