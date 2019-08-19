@@ -55,3 +55,5 @@ add : {a : Ind, b : Ind} -> Ind
   dup A = (%a)(~{a} => P(add(a, b)), #{~n, h} => S(~add(n, b), h))
   dup B = (%b)(~{b} => P(add(base, b)), #{~n, h} => S(~add(base, n), h))
   # {z} => A(B(z))
+
+main add

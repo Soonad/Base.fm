@@ -1,5 +1,5 @@
-import Ind@0 open
-import List@12 open
+import Ind open
+import List open
 
 Char : Type
   Word

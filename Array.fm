@@ -1,8 +1,7 @@
-// TODO: update
-
-import Boxes@1 open
-import Nat@15 open
-import Ind@0 open
+import Boxes open
+import Nat open
+import Ind open
+import Equality open
 
 Array : {n : Nat} -> Type
   case<Nat> n

@@ -1,4 +1,4 @@
-import Ind@0 open
+import Ind open
 
 T List <A : Type>
 | cons {head : A, tail : List(A)}
