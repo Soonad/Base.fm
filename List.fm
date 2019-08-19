@@ -86,6 +86,28 @@ map-f.example
   dup list = rec(*10000, ~List(Word), #map, #list)
   # id<Word>(list)
 
+!map.composition*n :
+  !{~A : Type
+  , ~B : Type
+  , ~C : Type
+  , f  : !{:B} -> C
+  , g  : !{:A} -> B
+  , xs : List(A)
+  } -> -#(map*n<B,C>(f))(-#(map*n<A,B>(g))(xs)) == -#(map*n<A,C>(#{x}-#(f)(-#(g)(x))))(xs)
+  case<List> xs
+  | cons => 
+    cong(
+      ~ List(C),
+      ~ List(C),
+      ~ -#(map(n, ~B, ~C, f))(-#(map(n, ~A, ~B, g))(tail)),
+      ~ -#(map(n, ~A, ~C, #{x}-#(f)(-#(g)(x))))(tail),
+      ~ {xs} cons<C>(-#(f)(-#(g)(head)), xs),
+      ~ map.composition<A, B, C>(f, g, tail))
+  | nil =>
+    refl<nil>
+  : -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
+  * refl<nil>
+
 // :::::::::::::
 // :: Zipping ::
 // :::::::::::::
