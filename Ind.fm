@@ -49,11 +49,9 @@ twice : {n : Ind} -> Ind
   # {base} loop(base)
 
 // Adds two Inds.
-sum : {a : Ind, b : Ind} -> Ind
+plus : {a : Ind, b : Ind} -> Ind
   new<Ind> {~P, S}
   dup S = S
-  dup A = (%a)(~{a} => P(sum(a, b)), #{~n, h} => S(~sum(n, b), h))
-  dup B = (%b)(~{b} => P(sum(base, b)), #{~n, h} => S(~sum(base, n), h))
+  dup A = (%a)(~{a} => P(plus(a, b)), #{~n, h} => S(~plus(n, b), h))
+  dup B = (%b)(~{b} => P(plus(base, b)), #{~n, h} => S(~plus(base, n), h))
   # {z} => A(B(z))
-
-main add
