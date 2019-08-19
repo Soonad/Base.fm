@@ -1,0 +1,13 @@
+T Quasigroup<A : Type>
+| mkQuasigroup
+  { f : A -> A -> A
+  , quasigroup1 : {a : A, b : A} -> [:[x : A,f(a,x) == b],[y : A,f(y,a) == b]]
+ 
+ }
+T Loop<A : Type>
+| mkLoop
+  { f : A -> A -> A
+  , e : A
+  , loop1 : Identity(A,f,e)
+  , loop2 : Inverse(A,f,e,loop1)
+  }

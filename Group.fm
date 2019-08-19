@@ -1,0 +1,8 @@
+T Group<A : Type>
+| mkGroup
+  { f : A -> A -> A
+  , e : A
+  , group1 : Associative(A,f)
+  , group2 : Identity(A,f,e)
+  , group3 : Inverse(A,f,e, group2)
+  }

@@ -1,0 +1,4 @@
+T Maybe<A : Type>
+| just {some : A}
+| none
+

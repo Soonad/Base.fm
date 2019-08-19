@@ -1,0 +1,24 @@
+import Maybe@2 open
+
+T Monad<M : Type -> Type, A : Type>
+| mkMonad { return : A -> M(A)
+          , bind : {~B : Type} -> M(A) -> (A -> M(B)) -> M(B)
+          }
+
+maybeBind : {~A : Type, ~B : Type
+            , ma : Maybe(A), f : A -> Maybe(B)
+            } -> Maybe(B)
+   case<Maybe> ma
+   | just => f(some)
+   | none => none<B>
+   : Maybe(B)
+
+monadMaybe : {~A : Type} -> Monad(Maybe, A)
+  let maybeReturn = {~A : Type, a : A}
+    just<A>(a)
+  let maybeBind = {~A : Type, ~B : Type, ma : Maybe(A), f : A -> Maybe(B)}
+   case<Maybe> ma
+   | just => f(some)
+   | none => none<B>
+   : Maybe(B)
+ mkMonad<Maybe, A>(maybeReturn<A>, maybeBind<A>)

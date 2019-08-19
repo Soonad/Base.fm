@@ -1,3 +1,4 @@
+import Empty@1 open
 // Propositional Logic
 
 Not : {P : Type} -> Type; {x : P} -> Empty
@@ -15,6 +16,9 @@ Denies: {A : Type, B : Type, implies : A -> B, nb : Not(B)} -> Not(A)
 // Conjunction
 T And<A : Type, B: Type>
 | mkAnd { left : A, right : B}
+
+dupAnd : {~A:Type} -> Type
+  type(And(A,A))
 
 // Disjunction
 T Or<A : Type, B: Type>
@@ -46,6 +50,3 @@ orSyllogism : {~A : Type, ~B : Type, orAB : Or(A,B), negA : Not(A)} -> B
 // Hypothetical syllogism
 chainRule : {~A : Type, ~B : Type, ~C : Type, f : A -> B, g : B -> C} -> A -> C
   {x : A} g(f(x))
-
-
-

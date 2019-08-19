@@ -1,0 +1,17 @@
+import BinaryOperation as Bin
+
+T Magma<A : Type>
+| mkMagma { f : A -> A -> A }
+
+T Medial<A : Type>
+| mkMedial
+  { f : A -> A -> A
+  , medial : Bin/Medial(A,f)
+  }
+
+T Commutative<A : Type>
+| mkCommutative
+  { f : A -> A -> A
+  , commutative : {x:A,y:A} -> Bin/Commutative(A,f)
+  }
+

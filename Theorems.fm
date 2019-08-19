@@ -35,4 +35,6 @@ demorgan1 : {a : Bool, b : Bool} -> Demorgan1(a, b)
     : Demorgan1(false, self)
   : {b : Bool} -> Demorgan1(self, b))(b)
 
+
+
 main [demorgan0, demorgan1]

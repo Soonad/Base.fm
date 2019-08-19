@@ -1,0 +1,14 @@
+import BinaryOperation open
+import Semigroup as S
+
+T Monoid<A : Type>
+| mkMonoid 
+  { f : A -> A -> A
+  , e : A
+  , associative : Associative(A,f)
+  , identity : Identity(A,f,e)
+  }
+
+toSemigroup : {~A : Type, m : Monoid(A)} -> S/Semigroup(A)
+  case<Monoid> m | mkMonoid => S/mkSemigroup<A>(f, associative) : S/Semigroup(A)
+

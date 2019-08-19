@@ -1,0 +1,2 @@
+T Functor<F : Type -> Type, A : Type>
+| mkFunctor { map : {~B : Type, :F(A) -> F(B), :F(A)} -> F(B) }

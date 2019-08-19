@@ -1,0 +1,9 @@
+T Abelian<A : Type>
+| mkAbelian
+  { f : A -> A -> A
+  , e : A
+  , abelian1 : Associative(A,f)
+  , abelian2 : Identity(A,f,e)
+  , abelian3 : Inverse(A,f,e,abelian2)
+  , abelian4 : Commutative(A,f)
+  }
