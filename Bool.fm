@@ -1,4 +1,4 @@
-import Unit@0 open
+import Unit open
 
 T Bool
 | true
