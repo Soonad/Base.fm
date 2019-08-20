@@ -1,39 +1,33 @@
-import Bool@6 open
-import Equality@2 open
+import Bool open
+import Equality open
 
 Demorgan0 : {a : Bool, b : Bool} -> Type
   not(or(a,b)) == and(not(a), not(b))
 
 demorgan0 : {a : Bool, b : Bool} -> Demorgan0(a, b)
-  ( case<Bool> a
-  | true => {b}
-    case<Bool> b
+  (@ a      ~> {b : Bool} -> Demorgan0(self, b)
+  | true    => {b}
+    @Bool b ~> Demorgan0(true, self)
     | true  => refl<false>
     | false => refl<false>
-    : Demorgan0(true, self)
-  | false => {b}
-    case<Bool> b
+  | false   => {b}
+    @Bool b ~> Demorgan0(false, self)
     | true  => refl<false>
-    | false => refl<true>
-    : Demorgan0(false, self)
-  : {b : Bool} -> Demorgan0(self, b))(b)
+    | false => refl<true>)(b)
 
 Demorgan1 : {a : Bool, b : Bool} -> Type
   not(and(a,b)) == or(not(a), not(b))
 
 demorgan1 : {a : Bool, b : Bool} -> Demorgan1(a, b)
-  ( case<Bool> a
-  | true => {b}
-    case<Bool> b
+  (@ a      ~> {b : Bool} -> Demorgan1(self, b)
+  | true    => {b}
+    @Bool b ~> Demorgan1(true, self)
     | true  => refl<false>
     | false => refl<true>
-    : Demorgan1(true, self)
-  | false => {b}
-    case<Bool> b
+  | false   => {b}
+    @Bool b ~> Demorgan1(false, self)
     | true  => refl<true>
-    | false => refl<true>
-    : Demorgan1(false, self)
-  : {b : Bool} -> Demorgan1(self, b))(b)
+    | false => refl<true>)(b)
 
 
 

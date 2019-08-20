@@ -6,22 +6,19 @@ T List <A : Type>
 | nil
 
 head : {~T : Type, default : T, list : List(T)} -> T
-  case<List> list
+  @ list ~> T
   | cons => head
   | nil  => default
-  : T
 
 tail : {~T : Type, list : List(T)} -> List(T)
-  case<List> list
+  @ list ~> List(T)
   | cons => tail
   | nil  => nil(~T)
-  : List(T)
 
 take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
-  case<List> list
+  @ list ~> [x : T, List(T)]
   | cons => [head, tail]
   | nil  => [default, nil<T>]
-  : [x : T, List(T)]
 
 // ::::::::::::::
 // :: Identity ::
@@ -29,10 +26,9 @@ take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
 
 // Normal identity
 !list.id*n : !{~A : Type, *list : List(A)} -> List(A)
-  case<List> list
+  @ list ~> List(A)
   | cons => cons<A>(head, list.id<A>(tail))
   | nil  => nil<A>
-  : List(A)
 
 // Id example
 !list.id.example : !List(Word)
@@ -41,10 +37,9 @@ take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
 // Fusible list.identity
 !list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
   new<List(A)>{~P, cons, nil}
-  case<List> list
+  @ list ~> P(-#(id-f.step)(~n, id-f, ~A, self))
   | cons => cons(head, list.id-f<A>(tail))
   | nil  => nil
-  : P(-#(list.id-f.step)(~n, list.id-f, ~A, self))
 
 // From 1.7m to 3.2k rewrites by using `list.id-f` to build the list
 list.id-f.example
@@ -60,10 +55,9 @@ list.id-f.example
 
 // Normal map
 !map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
-  case<List> list
+  @ list ~> List(B)
   | cons => cons<B>(f(head), map(tail))
   | nil  => nil<B>
-  : List(B)
   * nil<B>
 
 // Map example
@@ -73,10 +67,9 @@ list.id-f.example
 // Fusible map
 !map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
   new<List(B)>{~P, cons, nil}
-  case<List> list
+  @ list ~> P(-#(map-f.step(~A, ~B, #f))(~n, map-f, self))
   | cons => cons(f(head), map-f(tail))
   | nil  => nil
-  : P(-#(map-f.step(~A, ~B, #f))(~n, map-f, self))
   * nil<B>
 
 // From 2.2m rewrites to 229k rewrites using map-f
@@ -95,7 +88,8 @@ map-f.example
   , g  : !{:A} -> B
   , xs : List(A)
   } -> -#(map*n<B,C>(f))(-#(map*n<A,B>(g))(xs)) == -#(map*n<A,C>(#{x}-#(f)(-#(g)(x))))(xs)
-  case<List> xs
+  @ xs ~>
+    -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
   | cons => 
     cong(
       ~ List(C),
@@ -106,7 +100,6 @@ map-f.example
       ~ map.composition<A, B, C>(f, g, tail))
   | nil =>
     refl<nil>
-  : -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
   * refl<nil>
 
 // :::::::::::::
@@ -115,31 +108,25 @@ map-f.example
   
 // Normal zipp
 !zipp*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
-  ( case<List> func
+  (@ func ~> List(A) -> List(B)
   | cons => {list}
-    case<List> list
+    @List list ~> List(B)
     | cons => cons<B>(head^(head), zipp<A, B>(tail^, tail))
     | nil  => nil<B>
-    : List(B)
   | nil => {list}
-    nil<B>
-  : List(A) -> List(B))(list)
+    nil<B>)(list)
   * nil<B>
 
 // Fusible zipp
 !zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   new<List(B)>{~P, consf, nilf}
-  ( case<List> func
+  (@ func ~> { consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf  : P(nil<B>)} -> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, self, list))
   | cons => {consf, nilf}
-    case<List> list
-    | cons => consf(head^(head), zipp-f<A, B>(tail^, tail))
-    | nil  => nilf
-    : P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, cons<A -> B>(head, tail), self))
+    @List list ~> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, cons<A -> B>(head, tail), self))
+    | cons     => consf(head^(head), zipp-f<A, B>(tail^, tail))
+    | nil      => nilf
   | nil => {consf, nilf}
-    nilf
-  : { consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
-    , nilf  : P(nil<B>)}
-    -> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, self, list)))(consf, nilf)
+    nilf)(consf, nilf)
   * nil<B>
   
 // :::::::::::
@@ -147,17 +134,17 @@ map-f.example
 // :::::::::::
 
 !reverse.go*n : !{~T : Type, *list : List(T), result : List(T)} -> List(T)
-  (case<List> list
-  | cons => {result} reverse.go<T>(tail, cons<T>(head, result))
-  | nil  => {result} result
-  : List(T) -> List(T))(result)
+  (@ list ~> List(T) -> List(T)
+  | cons  => {result} reverse.go<T>(tail, cons<T>(head, result))
+  | nil   => {result} result)(result)
 
 !reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
   reverse(~T, list, nil<T>)
 
 !concat*n : !{~T : Type, xs : List(T), ys : List(T)} -> List(T)
-  (case<List> xs
+  (@ xs  ~> List(T) -> List(T)
   | cons => {ys} cons<T>(head, concat<T>(tail, ys))
-  | nil  => {ys} ys
-  : List(T) -> List(T))(ys)
+  | nil  => {ys} ys)(ys)
   * nil<T>
+
+main reverse
