@@ -7,48 +7,36 @@ T Bool
 
 // Simple not
 not : {b : Bool} -> Bool
-  case<Bool> b
+  @ b     ~> Bool
   | true  => false
   | false => true
-  : Bool
 
 // Not with runtime fusion
 not-f : {b : Bool} -> Bool
   new<Bool>{~P, true, false}
-    case<Bool> b
+    @ b     ~> P(not-f(self))
     | true  => false
     | false => true
-    : P(not-f(self))
 
 // Simple and
 and : {b0 : Bool, b1 : Bool} -> Bool
-  ( case<Bool> b0
-  | true => {b1}
-    case<Bool> b1
+  (@ b0     ~> Bool -> Bool
+  | true    => {b1} @Bool b1 ~> Bool
     | true  => true
     | false => false
-    : Bool
-  | false => {b1}
-    case<Bool> b1
+  | false   => {b1} @Bool b1 ~> Bool
     | true  => false
-    | false => false
-    : Bool
-  : Bool -> Bool)(b1)
+    | false => false)(b1)
 
 // Simple or
 or : {b0 : Bool, b1 : Bool} -> Bool
-  ( case<Bool> b0
-  | true => {b1}
-    case<Bool> b1
-    | true  => true
-    | false => true
-    : Bool
-  | false => {b1}
-    case<Bool> b1
-    | true  => true
-    | false => false
-    : Bool
-  : Bool -> Bool)(b1)
+  (@ b0      ~> Bool -> Bool
+  | true     => {b1} @Bool b1 ~> Bool
+    | true   => true
+    | false  => true
+  | false    => {b1} @Bool b1 ~> Bool
+    | true   => true
+    | false  => false)(b1)
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
@@ -56,14 +44,12 @@ bif : {b : Bool, ~P : Type, T : P, F : P} -> P
 
 true_not_false : {e : true == false} -> Empty
   let motive = {b : Bool} =>
-    case<Bool> b
-    | true => Unit
+    @ b     ~> Type
+    | true  => Unit
     | false => Empty
-    : Type
-  rewrite<e>{x in motive(x)}(new)
+  rewrite<e>{x in motive(x)}(unit)
 
 different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
-  case<Bool> a
-  | true => [false, ~true_not_false]
+  @ a     ~> [b : Bool, ~{:self == b} -> Empty]
+  | true  => [false, ~true_not_false]
   | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
-  : [b : Bool, ~{:self == b} -> Empty]

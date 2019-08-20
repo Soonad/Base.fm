@@ -7,3 +7,23 @@ import Ind open
 import List open
 import Nat open
 import String open
+
+
+T Bits
+| b0 {pred : Bits}
+| b1 {pred : Bits}
+| be
+
+!bnot*n : !{*bits : Bits} -> Bits
+  (@ bits ~> {bnot : {bits : Bits} -> Bits} -> Bits
+  | b0    => {bnot} b1(bnot(pred))
+  | b1    => {bnot} b0(bnot(pred))
+  | be    => {bnot} be)(bnot)
+
+
+!main*n : !{bits : Bits} -> -#(bnot(n))(-#(bnot(n))(bits)) == bits
+  @ bits ~> -#(bnot(step(n)))(-#(bnot(step(n)))(self)) == self
+  | b0   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b0, ~main(pred))
+  | b1   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b1, ~main(pred))
+  | be   => refl<be>
+  * refl<bits>
