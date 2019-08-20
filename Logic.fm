@@ -1,7 +1,4 @@
-import Empty@1 open
-// Propositional Logic
-
-Not : {P : Type} -> Type; {x : P} -> Empty
+import Empty open
 
 // Non-contradiction
 Explosion : {A : Type, x : A, nx : Not(A)} -> Empty; nx(x)
@@ -17,8 +14,7 @@ Denies: {A : Type, B : Type, implies : A -> B, nb : Not(B)} -> Not(A)
 T And<A : Type, B: Type>
 | mkAnd { left : A, right : B}
 
-dupAnd : {~A:Type} -> Type
-  type(And(A,A))
+dupAnd : {~A:Type} -> Type; And(A,A)
 
 // Disjunction
 T Or<A : Type, B: Type>
@@ -31,10 +27,9 @@ orByCases : {~A : Type, ~B : Type, P : Or(A,B) -> Type
          , fromRight : {r : B} -> P(mkRight<A,B>(r))
          , or : Or(A,B)
          } -> P(or);
-  case<Or> or
-  | mkLeft => fromLeft(left)
-  | mkRight => fromRight(right)
-  : P(self)
+@ or      ~> P(self)
+| mkLeft  => fromLeft(left)
+| mkRight => fromRight(right)
 
 // Biconditional
 T Iff<A : Type, B : Type>
@@ -42,10 +37,9 @@ T Iff<A : Type, B : Type>
 
 // Disjunctive syllogism (modus tollendo ponens)
 orSyllogism : {~A : Type, ~B : Type, orAB : Or(A,B), negA : Not(A)} -> B
-  case<Or> orAB
-  | mkLeft => absurd(negA(left), B)
-  | mkRight => right
-  : B
+@ orAB ~> B
+| mkLeft => absurd(negA(left), B)
+| mkRight => right
 
 // Hypothetical syllogism
 chainRule : {~A : Type, ~B : Type, ~C : Type, f : A -> B, g : B -> C} -> A -> C

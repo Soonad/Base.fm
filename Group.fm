@@ -1,3 +1,5 @@
+import BinaryOperation open
+
 T Group<A : Type>
 | mkGroup
   { f : A -> A -> A

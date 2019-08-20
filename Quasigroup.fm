@@ -1,3 +1,5 @@
+import BinaryOperation open
+
 T Quasigroup<A : Type>
 | mkQuasigroup
   { f : A -> A -> A

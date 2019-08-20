@@ -1,5 +1,6 @@
 import Unit open
 import Empty open
+import Semigroup as S
 
 T Bool
 | true
@@ -70,3 +71,42 @@ different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
   | true => [false, ~true_not_false]
   | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
   : [b : Bool, ~{:self == b} -> Empty]
+
+
+semigroup.and : S/Semigroup(Bool)
+  let andIsAssociative = {a : Bool, b : Bool, c : Bool}
+    let theo = {x : Bool, y : Bool, z : Bool} and(and(x,y),z) == and(x,and(y,z))
+    ( case<Bool> a
+    | true => {b, c} (case<Bool> b
+      | true  => {c} case<Bool> c
+        | true => refl<true> | false => refl<false> : theo(true, true, self)
+      | false  => {c} case<Bool> c
+        | true => refl<false> | false => refl<false> : theo(true,false,self)
+      : {c : Bool} -> theo(true, self, c))(c)
+    | false => {b, c} (case<Bool> b
+      | true  => {c} case<Bool> c
+        | true => refl<false> | false => refl<false> : theo(false, true, self)
+      | false  => {c} case<Bool> c
+        | true => refl<false> | false => refl<false> : theo(false,false,self)
+      : {c : Bool} -> theo(false, self, c))(c)
+    : {b : Bool, c : Bool} -> theo(self, b, c))(b,c)
+  S/mkSemigroup<Bool>(and,andIsAssociative)
+
+semigroup.or : S/Semigroup(Bool)
+  let orIsAssociative = {a : Bool, b : Bool, c : Bool}
+    let theo = {x : Bool, y : Bool, z : Bool} or(or(x,y),z) == or(x,or(y,z))
+    ( case<Bool> a
+    | true => {b, c} (case<Bool> b
+      | true  => {c} case<Bool> c
+        | true => refl<true> | false => refl<true> : theo(true, true, self)
+      | false  => {c} case<Bool> c
+        | true => refl<true> | false => refl<true> : theo(true,false,self)
+      : {c : Bool} -> theo(true, self, c))(c)
+    | false => {b, c} (case<Bool> b
+      | true  => {c} case<Bool> c
+        | true => refl<true> | false => refl<true> : theo(false, true, self)
+      | false  => {c} case<Bool> c
+        | true => refl<true> | false => refl<false> : theo(false,false,self)
+      : {c : Bool} -> theo(false, self, c))(c)
+    : {b : Bool, c : Bool} -> theo(self, b, c))(b,c)
+  S/mkSemigroup<Bool>(or,orIsAssociative)
