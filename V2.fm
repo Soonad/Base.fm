@@ -57,7 +57,7 @@ V2.flat_dist: {a : V2, b : V2} -> Word
   get [bx,by] = b
   Num.dif(ax, bx) + Num.dif(ay, by)
 
-!V2.line*n: !{len : Word, pos : V2, dxy : V2} -> List(V2)
+!V2.line*n: !{len : Word, pos : V2, dxy : V2} -> List(V2) -> List(V2)
     get [ax,ay] = pos
     get [dx,dy] = dxy
     cpy len = len
@@ -65,9 +65,9 @@ V2.flat_dist: {a : V2, b : V2} -> Word
     cpy ay  = ay
     cpy dx  = dx
     cpy dy  = dy
-    (if len === 0:  nil<V2>
-      else:         cons<V2>([ax,ay], V2.line(len - 1, [ax + dx,ay + dy], [dx,dy])))
-  * nil<V2>
+    (if len === 0:  {xs : List(V2)} => xs
+      else:         {xs : List(V2)} => cons<V2>([ax,ay], V2.line(len - 1, [ax + dx,ay + dy], [dx,dy], xs)))
+  * {xs} => xs
 
 !V2.area_aux*mlen : {size : !V2, cond : !{cen : V2, siz : V2, pos : V2} -> Word} -> !{pos : V2, idx : Word} -> List(V2)
     get [cx,cy] = pos
@@ -222,3 +222,24 @@ V2.range_5
   V2.range(*121, #5)
 V2.range_6
   V2.range(*169, #6)
+
+!V2.wave*n : dup line = V2.line(*) !{widths : List(Word), pos : V2, dxy : V2} -> List(V2)
+  case<List> widths
+  | cons =>
+    let ws = V2.wave(tail)
+    get [ax,ay] = pos
+    get [dx,dy] = dxy
+    cpy w  = head
+    cpy ax = ax
+    cpy ay = ay
+    cpy dx = dx
+    cpy dy = dy
+    cpy nx = dy
+    cpy ny = 0 - dx
+    let ix = ax - (nx * (w / 2))
+    let iy = ay - (ny * (w / 2))
+    let t  = ws([ax + dx,ay + dy], [dx,dy])
+    line(w, [ix,iy], [nx,ny], t)
+  | nil => nil<V2>
+  : List(V2)
+  * nil<V2>
