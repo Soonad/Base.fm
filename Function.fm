@@ -1,0 +1,13 @@
+// identity function id(x) == x
+id : {~A:Type, x:A} -> A; x
+
+const : {~A:Type, ~B:Type, x:A, y:B} -> A; x
+
+// function composition
+compose : {~A:Type, ~B:Type, ~C:Type, g:B -> C, f:A -> B} -> (A -> C)
+  {x : A} g(f(x))
+
+// flip the term arguments
+flip : {~A:Type, ~B:Type, ~C:Type, f:A -> B -> C, y:B, x:A} -> C; f(x,y)
+apply : {~A:Type, ~B:Type, f:A -> B, x:A} -> B; f(x)
+pipe : {~A:Type, ~B:Type, x:A, f:A -> B} -> B; f(x)

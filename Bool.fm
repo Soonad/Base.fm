@@ -1,9 +1,21 @@
+import Logic open
+import Magma as M
 import Unit open
-import Empty open
+import Semigroup as S
+import Monoid as Mon
 
 T Bool
 | true
 | false
+
+copy : {b : Bool} -> [:Bool, Bool]
+  @Bool b ~> [:Bool, Bool]
+  | true  => [true, true]
+  | false => [false, false]
+
+.!! : Bool -> Bool; not
+.F : {x : Bool} -> Bool; false
+.T : {x : Bool} -> Bool; true
 
 // Simple not
 not : {b : Bool} -> Bool
@@ -18,25 +30,32 @@ not-f : {b : Bool} -> Bool
     | true  => false
     | false => true
 
-// Simple and
-and : {b0 : Bool, b1 : Bool} -> Bool
-  (@ b0     ~> Bool -> Bool
+// Binary operations
+binop : { r00 : Bool, r01 : Bool, r10 : Bool, r11 : Bool
+        , b0 : Bool, b1 : Bool
+        } -> Bool
+  ( @ b0    ~> Bool -> Bool
   | true    => {b1} @Bool b1 ~> Bool
-    | true  => true
-    | false => false
+    | true  => r11
+    | false => r10
   | false   => {b1} @Bool b1 ~> Bool
-    | true  => false
-    | false => false)(b1)
+    | true  => r01
+    | false => r00
+  )(b1)
 
-// Simple or
-or : {b0 : Bool, b1 : Bool} -> Bool
-  (@ b0      ~> Bool -> Bool
-  | true     => {b1} @Bool b1 ~> Bool
-    | true   => true
-    | false  => true
-  | false    => {b1} @Bool b1 ~> Bool
-    | true   => true
-    | false  => false)(b1)
+and  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, false, false, true,  b0, b1)
+or   : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  true,  b0, b1)
+nand : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  true,  true,  false, b0, b1)
+nor  : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, false, b0, b1)
+xor  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  false, b0, b1)
+xnor : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, true,  b0, b1)
+
+.&& : Bool -> Bool -> Bool; and
+.|| : Bool -> Bool -> Bool; or
+.!& : Bool -> Bool -> Bool; nand
+.!| : Bool -> Bool -> Bool; nor
+./= : Bool -> Bool -> Bool; xor
+.== : Bool -> Bool -> Bool; xnor
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
@@ -53,3 +72,72 @@ different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
   @ a     ~> [b : Bool, ~{:self == b} -> Empty]
   | true  => [false, ~true_not_false]
   | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
+
+
+and.associative : M/Associative(Bool,and)
+  {a : Bool, b : Bool, c : Bool}
+  let Associates = {x:Bool, y:Bool, z:Bool} and(and(x,y),z) == and(x,and(y,z))
+  (@Bool a    ~> {b : Bool, c : Bool} -> Associates(self, b, c)
+   | true     => {b, c}
+    (@Bool b  ~> {c : Bool}  -> Associates(true, self, c)
+     | true   => {c} @Bool c ~> Associates(true, true, self)
+       | true => refl<true> | false => refl<false>
+     | false  => {c} @Bool c ~> Associates(true, false, self)
+       | true => refl<false> | false => refl<false>
+    )(c)
+  | false     => {b, c}
+    (@Bool b  ~> {c : Bool}  -> Associates(false, self, c)
+     | true   => {c} @Bool c ~> Associates(false, true, self)
+       | true => refl<false> | false => refl<false>
+     | false  => {c} @Bool c ~> Associates(false, false, self)
+       | true => refl<false> | false => refl<false>
+    )(c)
+  )(b,c)
+
+
+or.associative : M/Associative(Bool,or)
+  {a : Bool, b : Bool, c : Bool}
+  let Associates = {x:Bool, y:Bool, z:Bool} or(or(x,y),z) == or(x,or(y,z))
+  (@Bool a    ~> {b : Bool, c : Bool} -> Associates(self, b, c)
+   | true     => {b, c}
+    (@Bool b  ~> {c : Bool}  -> Associates(true, self, c)
+     | true   => {c} @Bool c ~> Associates(true, true, self)
+       | true => refl<true>  | false => refl<true>
+     | false  => {c} @Bool c ~> Associates(true, false, self)
+       | true => refl<true> | false => refl<true>
+    )(c)
+  | false     => {b, c}
+    (@Bool b  ~> {c : Bool}  -> Associates(false, self, c)
+     | true   => {c} @Bool c ~> Associates(false, true, self)
+       | true => refl<true> | false => refl<true>
+     | false  => {c} @Bool c ~> Associates(false, false, self)
+       | true => refl<true> | false => refl<false>
+    )(c)
+  )(b,c)
+
+and.leftIdentity : M/LeftIdentity(Bool,and,true); {y : Bool}
+  @ y ~> and(self,true) == self | true => refl<true> | false => refl<false>
+and.rightIdentity : M/RightIdentity(Bool,and,true); {y : Bool}
+  @ y ~> and(true,self) == self | true => refl<true> | false => refl<false>
+and.identity : M/Identity(Bool,and,true)
+  mkAnd<M/LeftIdentity(Bool,and,true),M/RightIdentity(Bool,and,true)
+       >(and.leftIdentity,and.rightIdentity)
+
+or.leftIdentity : M/LeftIdentity(Bool,or,false); {y : Bool}
+  @ y ~> or(self,false) == self | true => refl<true> | false => refl<false>
+or.rightIdentity : M/RightIdentity(Bool,or,false); {y : Bool}
+  @ y ~> or(false,self) == self | true => refl<true> | false => refl<false>
+or.identity : M/Identity(Bool,or,false)
+  mkAnd<M/LeftIdentity(Bool,or,false),M/RightIdentity(Bool,or,false)
+       >(or.leftIdentity,or.rightIdentity)
+
+semigroup.and : S/Semigroup(Bool); S/mkSemigroup<Bool>(and,and.associative)
+semigroup.or : S/Semigroup(Bool); S/mkSemigroup<Bool>(or,or.associative)
+
+monoid.and : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(and,true,and.associative,and.identity)
+monoid.or : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(or,false,or.associative,or.identity)
+
+
+

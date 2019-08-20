@@ -1,0 +1,15 @@
+import Magma as M
+
+T Quasigroup<A:Type>
+| mkQuasigroup
+  { f           : A -> A -> A
+  , latinSquare : M/LatinSquare(A,f)
+  }
+
+T Loop<A : Type>
+| mkLoop
+  { f           : A -> A -> A
+  , e           : A
+  , identity    : M/Identity(A,f,e)
+  , latinSquare : M/LatinSquare(A,f)
+  }

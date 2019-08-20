@@ -1,0 +1,44 @@
+import Function open
+import Equality open
+import Functor as F
+import Monad as M
+
+T Maybe<A : Type>
+| just {some : A}
+| none
+
+functor : F/Functor(Maybe)
+  let map = {~A:Type, ~B:Type, f:A -> B, ma:Maybe(A)}
+    @ ma ~> Maybe(B)
+    | just => just<B>(f(some)) | none => none<B>
+  let map.identity = {~A:Type, ma:Maybe(A)}
+    @ ma ~> map<A,A>(id<A>,self) == self
+    | just => refl<just<A>(some)> | none => refl<none>
+  let map.composition =
+    {~A:Type, ~B:Type, ~C:Type, g:B -> C, f:A -> B, ma:Maybe(A)}
+    @ ma ~> map<A,C>({x:A} g(f(x)),self) == map<B,C>(g,map<A,B>(f,self))
+    | just => refl<just<C>(g(f(some)))> | none => refl<none>
+  F/mkFunctor<Maybe>(map,map.identity,map.composition)
+
+monad : M/Monad(Maybe)
+  let return = {~A:Type, x:A} just(~A,x)
+  let bind = {~A:Type, ~B:Type, ma:Maybe(A), f : A -> Maybe(B)}
+    @ ma ~> Maybe(B) | just => f(some) | none => none<B>
+  let identity1 = {~A:Type, ~B:Type, x:A, f:A -> Maybe(B)}
+    @ f(x) ~> self == self
+    | just => refl<just<B>(some)> | none => refl<none>
+  let identity2 = {~A:Type, m:Maybe(A)}
+    @ m ~> bind<A,A>(self,return<A>) == self
+    | just => refl<just<A>(some)> | none => refl<none>
+  let associative = 
+    {~A:Type, ~B:Type, ~C:Type , m:Maybe(A), f:A -> Maybe(B), g:B -> Maybe(C)}
+    @ m ~> bind<B,C>(bind<A,B>(self,f),g) ==
+           bind<A,C>(self,{x:A} bind<B,C>(f(x),g))
+    | just => @Maybe f(some) ~> bind<B,C>(self, g) == bind<B,C>(self, g)
+      | just => @Maybe g(some) ~> self == self
+        | just => refl<just<C>(some)>
+        | none => refl<none>
+      | none => refl<none>
+    | none => refl<none>
+  M/mkMonad<Maybe>(return,bind,identity1,identity2,assoc)
+

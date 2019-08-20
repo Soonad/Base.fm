@@ -1,0 +1,26 @@
+T Ordering
+| lt
+| eq
+| gt
+
+T Ord<A : Type>
+| mkOrd { compare : A -> A -> Ordering }
+
+cmpBool : {a : Bool,  b : Bool} -> Ordering
+  (case<Bool> a
+  | true  => {b1} case<Bool> b1 | true => eq | false => gt : Ordering
+  | false => {b1} case<Bool> b1 | true => lt | false => eq : Ordering
+  : Bool -> Ordering
+  )(b)
+
+
+//useCompare : {a : Bool, b : Bool, c : Ord(Bool)} -> Ordering
+//  case<Ord> c
+//  | mkOrd => compare(a,b)
+//  : Ordering
+//
+//testOrdBool : Ord(Bool)
+//  mkOrd<Bool>(cmpBool)
+//
+//testUseCompare : Ordering
+//  useCompare(true,false,testOrdBool)

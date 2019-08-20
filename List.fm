@@ -25,29 +25,29 @@ take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
 // ::::::::::::::
 
 // Normal identity
-!id*n : !{~A : Type, *list : List(A)} -> List(A)
+!list.id*n : !{~A : Type, *list : List(A)} -> List(A)
   @ list ~> List(A)
-  | cons => cons<A>(head, id<A>(tail))
+  | cons => cons<A>(head, list.id<A>(tail))
   | nil  => nil<A>
 
 // Id example
-!id.example : !List(Word)
-  id*256<Word>(Word$[1,2,3,4])
+!list.id.example : !List(Word)
+  list.id*256<Word>(Word$[1,2,3,4])
 
-// Fusible identity
-!id-f*n : !{~A : Type, *list : List(A)} -> List(A)
+// Fusible list.identity
+!list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
   new<List(A)>{~P, cons, nil}
-  @ list ~> P(-#(id-f.step)(~n, id-f, ~A, self))
-  | cons => cons(head, id-f<A>(tail))
+  @ list ~> P(-#(list.id-f.step)(~n, list.id-f, ~A, self))
+  | cons => cons(head, list.id-f<A>(tail))
   | nil  => nil
 
-// From 1.7m to 3.2k rewrites by using `id-f` to build the list
-id-f.example
+// From 1.7m to 3.2k rewrites by using `list.id-f` to build the list
+list.id-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7]
-  dup id   = id*256
-  dup id-f = id-f*256
-  dup list = rec(*10000, ~List(Word), #id-f<Word>, #list)
-  # id<Word>(list)
+  dup list.id   = list.id*256
+  dup list.id-f = list.id-f*256
+  dup list = rec(*10000, ~List(Word), #list.id-f<Word>, #list)
+  # list.id<Word>(list)
 
 // :::::::::::::
 // :: Mapping ::
@@ -75,10 +75,10 @@ id-f.example
 // From 2.2m rewrites to 229k rewrites using map-f
 map-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
-  dup id   = id*256
+  dup list.id   = list.id*256
   dup map  = map-f*256<Word, Word>(#{x} x + 1)
   dup list = rec(*10000, ~List(Word), #map, #list)
-  # id<Word>(list)
+  # list.id<Word>(list)
 
 !map.composition*n :
   !{~A : Type

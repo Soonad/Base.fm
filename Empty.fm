@@ -1,5 +1,9 @@
+// The uninhabited type
 T Empty
 
 // From falsehood, everything follows
 absurd : {e : Empty, P : Type} -> P
   @ e ~> P
+
+// A false proposition returns a falsehood
+Not : {P : Type} -> Type; {x : P} -> Empty

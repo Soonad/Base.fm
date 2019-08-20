@@ -1,0 +1,31 @@
+import Magma as M
+import Semigroup as S
+
+T Monoid<A:Type>
+| mkMonoid
+  { f           : A -> A -> A
+  , e           : A
+  , associative : M/Associative(A,f)
+  , identity    : M/Identity(A,f,e)
+  }
+
+// accessors
+get.f : {~A : Type, m : Monoid(A)} -> (A -> A -> A)
+  @ m ~> A -> A -> A | mkMonoid => f
+get.associative : {~A:Type, m:Monoid(A)} -> M/Associative(A,get.f<A>(m))
+  @ m ~> M/Associative(A,get.f<A>(self)) | mkMonoid => associative
+
+// Monoids are Semigroups
+toSemigroup : {~A : Type, m : Monoid(A)} -> S/Semigroup(A)
+  @ m ~> S/Semigroup(A) | mkMonoid => S/mkSemigroup<A>(f, associative)
+
+
+//[ERROR]
+//Type mismatch.
+//- Found type... Identity(A, get.f(s), e)
+//- Instead of... Identity(A, f, e)
+//fromSemigroup : {~A : Type, s : S/Semigroup(A), e:A
+//              , identity : Identity(A,S/get.f(s),e)
+//              } -> Monoid(A)
+//  @ s ~> Monoid(A)
+//  | mkSemigroup => mkMonoid<A>(f,e,associative,identity)

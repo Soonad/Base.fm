@@ -1,0 +1,35 @@
+import Magma as M
+
+// A Semigroup is an associative Magma
+T Semigroup<A:Type>
+| mkSemigroup 
+  { f           : A -> A -> A
+  , associative : M/Associative(A,f)
+  }
+
+// accessors
+get.f : {~A:Type, m:Semigroup(A)} -> (A -> A -> A)
+  @ m ~> A -> A -> A | mkSemigroup => f
+get.associative : {~A:Type, s:Semigroup(A)} -> M/Associative(A,get.f<A>(s))
+  @ s ~> M/Associative(A,get.f<A>(self)) | mkSemigroup => associative
+
+// all Semigroups are Magmas
+toMagma : {~A : Type, s : Semigroup(A)} -> M/Magma(A)
+  @ s ~> M/Magma(A) | mkSemigroup => M/mkMagma<A>(f)
+
+// A RegularSemigroup is one which has a regular inversion for every element
+T RegularSemigroup<A:Type>
+| mkRegularSemigroup
+  { f : A -> A -> A
+  , associative : M/Associative(A,f)
+  , inversion : {x:A} -> [y:A, y == f(y,f(x,y))]
+  }
+
+// An InverseSemigroup is one which has a unique inversion for every element
+T InverseSemigroup<A:Type>
+| mkInverseSemigroup
+  { f : A -> A -> A
+  , associative : M/Associative(A,f)
+  , inversion : {x:A} -> [y:A, And(x == f(x,f(y,x)), y == f(y,f(x,y)))]
+  }
+

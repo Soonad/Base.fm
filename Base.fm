@@ -4,6 +4,9 @@ import Boxes open
 import Empty open
 import Equality open
 import Ind open
+import Function open
 import List open
 import Nat open
 import String open
+import Logic open
+import Algebra open
