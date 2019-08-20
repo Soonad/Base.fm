@@ -1,24 +1,15 @@
-import Maybe@2 open
+import Function open
 
-T Monad<M : Type -> Type, A : Type>
-| mkMonad { return : A -> M(A)
-          , bind : {~B : Type} -> M(A) -> (A -> M(B)) -> M(B)
+T Monad<M : Type -> Type>
+| mkMonad { return : {~A:Type, x:A} -> M(A)
+          , bind : {~A:Type, ~B:Type, m:M(A), f:A -> M(B)} -> M(B)
+          , monad.identity1 : {~A:Type, ~B:Type, x:A, f:A -> M(B)} ->
+              bind<A,B>(return<A>(x),f) == f(x)
+          , monad.identity2 : {~A:Type, m:M(A)} -> 
+              bind<A,A>(m,return<A>) == m
+          , monad.associative :
+              {~A:Type, ~B:Type, ~C:Type, m:M(A), f:A -> M(B), g:B -> M(C)} ->
+                bind<B,C>(bind<A,B>(m,f), g) ==
+                  bind<A,C>(m, ({x:A} bind<B,C>(f(x), g)))
           }
 
-maybeBind : {~A : Type, ~B : Type
-            , ma : Maybe(A), f : A -> Maybe(B)
-            } -> Maybe(B)
-   case<Maybe> ma
-   | just => f(some)
-   | none => none<B>
-   : Maybe(B)
-
-monadMaybe : {~A : Type} -> Monad(Maybe, A)
-  let maybeReturn = {~A : Type, a : A}
-    just<A>(a)
-  let maybeBind = {~A : Type, ~B : Type, ma : Maybe(A), f : A -> Maybe(B)}
-   case<Maybe> ma
-   | just => f(some)
-   | none => none<B>
-   : Maybe(B)
- mkMonad<Maybe, A>(maybeReturn<A>, maybeBind<A>)

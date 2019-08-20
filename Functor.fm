@@ -1,2 +1,18 @@
-T Functor<F : Type -> Type, A : Type>
-| mkFunctor { map : {~B : Type, :F(A) -> F(B), :F(A)} -> F(B) }
+import Function open
+import Unit open
+
+T Functor<F : Type -> Type>
+| mkFunctor
+  { map : {~A:Type, ~B:Type, :A -> B, :F(A)} -> F(B)
+  , map.identity : {~A:Type, fa:F(A)} -> map<A,A>(id<A>,fa) == fa
+  , map.composition : {~A:Type, ~B:Type, ~C:Type, g:B -> C, f:A -> B, fa:F(A)}
+      -> map<A,C>({x:A} g(f(x)),fa) == map<B,C>(g,map<A,B>(f,fa))
+  }
+
+map_const : {~F:Type -> Type, ~FA:Functor(F), ~A:Type, ~B:Type
+           , x:A, fb:F(B)
+           } -> F(A)
+  case<Functor> FA | mkFunctor => map<B,A>(const<A,B>(x),fb) : F(A)
+
+void : {~F:Type -> Type, ~FA:Functor(F), ~A:Type, fa:F(A)} -> F(Unit)
+  map_const<F,FA,Unit,A>(new,fa)
