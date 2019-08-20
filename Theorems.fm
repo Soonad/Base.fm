@@ -29,4 +29,6 @@ demorgan1 : {a : Bool, b : Bool} -> Demorgan1(a, b)
     | true  => refl<true>
     | false => refl<true>)(b)
 
+
+
 main [demorgan0, demorgan1]
