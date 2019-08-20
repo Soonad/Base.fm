@@ -1,11 +1,11 @@
-import BinaryOperation open
+import Magma as M
 
-T Abelian<A : Type>
+T Abelian<A:Type>
 | mkAbelian
-  { f : A -> A -> A
-  , e : A
-  , abelian1 : Associative(A,f)
-  , abelian2 : Identity(A,f,e)
-  , abelian3 : Inverse(A,f,e,abelian2)
-  , abelian4 : Commutative(A,f)
+  { f           : A -> A -> A
+  , e           : A
+  , associative : M/Associative(A,f)
+  , identity    : M/Identity(A,f,e)
+  , inverse     : M/Inverse(A,f,e,identity)
+  , commutative : M/Commutative(A,f)
   }

@@ -1,10 +1,10 @@
-import BinaryOperation open
+import Magma as M
 
-T Group<A : Type>
+T Group<A:Type>
 | mkGroup
-  { f : A -> A -> A
-  , e : A
-  , group1 : Associative(A,f)
-  , group2 : Identity(A,f,e)
-  , group3 : Inverse(A,f,e, group2)
+  { f           : A -> A -> A
+  , e           : A
+  , associative : M/Associative(A,f)
+  , identity    : M/Identity(A,f,e)
+  , inverse     : M/Inverse(A,f,e, identity)
   }

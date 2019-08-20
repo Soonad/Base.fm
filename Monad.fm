@@ -1,15 +1,14 @@
 import Function open
 
 T Monad<M : Type -> Type>
-| mkMonad { return : {~A:Type, x:A} -> M(A)
-          , bind : {~A:Type, ~B:Type, m:M(A), f:A -> M(B)} -> M(B)
-          , monad.identity1 : {~A:Type, ~B:Type, x:A, f:A -> M(B)} ->
-              bind<A,B>(return<A>(x),f) == f(x)
-          , monad.identity2 : {~A:Type, m:M(A)} -> 
-              bind<A,A>(m,return<A>) == m
-          , monad.associative :
-              {~A:Type, ~B:Type, ~C:Type, m:M(A), f:A -> M(B), g:B -> M(C)} ->
-                bind<B,C>(bind<A,B>(m,f), g) ==
-                  bind<A,C>(m, ({x:A} bind<B,C>(f(x), g)))
-          }
+| mkMonad 
+  { return      : {~A:Type, x:A} -> M(A)
+  , bind        : {~A:Type, ~B:Type, m:M(A), f:A -> M(B)} -> M(B)
+  , identity1   : {~A:Type, ~B:Type, x:A, f:A -> M(B)} ->
+                    bind<A,B>(return<A>(x),f) == f(x)
+  , identity2   : {~A:Type, m:M(A)} -> bind<A,A>(m,return<A>) == m
+  , associative :
+      {~A:Type, ~B:Type, ~C:Type , m:M(A), f:A -> M(B), g:B -> M(C) } ->
+        bind<B,C>(bind<A,B>(m,f), g) == bind<A,C>(m, ({x:A} bind<B,C>(f(x), g)))
+  }
 

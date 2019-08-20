@@ -1,10 +1,8 @@
-
-import BinaryOperation open
 import Logic open
+import Magma as M
 import Unit open
-import Empty open
 import Semigroup as S
-import Monoid as M
+import Monoid as Mon
 
 T Bool
 | true
@@ -76,7 +74,7 @@ different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
   | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
 
 
-and.associative : Associative(Bool,and)
+and.associative : M/Associative(Bool,and)
   {a : Bool, b : Bool, c : Bool}
   let Associates = {x:Bool, y:Bool, z:Bool} and(and(x,y),z) == and(x,and(y,z))
   (@Bool a    ~> {b : Bool, c : Bool} -> Associates(self, b, c)
@@ -97,7 +95,7 @@ and.associative : Associative(Bool,and)
   )(b,c)
 
 
-or.associative : Associative(Bool,or)
+or.associative : M/Associative(Bool,or)
   {a : Bool, b : Bool, c : Bool}
   let Associates = {x:Bool, y:Bool, z:Bool} or(or(x,y),z) == or(x,or(y,z))
   (@Bool a    ~> {b : Bool, c : Bool} -> Associates(self, b, c)
@@ -117,29 +115,29 @@ or.associative : Associative(Bool,or)
     )(c)
   )(b,c)
 
-and.leftIdentity : LeftIdentity(Bool,and,true); {y : Bool}
+and.leftIdentity : M/LeftIdentity(Bool,and,true); {y : Bool}
   @ y ~> and(self,true) == self | true => refl<true> | false => refl<false>
-and.rightIdentity : RightIdentity(Bool,and,true); {y : Bool}
+and.rightIdentity : M/RightIdentity(Bool,and,true); {y : Bool}
   @ y ~> and(true,self) == self | true => refl<true> | false => refl<false>
-and.identity : Identity(Bool,and,true)
-  mkAnd<LeftIdentity(Bool,and,true),RightIdentity(Bool,and,true)
+and.identity : M/Identity(Bool,and,true)
+  mkAnd<M/LeftIdentity(Bool,and,true),M/RightIdentity(Bool,and,true)
        >(and.leftIdentity,and.rightIdentity)
 
-or.leftIdentity : LeftIdentity(Bool,or,false); {y : Bool}
+or.leftIdentity : M/LeftIdentity(Bool,or,false); {y : Bool}
   @ y ~> or(self,false) == self | true => refl<true> | false => refl<false>
-or.rightIdentity : RightIdentity(Bool,or,false); {y : Bool}
+or.rightIdentity : M/RightIdentity(Bool,or,false); {y : Bool}
   @ y ~> or(false,self) == self | true => refl<true> | false => refl<false>
-or.identity : Identity(Bool,or,false)
-  mkAnd<LeftIdentity(Bool,or,false),RightIdentity(Bool,or,false)
+or.identity : M/Identity(Bool,or,false)
+  mkAnd<M/LeftIdentity(Bool,or,false),M/RightIdentity(Bool,or,false)
        >(or.leftIdentity,or.rightIdentity)
 
 semigroup.and : S/Semigroup(Bool); S/mkSemigroup<Bool>(and,and.associative)
 semigroup.or : S/Semigroup(Bool); S/mkSemigroup<Bool>(or,or.associative)
 
-monoid.and : M/Monoid(Bool);
-  M/mkMonoid<Bool>(and,true,and.associative,and.identity)
-monoid.or : M/Monoid(Bool);
-  M/mkMonoid<Bool>(or,false,or.associative,or.identity)
+monoid.and : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(and,true,and.associative,and.identity)
+monoid.or : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(or,false,or.associative,or.identity)
 
 
 

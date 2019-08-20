@@ -1,6 +1,7 @@
 import Logic open
 import BinaryOperation open
-import Magma as M
+import Magma as Mg
+import Monoid as M
 import Semigroup as S
 import Quasigroup as Q
 import Group as G

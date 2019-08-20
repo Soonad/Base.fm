@@ -37,7 +37,7 @@ take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
 // Fusible list.identity
 !list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
   new<List(A)>{~P, cons, nil}
-  @ list ~> P(-#(id-f.step)(~n, id-f, ~A, self))
+  @ list ~> P(-#(list.id-f.step)(~n, list.id-f, ~A, self))
   | cons => cons(head, list.id-f<A>(tail))
   | nil  => nil
 
