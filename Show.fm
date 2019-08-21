@@ -1,0 +1,2 @@
+T Show<A : Type>
+| mkShow { show : A -> String }

@@ -1,32 +1,53 @@
+import Logic open
+import Magma as M
 import Unit open
-import Empty open
+import Semigroup as S
+import Monoid as Mon
 
 T Bool
 | true
 | false
 
+copy : {case b : Bool} -> [:Bool, Bool]
+| true  => [true, true]
+| false => [false, false]
+
 // ::::::::::::::::::::::
 // :: Simple functions ::
 // ::::::::::::::::::::::
+
+
+.!! : Bool -> Bool; not
+.F : {x : Bool} -> Bool; false
+.T : {x : Bool} -> Bool; true
 
 // Simple not
 not : {case b : Bool} -> Bool
 | true  => false
 | false => true
 
-// Simple and
-and : {case b0 : Bool, case b1 : Bool} -> Bool
-| true  true  => true
-| true  false => false
-| false true  => false
-| false false => false
+// Binary operations
+binop : { r00 : Bool, r01 : Bool, r10 : Bool, r11 : Bool
+        , case b0 : Bool, case b1 : Bool
+        } -> Bool
+| true  true  => r11
+| true  false => r10
+| false true  => r01
+| false false => r00
 
-// Simple or
-or : {case b0 : Bool, case b1 : Bool} -> Bool
-| true  true  => true
-| true  false => true
-| false true  => true
-| false false => false
+and  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, false, false, true,  b0, b1)
+or   : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  true,  b0, b1)
+nand : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  true,  true,  false, b0, b1)
+nor  : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, false, b0, b1)
+xor  : {b0 : Bool, b1 : Bool} -> Bool; binop(false, true,  true,  false, b0, b1)
+xnor : {b0 : Bool, b1 : Bool} -> Bool; binop(true,  false, false, true,  b0, b1)
+
+.&& : Bool -> Bool -> Bool; and
+.|| : Bool -> Bool -> Bool; or
+.!& : Bool -> Bool -> Bool; nand
+.!| : Bool -> Bool -> Bool; nor
+./= : Bool -> Bool -> Bool; xor
+.== : Bool -> Bool -> Bool; xnor
 
 // :::::::::::::::::::::::
 // :: Fusible functions ::
@@ -39,6 +60,7 @@ not-f : {b : Bool} -> Bool
     | true  => false
     | false => true
     : P(not-f(self))
+
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
@@ -84,3 +106,94 @@ demorgan1b : {a : Bool, b : Bool} -> not(and(a,b)) == or(not(a), not(b))
   : {b : Bool} -> not(and(self, b)) == or(not(self), not(b)))(b)
 
 main demorgan1b
+
+
+//and.associative : {case a : Bool, case b : Bool, case c : Bool} ->
+//                    and(and(a,b),c) == and(a,and(b,c))
+//| true  true  true   => refl<true>
+//| true  true  false  => refl<false>
+//| true  false true   => refl<false>
+//| true  false false  => refl<false>
+//| false true  true   => refl<false>
+//| false true  false  => refl<false>
+//| false false true   => refl<false>
+//| false false false  => refl<false>
+
+and.associative : M/Associative(Bool,and)
+  {a : Bool, b : Bool, c : Bool}
+  let Associates = {x:Bool, y:Bool, z:Bool} and(and(x,y),z) == and(x,and(y,z))
+  (case/Bool a
+   | true     => {b, c}
+    (case/Bool b
+     | true   => {c} case/Bool c
+       | true => refl<true> | false => refl<false>
+       : Associates(true, true, self)
+     | false  => {c} case/Bool c
+       | true => refl<false> | false => refl<false>
+       : Associates(true, false, self)
+     : {c : Bool}  -> Associates(true, self, c))(c)
+   | false     => {b, c}
+    (case/Bool b
+     | true   => {c} case/Bool c
+       | true => refl<false> | false => refl<false>
+       : Associates(false, true, self)
+     | false  => {c} case/Bool c 
+        | true => refl<false> | false => refl<false>
+        : Associates(false, false, self)
+     : {c : Bool}  -> Associates(false, self, c))(c)
+   : {b : Bool, c : Bool} -> Associates(self, b, c))(b,c)
+
+
+or.associative : M/Associative(Bool,or)
+  {a : Bool, b : Bool, c : Bool}
+  let Associates = {x:Bool, y:Bool, z:Bool} or(or(x,y),z) == or(x,or(y,z))
+  (case/Bool a
+   | true     => {b, c}
+    (case/Bool b
+     | true   => {c} case/Bool c
+       | true => refl<true> | false => refl<true>
+       : Associates(true, true, self)
+     | false  => {c} case/Bool c
+       | true => refl<true> | false => refl<true>
+       : Associates(true, false, self)
+     : {c : Bool}  -> Associates(true, self, c))(c)
+   | false     => {b, c}
+    (case/Bool b
+     | true   => {c} case/Bool c 
+       | true => refl<true> | false => refl<true>
+       : Associates(false, true, self)
+     | false  => {c} case/Bool c
+        | true => refl<true> | false => refl<false>
+        : Associates(false, false, self)
+     : {c : Bool}  -> Associates(false, self, c))(c)
+   : {b : Bool, c : Bool} -> Associates(self, b, c))(b,c)
+
+and.leftIdentity : M/LeftIdentity(Bool,and,true); {y : Bool}
+  case/Bool y | true => refl<true> | false => refl<false>
+              : and(self,true) == self
+and.rightIdentity : M/RightIdentity(Bool,and,true); {y : Bool}
+  case/Bool y | true => refl<true> | false => refl<false>
+              : and(true,self) == self
+and.identity : M/Identity(Bool,and,true)
+  mkAnd<M/LeftIdentity(Bool,and,true),M/RightIdentity(Bool,and,true)
+       >(and.leftIdentity,and.rightIdentity)
+
+or.leftIdentity : M/LeftIdentity(Bool,or,false); {y : Bool}
+  case/Bool y | true => refl<true> | false => refl<false>
+              : or(self,false) == self
+or.rightIdentity : M/RightIdentity(Bool,or,false); {y : Bool}
+  case/Bool y | true => refl<true> | false => refl<false>
+              : or(false,self) == self
+or.identity : M/Identity(Bool,or,false)
+  mkAnd<M/LeftIdentity(Bool,or,false),M/RightIdentity(Bool,or,false)
+       >(or.leftIdentity,or.rightIdentity)
+
+semigroup.and : S/Semigroup(Bool); S/mkSemigroup<Bool>(and,and.associative)
+semigroup.or : S/Semigroup(Bool); S/mkSemigroup<Bool>(or,or.associative)
+
+monoid.and : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(and,true,and.associative,and.identity)
+monoid.or : Mon/Monoid(Bool);
+  Mon/mkMonoid<Bool>(or,false,or.associative,or.identity)
+
+

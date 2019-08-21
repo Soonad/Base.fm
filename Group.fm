@@ -1,0 +1,10 @@
+import Magma as M
+
+T Group<A:Type>
+| mkGroup
+  { f           : A -> A -> A
+  , e           : A
+  , associative : M/Associative(A,f)
+  , identity    : M/Identity(A,f,e)
+  , inverse     : M/Inverse(A,f,e, identity)
+  }
