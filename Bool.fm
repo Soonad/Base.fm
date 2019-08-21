@@ -5,51 +5,82 @@ T Bool
 | true
 | false
 
+// ::::::::::::::::::::::
+// :: Simple functions ::
+// ::::::::::::::::::::::
+
 // Simple not
-not : {b : Bool} -> Bool
-  @ b     ~> Bool
-  | true  => false
-  | false => true
+not : {case b : Bool} -> Bool
+| true  => false
+| false => true
+
+// Simple and
+and : {case b0 : Bool, case b1 : Bool} -> Bool
+| true  true  => true
+| true  false => false
+| false true  => false
+| false false => false
+
+// Simple or
+or : {case b0 : Bool, case b1 : Bool} -> Bool
+| true  true  => true
+| true  false => true
+| false true  => true
+| false false => false
+
+// :::::::::::::::::::::::
+// :: Fusible functions ::
+// :::::::::::::::::::::::
 
 // Not with runtime fusion
 not-f : {b : Bool} -> Bool
   new<Bool>{~P, true, false}
-    @ b     ~> P(not-f(self))
+    case/Bool b
     | true  => false
     | false => true
-
-// Simple and
-and : {b0 : Bool, b1 : Bool} -> Bool
-  (@ b0     ~> Bool -> Bool
-  | true    => {b1} @Bool b1 ~> Bool
-    | true  => true
-    | false => false
-  | false   => {b1} @Bool b1 ~> Bool
-    | true  => false
-    | false => false)(b1)
-
-// Simple or
-or : {b0 : Bool, b1 : Bool} -> Bool
-  (@ b0      ~> Bool -> Bool
-  | true     => {b1} @Bool b1 ~> Bool
-    | true   => true
-    | false  => true
-  | false    => {b1} @Bool b1 ~> Bool
-    | true   => true
-    | false  => false)(b1)
+    : P(not-f(self))
 
 // If-then-else
 bif : {b : Bool, ~P : Type, T : P, F : P} -> P
   (%b)(~{b}P, T, F)
 
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
 true_not_false : {e : true == false} -> Empty
-  let motive = {b : Bool} =>
-    @ b     ~> Type
-    | true  => Unit
-    | false => Empty
-  rewrite<e>{x in motive(x)}(unit)
+  rewrite<e>{x in case/Bool x | true => Unit | false => Empty : Type}(unit)
 
 different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
-  @ a     ~> [b : Bool, ~{:self == b} -> Empty]
+  case/Bool a
   | true  => [false, ~true_not_false]
   | false => [true, ~{e : false == true} => true_not_false(sym<e>)]
+  : [b : Bool, ~{:self == b} -> Empty]
+
+demorgan0 : {case a : Bool, case b : Bool} -> not(or(a,b)) == and(not(a), not(b))
+| true  true  => refl<false>
+| true  false => refl<false>
+| false true  => refl<false>
+| false false => refl<true>
+
+demorgan1 : {case a : Bool, case b : Bool} -> not(and(a,b)) == or(not(a), not(b))
+| true  true  => refl<false>
+| true  false => refl<true>
+| false true  => refl<true>
+| false false => refl<true>
+
+demorgan1b : {a : Bool, b : Bool} -> not(and(a,b)) == or(not(a), not(b))
+  (case/Bool a
+  | true    => {b}
+    case/Bool b
+    | true  => refl<false>
+    | false => refl<true>
+    : not(and(true, self)) == or(not(true), not(self))
+  | false   => {b}
+    case/Bool b
+    | true  => refl<true>
+    | false => refl<true>
+    : not(and(false, self)) == or(not(false), not(self))
+  : {b : Bool} -> not(and(self, b)) == or(not(self), not(b)))(b)
+
+main demorgan1b

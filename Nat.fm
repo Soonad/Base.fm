@@ -5,23 +5,21 @@ T Nat
 | succ {pred : Nat}
 | zero
 
-pred : {n : Nat} -> Nat
-  @ n    ~> Nat
-  | succ => pred
-  | zero => zero
+// ::::::::::::::::::::::
+// :: Simple functions ::
+// ::::::::::::::::::::::
 
-pred.example
-  pred(succ(succ(zero)))
+pred : {case n : Nat} -> Nat
+| succ => n.pred
+| zero => zero
 
-!add*N : !{n : Nat, *m : Nat} -> Nat
-  (@ n   ~> Nat -> Nat
-  | succ => {m} succ(add(pred, m))
-  | zero => {m} m)(m)
+!add*N : !{case n : Nat, *m : Nat} -> Nat
+| succ => succ(add(n.pred, m))
+| zero => m
 
-!double*N : !{*n : Nat} -> Nat
-  @ n    ~> Nat
-  | succ => succ(succ(double(pred)))
-  | zero => zero
+!double*N : !{case *n : Nat} -> Nat
+| succ => succ(succ(double(n.pred)))
+| zero => zero
 
 // Non-recursive functions that use recursive functions must also be boxed.
 // They must unbox the recursive functions they use.
@@ -37,11 +35,10 @@ pred.example
   * zero
 
 // Converts a Nat to a native Word
-!to_word*N : !{n : Nat} -> Word
-  @ n    ~> Word
-  | succ => 1 + to_word(pred)
-  | zero => 0
-  * 0
+!to_word*N : !{case n : Nat} -> Word
+| succ => 1 + to_word(n.pred)
+| zero => 0
+* 0
 
 // Converts a Ind to a Nat
 from_ind : {r : Ind} -> !Nat

@@ -5,41 +5,91 @@ T List <A : Type>
 | cons {head : A, tail : List(A)}
 | nil
 
-head : {~T : Type, default : T, list : List(T)} -> T
-  @ list ~> T
-  | cons => head
-  | nil  => default
+// ::::::::::::::::::::::
+// :: Simple functions ::
+// ::::::::::::::::::::::
 
-tail : {~T : Type, list : List(T)} -> List(T)
-  @ list ~> List(T)
-  | cons => tail
-  | nil  => nil(~T)
+head : {~T : Type, default : T, case list : List(T)} -> T
+| cons => list.head
+| nil  => default
 
-take : {~T : Type, default : T, list : List(T)} -> [x : T, List(T)]
-  @ list ~> [x : T, List(T)]
-  | cons => [head, tail]
-  | nil  => [default, nil<T>]
+tail : {~T : Type, case list : List(T)} -> List(T)
+| cons => list.tail
+| nil  => nil(~T)
 
-// ::::::::::::::
-// :: Identity ::
-// ::::::::::::::
+take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
+| cons => [list.head, list.tail]
+| nil  => [default, nil<T>]
 
-// Normal identity
-!id*n : !{~A : Type, *list : List(A)} -> List(A)
-  @ list ~> List(A)
-  | cons => cons<A>(head, id<A>(tail))
-  | nil  => nil<A>
+!id*n : !{~A : Type, case *list : List(A)} -> List(A)
+| cons => cons<A>(list.head, id<A>(list.tail))
+| nil  => nil<A>
 
-// Id example
+!map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+| cons => cons<B>(f(list.head), map(list.tail))
+| nil  => nil<B>
+* nil<B>
+
+!concat*n : !{~T : Type, case *xs : List(T), ys : List(T)} -> List(T)
+| cons => cons<T>(xs.head, concat<T>(xs.tail, ys))
+| nil  => ys
+
+!reverse.go*n : !{~T : Type, case *list : List(T), result : List(T)} -> List(T)
+| cons  => reverse.go<T>(list.tail, cons<T>(list.head, result))
+| nil   => result
+
+// TODO: syntax to simplify those wrappers
+!reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
+  reverse(~T, list, nil<T>)
+
+!zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
+| cons cons => cons<B>(func.head(list.head), zipp<A, B>(func.tail, list.tail))
+| cons nil  => nil<B>
+| nil  cons => nil<B>
+| nil  nil  => nil<B>
+* nil<B>
+
+// Examples
+
 !id.example : !List(Word)
   id*256<Word>(Word$[1,2,3,4])
 
-// Fusible identity
+!map.example : !List(Word)
+  map*256<Word, Word>(#{x} x + 1, Word$[1,2,3,4])
+
+// :::::::::::::::::::::::
+// :: Fusible functions ::
+// :::::::::::::::::::::::
+
 !id-f*n : !{~A : Type, *list : List(A)} -> List(A)
   new<List(A)>{~P, cons, nil}
-  @ list ~> P(-#(id-f.step)(~n, id-f, ~A, self))
+  case/List list
   | cons => cons(head, id-f<A>(tail))
   | nil  => nil
+  : P(-#(id-f.step)(~n, id-f, ~A, self))
+
+!map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
+  new<List(B)>{~P, cons, nil}
+  case/List list
+  | cons => cons(f(head), map-f(tail))
+  | nil  => nil
+  : P(-#(map-f.step(~A, ~B, #f))(~n, map-f, self))
+  * nil<B>
+
+!zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
+  new<List(B)>{~P, consf, nilf}
+  (case/List func
+  | cons => {consf, nilf}
+    case/List list
+    | cons => consf(head^(head), zipp-f<A, B>(tail^, tail))
+    | nil  => nilf
+    : P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, cons<A -> B>(head, tail), self))
+  | nil => {consf, nilf}
+    nilf
+  : {consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf : P(nil<B>)} -> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, self, list)))(consf, nilf)
+  * nil<B>
+
+// Examples
 
 // From 1.7m to 3.2k rewrites by using `id-f` to build the list
 id-f.example
@@ -49,29 +99,6 @@ id-f.example
   dup list = rec(*10000, ~List(Word), #id-f<Word>, #list)
   # id<Word>(list)
 
-// :::::::::::::
-// :: Mapping ::
-// :::::::::::::
-
-// Normal map
-!map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
-  @ list ~> List(B)
-  | cons => cons<B>(f(head), map(tail))
-  | nil  => nil<B>
-  * nil<B>
-
-// Map example
-!map.example : !List(Word)
-  map*256<Word, Word>(#{x} x + 1, Word$[1,2,3,4])
-
-// Fusible map
-!map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
-  new<List(B)>{~P, cons, nil}
-  @ list ~> P(-#(map-f.step(~A, ~B, #f))(~n, map-f, self))
-  | cons => cons(f(head), map-f(tail))
-  | nil  => nil
-  * nil<B>
-
 // From 2.2m rewrites to 229k rewrites using map-f
 map-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
@@ -79,6 +106,10 @@ map-f.example
   dup map  = map-f*256<Word, Word>(#{x} x + 1)
   dup list = rec(*10000, ~List(Word), #map, #list)
   # id<Word>(list)
+
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
 
 !map.composition*n :
   !{~A : Type
@@ -88,8 +119,7 @@ map-f.example
   , g  : !{:A} -> B
   , xs : List(A)
   } -> -#(map*n<B,C>(f))(-#(map*n<A,B>(g))(xs)) == -#(map*n<A,C>(#{x}-#(f)(-#(g)(x))))(xs)
-  @ xs ~>
-    -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
+  case/List xs
   | cons => 
     cong(
       ~ List(C),
@@ -100,51 +130,5 @@ map-f.example
       ~ map.composition<A, B, C>(f, g, tail))
   | nil =>
     refl<nil>
+  : -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
   * refl<nil>
-
-// :::::::::::::
-// :: Zipping ::
-// :::::::::::::
-  
-// Normal zipp
-!zipp*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
-  (@ func ~> List(A) -> List(B)
-  | cons => {list}
-    @List list ~> List(B)
-    | cons => cons<B>(head^(head), zipp<A, B>(tail^, tail))
-    | nil  => nil<B>
-  | nil => {list}
-    nil<B>)(list)
-  * nil<B>
-
-// Fusible zipp
-!zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
-  new<List(B)>{~P, consf, nilf}
-  (@ func ~> { consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf  : P(nil<B>)} -> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, self, list))
-  | cons => {consf, nilf}
-    @List list ~> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, cons<A -> B>(head, tail), self))
-    | cons     => consf(head^(head), zipp-f<A, B>(tail^, tail))
-    | nil      => nilf
-  | nil => {consf, nilf}
-    nilf)(consf, nilf)
-  * nil<B>
-  
-// :::::::::::
-// :: Algos ::
-// :::::::::::
-
-!reverse.go*n : !{~T : Type, *list : List(T), result : List(T)} -> List(T)
-  (@ list ~> List(T) -> List(T)
-  | cons  => {result} reverse.go<T>(tail, cons<T>(head, result))
-  | nil   => {result} result)(result)
-
-!reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
-  reverse(~T, list, nil<T>)
-
-!concat*n : !{~T : Type, xs : List(T), ys : List(T)} -> List(T)
-  (@ xs  ~> List(T) -> List(T)
-  | cons => {ys} cons<T>(head, concat<T>(tail, ys))
-  | nil  => {ys} ys)(ys)
-  * nil<T>
-
-main reverse

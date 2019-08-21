@@ -4,9 +4,10 @@ import Ind open
 import Equality open
 
 Array : {n : Nat} -> Type
-  @ n    ~> Type
+  case/Nat n
   | succ => [x : Array(pred), Array(pred)]
   | zero => Word
+  : Type
 
 !array.example : ![:Word, [:Word, Word]]
   let arr      = a8
