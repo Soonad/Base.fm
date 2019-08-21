@@ -43,8 +43,6 @@ instance Pair (,) where
     e2 (_, b) = b
 
 -- 4.1.2
--- :: FPair a b = FPair (∀t: (a b→t) → t)
--- newtype FPair a b = FPair (forall t. (a → b → t) → t)
 newtype FPair a b = FPair   { unPair :: ∀ t. (a → b → t) → t }
 
 swap :: (Pair t) ⇒ t a b → t b a
@@ -76,8 +74,6 @@ instance Pair FPair where
     e2 (FPair p) = p (flip const)
 
 
-
-
 -- 4.2 Peano Numbers
 
 class Num t where
@@ -101,20 +97,14 @@ instance Num Natural where
 data Peano = Z | S Peano
 
 instance Num Peano where
-    zero     = Z
-    succ     = S
-    isZero Z = True
-    isZero _ = False
-    -- isZero n = case n of Z → True
-    --                   _    → False
-    -- pred   n = case n of (S m) → m
-    --                      _     → undefined
+    zero       = Z
+    succ       = S
+    isZero Z   = True
+    isZero _   = False
     pred (S n) = n
     pred _     = undefined
 
 -- 4.2.3 Peano Numbers in the Church Encoding
--- :: CNum = CNum (∀b: b (b→b) → b)
--- newtype CNum = CNum { getNum :: ∀ a. (a → a) → (a → a) }
 newtype CNum = CNum { getNum :: ∀ a. (a → a) → a → a }
 
 suc :: CNum → CNum
@@ -125,25 +115,23 @@ add (CNum n) (CNum m) = CNum (\s → n s . m s) -- (add n m) s z = n s (m s z)
 
 instance Num CNum where
     zero :: CNum
-    zero = CNum (\_ z → z)
+    zero            = CNum (\_ z → z)
     succ :: CNum → CNum
-    succ (CNum n) = CNum (\s z → n s (s z)) -- or: \s z → s (n s z)
+    succ (CNum n)   = CNum (\s z → n s (s z)) -- or: \s z → s (n s z)
     isZero :: CNum → Bool
     isZero (CNum n) = n (const False) True
-    pred (CNum n) = x
-        where (x, _) = n suc (undefined, zero)
+    -- TODO assess what changing to return `Maybe CNum` would mean
+    pred :: CNum → CNum
+    pred (CNum n)   = x
+        where (x, _)     = n suc (undefined, zero)
               suc (_, b) = (b, succ b)
 
-
-
-
---
 class List t where
-    nil   :: t a
-    cons  :: a → t a → t a
-    isNil :: t a → Bool
-    head  :: t a → a
-    tail  :: t a → t a
+  nil   :: t a
+  cons  :: a → t a → t a
+  isNil :: t a → Bool
+  head  :: t a → a
+  tail  :: t a → t a
 
 {-
 -- this is the version in the paper
@@ -158,15 +146,17 @@ instance List [] where
                           _       = undefined
 -}
 instance List [] where
-    nil = []
-    cons = (:)
+    nil   :: [a]
+    nil          = []
+    cons  :: a → [a] → [a]
+    cons         = (:)
     isNil :: [a] → Bool
-    isNil [] = True
-    isNil _  = False
-    head :: [a] → a
+    isNil []     = True
+    isNil _      = False
+    head  :: [a] → a
     head (a : _) = a
     head _       = undefined
-    tail :: [a] → [a]
+    tail  :: [a] → [a]
     tail (_ : x) = x
     tail _       = undefined
 
@@ -175,9 +165,13 @@ newtype CList a = CList { foldr :: forall b . (a → b → b) → b → b }
 instance List CList where
     nil :: CList a
     nil = CList(\_ n → n)
+    cons :: a → CList a → CList a
     cons a v = CList(\c n → c a ((\(CList l) → l) v c n))
+    isNil :: CList a → Bool
     isNil (CList l) = l (\a t → False) True
+    head :: CList a → a
     head (CList l) = l (\a t → a) undefined
+    tail :: CList a → CList a
     tail (CList l) = CList (\nil cons → undefined)
 
 

@@ -2,6 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE UnicodeSyntax  #-}
 
 module F where
 
@@ -96,7 +97,7 @@ uncurry f (FPair g) = g f
 
 
 just :: a → FMaybe a
-just a = FMaybe (\_ f → f a)
+just a = FMaybe (\_ some → some a)
 
 toMaybe :: FMaybe a → Maybe a
 toMaybe (FMaybe maybe) = maybe Nothing Just

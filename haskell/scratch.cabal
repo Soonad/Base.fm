@@ -14,12 +14,13 @@ bug-reports:    https://github.com/githubuser/scratch/issues
 author:         Author name here
 maintainer:     example@example.com
 copyright:      2019 Author name here
+category:       functional
+synopsis:       scratch
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -27,13 +28,14 @@ source-repository head
 
 library
   exposed-modules:
-      Lib, F, Church
+      F, Church, Harmful, Random
   other-modules:
       Paths_scratch
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , recursion-schemes
   default-language: Haskell2010
 
 executable scratch-exe
