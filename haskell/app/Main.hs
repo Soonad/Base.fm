@@ -1,6 +1,8 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Main where -- BigNum where
 
@@ -14,8 +16,32 @@ import Control.Monad (guard)
 import Control.Arrow ((&&&))
 import Data.Tuple (swap)
 
+import Control.Comonad.Cofree
+import Control.Monad.Free
+import Data.Functor.Foldable
+
 main :: IO ()
 main = undefined -- someFunc
+
+lefts :: [Either a b] -> [a]
+lefts = histo $ \case
+  Nil                     → []
+  Cons (Left  a) (t :< _) → a : t
+  Cons (Right _) (t :< _) → t
+
+rights :: [Either a b] -> [b]
+rights = histo $ \case
+  Nil                     → []
+  Cons (Left  _) (t :< _) → t
+  Cons (Right b) (t :< _) → b : t
+
+-- Partition a list of `Either`s using a histomorphism
+partitionEithers :: [Either a b] -> ([a], [b])
+partitionEithers = histo $ \case
+  -- :: Base [Either a b] (Cofree (Base [Either a b]) ([a], [b])) → ([a], [b])
+  Nil                          → ([]   ,     [])
+  Cons (Left  a) ((l, r) :< _) → (a : l,     r )
+  Cons (Right b) ((l, r) :< _) → (    l, b : r )
 
 type ℕ = Natural
 

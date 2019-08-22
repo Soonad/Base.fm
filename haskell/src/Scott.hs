@@ -6,20 +6,23 @@
 module Scott where
 
 -- import Control.Applicative
-import Prelude (flip, id, const, (.), (+), (==), undefined, ($))
+import Prelude (flip, id, const, (.), (+), (==), undefined, ($), Functor, fmap, Show, show)
 import Numeric.Natural
-import qualified Data.List as List (foldr)
+import qualified Data.List as List (foldr, unfoldr, zipWith, zip, (++))
 import Data.Bool (Bool, Bool (True, False))
 import qualified Data.Bool as Bool (bool, not)
 import Data.Maybe (Maybe, Maybe (Nothing, Just))
 import qualified Data.Maybe as Maybe (maybe)
-import Data.Either (Either, Either (Left, Right))
+import Data.Either (Either, Either (Left, Right), fromLeft)
 import qualified Data.Either as Either (either)
 import F
 
 newtype ScottNat = NatS { unNat ∷ forall b . (ScottNat → b) → b }
 
 newtype ScottList a = ListS { unCons ∷ forall b. (a → ScottList a → b) → b → b }
+
+instance (Show a) => Show (ScottList a) where
+  show x = show (toList x)
 
 maybeToList ∷ FMaybe a → ScottList a
 -- maybeToList (FMaybe maybe) = maybe nil₀ (\a → cons a nil₀)
@@ -43,11 +46,14 @@ pure ∷ a → ScottList a
 pure a = ListS (\cons _ → cons a nil₀)
 
 cons₀ ∷ a → ScottList a → ScottList a
--- cons₀ a as = ListS (\cons _ → cons a as) -- TODO was good one
-cons₀ a (ListS unfold) = unfold cons₀ (pure a) -- TODO
+cons₀ a as = ListS (\cons _ → cons a as)
+-- cons₀ a (ListS unfold) = unfold cons₀ (pure a) -- TODO
   -- ListS (\cons nil → cons a as)
 -- cons₀ a (ListS unfold) = unfold (\a' as → cons₀ a (cons₀ a' as)) undefined
 -- cons₀ a (ListS unfold) = unfold cons₀ undefined
+
+tail ∷ ScottList a → ScottList a
+tail (ListS unfold) = unfold (\h t → t) nil₀
 
 -- `null (fromList [0 ..])` doesn't terminate
 null ∷ ScottList a → Bool
@@ -59,8 +65,8 @@ map ∷ (a → b) → ScottList a → ScottList b
 -- map f (ListS unfold) = ListS (\cons nil → unfold (\a t → cons (f a) (map f t)) nil)
 -- map f (ListS unfold) = ListS (\cons nil → unfold (\a → cons (f a) . (map f)) nil)
 -- map f (ListS unfold) = ListS (\cons nil → unfold (\a → cons (f a) . map f) nil)
-map f (ListS unfold) = ListS (\cons → unfold (\cons' → cons (f cons') . Scott.map f))
--- map f = uncons (\x xs → cons (f x) (map f xs)) nil
+-- map f (ListS unfold) = ListS (\cons → unfold (\cons' → cons (f cons') . Scott.map f))
+map f = uncons (\h t → cons₀ (f h) (Scott.map f t)) nil₀
 
 length ∷ ScottList a → Natural
 length (ListS unfold) = unfold (\_ acc → length acc + 1) 0
@@ -89,18 +95,17 @@ partitionFEither = foldr (either left right) ([], [])
   right a ~(l, r) = (    l, a : r)
 -}
 partitionEither ∷ ScottList (FEither a b) → FPair (ScottList a) (ScottList b)
-partitionEither = foldr (either left right) (pair nil₀ nil₀)
-  where
-      left ∷ a → FPair (ScottList a) b → FPair (ScottList a) b
-      left  a p = pair (cons₀ a (fst p))          (snd p)
-        -- pair (cons₀ a l)        r
-      right ∷ b → FPair a (ScottList b) → FPair a (ScottList b)
-      -- right b ~(l, r) = pair         l (cons₀ b r)
-      right b p = pair          (fst p)  (cons₀ b (snd p))
+partitionEither = foldr f (pair nil₀ nil₀)
+  where f ∷ FEither a b → FPair (ScottList a) (ScottList b) → FPair (ScottList a) (ScottList b)
+        f = either left right
+        left ∷ a → FPair (ScottList a) b → FPair (ScottList a) b
+        left  a p = pair (cons₀ a (fst p))          (snd p)
+        right ∷ b → FPair a (ScottList b) → FPair a (ScottList b)
+        right b p = pair          (fst p)  (cons₀ b (snd p))
 
 foldr ∷ (a → b → b) → b → ScottList a → b
--- foldr f b xs = uncons (\a q' → f a (foldr f b q')) b xs
-foldr cons nil (ListS unfold) = unfold (\a as → cons a (foldr cons nil as)) nil
+-- foldr cons nil (ListS unfold) = unfold (\h t → cons h (foldr cons nil t)) nil
+foldr cons nil = uncons (\h t → cons h (foldr cons nil t)) nil
 
 foldl ∷ (b → a → b) → b → ScottList a → b
 foldl f b xs = foldr (\a g b' → g (f b' a)) id xs b
