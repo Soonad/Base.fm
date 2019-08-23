@@ -1,0 +1,20 @@
+import Algebra.Magma open
+
+T Group<A : Type>
+| group
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , identity    : Identity(A,f,e)
+  , inverse     : Inverse(A,f,e,identity)
+  }
+
+T AbelianGroup<A : Type>
+| abelian_group
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , identity    : Identity(A,f,e)
+  , inverse     : Inverse(A,f,e,identity)
+  , commutative : Commutative(A,f)
+  }

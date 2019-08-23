@@ -1,4 +1,5 @@
-import Ind@1 open
+import Induction.Nat open
+import Relation.Equality open
 
 sum_base_r : {a : Ind} -> !sum(a, base) == a
   let motive = {x} => sum(x, base) == x

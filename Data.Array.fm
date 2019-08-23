@@ -1,7 +1,7 @@
-import Boxes open
-import Nat open
-import Ind open
-import Equality open
+import Data.Function open
+import Data.Nat open
+import Induction.Nat open
+import Relation.Equality open
 
 Array : {n : Nat} -> Type
   case/Nat n

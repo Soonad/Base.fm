@@ -1,0 +1,2 @@
+import Induction.Nat open
+import Induction.Tree open

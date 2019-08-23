@@ -47,36 +47,3 @@ PBT.3
   dup T = # node(~PBT.1, T, T)
   dup T = # node(~PBT.2, T, T)
   # T
-
-PBT.4
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  dup T = # node(~PBT.1, T, T)
-  dup T = # node(~PBT.2, T, T)
-  dup T = # node(~PBT.3, T, T)
-  # T
-
-PBT.5
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  dup T = # node(~PBT.1, T, T)
-  dup T = # node(~PBT.2, T, T)
-  dup T = # node(~PBT.3, T, T)
-  dup T = # node(~PBT.4, T, T)
-  # T
-
-PBT.6
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  dup T = # node(~PBT.1, T, T)
-  dup T = # node(~PBT.2, T, T)
-  dup T = # node(~PBT.3, T, T)
-  dup T = # node(~PBT.4, T, T)
-  dup T = # node(~PBT.5, T, T)
-  # T

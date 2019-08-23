@@ -1,11 +1,5 @@
-import Array open
-import Bool open
-import Boxes open
-import Equality open
-import Ind open
-import Function open
-import List open
-import Nat open
-import String open
-import Logic open
-import Algebra open
+import Algebra
+import Control
+import Data
+import Induction
+import Logic

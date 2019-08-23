@@ -1,5 +1,4 @@
-import Ind open
-import Bool open
+import Induction.Nat open
 
 T Nat
 | succ {pred : Nat}

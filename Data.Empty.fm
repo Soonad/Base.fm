@@ -1,0 +1,16 @@
+// The uninhabited type
+T Empty
+
+// From falsehood, everything follows
+absurd : {e : Empty, P : Type} -> P
+  case/Empty e
+  : P
+
+// A false proposition returns a falsehood
+Not : {P : Type} -> Type
+  {x : P} -> Empty
+
+// Non-contradiction
+Explosion : {A : Type, x : A, nx : Not(A)} -> Empty
+  nx(x)
+

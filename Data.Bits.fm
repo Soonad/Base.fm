@@ -1,0 +1,23 @@
+import Induction.Nat open
+import Relation.Equality open
+
+T Bits
+| b0 {pred : Bits}
+| b1 {pred : Bits}
+| be
+
+!bnot*n : !{bits : Bits} -> Bits
+  (case/Bits bits
+  | b0    => {bnot} b1(bnot(pred))
+  | b1    => {bnot} b0(bnot(pred))
+  | be    => {bnot} be
+  : {bnot : {bits : Bits} -> Bits} -> Bits)(bnot)
+  * bits
+
+!bnot.theo*n : !{bits : Bits} -> -#(bnot(n))(-#(bnot(n))(bits)) == bits
+  case/Bits bits
+  | b0   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b0, ~bnot.theo(pred))
+  | b1   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b1, ~bnot.theo(pred))
+  | be   => refl<be>
+  : -#(bnot(step(n)))(-#(bnot(step(n)))(self)) == self
+  * refl<bits>

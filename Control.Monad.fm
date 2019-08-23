@@ -1,0 +1,44 @@
+// A functor consists of...
+T Monad<M : Type -> Type>
+
+// A monoid in the category of endofunctors why do you still ask
+| monad 
+
+  // A way to wrap values
+  { pure :
+    { ~A : Type
+    , x  : A
+    } -> M(A)
+
+  // A function that, given an unwrapped value, does something and wraps it
+  , bind :
+    { ~A : Type
+    , ~B : Type
+    , m  : M(A)
+    , f  : A -> M(B)
+    } -> M(B)
+
+  // Satisfying this identity law
+  , identity1 :
+    { ~A : Type
+    , ~B : Type
+    , x : A
+    , f : A -> M(B)
+    } -> bind<A,B>(pure<A>(x),f) == f(x)
+
+  // Satisfying this identity law
+  , identity2 :
+    { ~A : Type
+    , m : M(A)
+    } -> bind<A,A>(m,pure<A>) == m
+
+  // Satisfying this associativity law
+  , associative :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type 
+    , m : M(A)
+    , f : A -> M(B)
+    , g : B -> M(C)
+    } -> bind<B,C>(bind<A,B>(m,f), g) == bind<A,C>(m, ({x : A} bind<B,C>(f(x), g)))
+  }

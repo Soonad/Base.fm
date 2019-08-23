@@ -1,6 +1,6 @@
-import Ind open
-import Nat open
-import List open
+import Induction.Nat open
+import Data.Nat open
+import Data.List open
 
 V2 : Type
   [:Word, Word]
@@ -202,7 +202,7 @@ V2.circle_i
 V2.circle_j
   V2.circle*81(#17)
 
-V2.range: {mlen : Ind, rad : !Word} -> !{pos : V2} -> List(V2)
+V2.range : {mlen : Ind, rad : !Word} -> !{pos : V2} -> List(V2)
   dup rad  = rad
   let isin = {cen, siz, pos} V2.flat_dist(cen, pos) < (rad + 1)
   dup size = #(rad * 2) + 1
@@ -210,35 +210,41 @@ V2.range: {mlen : Ind, rad : !Word} -> !{pos : V2} -> List(V2)
 
 V2.range_0
   V2.range(*1, #0)
+
 V2.range_1
   V2.range(*9, #1)
+
 V2.range_2
   V2.range(*25, #2)
+
 V2.range_3
   V2.range(*49, #3)
+
 V2.range_4
   V2.range(*81, #4)
+
 V2.range_5
   V2.range(*121, #5)
+
 V2.range_6
   V2.range(*169, #6)
 
-!V2.wave*n : dup line = V2.line(*) !{widths : List(Word), pos : V2, dxy : V2} -> List(V2)
-  @ widths ~> List(V2)
-  | cons =>
-    let ws = V2.wave(tail)
-    get [ax,ay] = pos
-    get [dx,dy] = dxy
-    cpy w  = head
-    cpy ax = ax
-    cpy ay = ay
-    cpy dx = dx
-    cpy dy = dy
-    cpy nx = dy
-    cpy ny = 0 - dx
-    let ix = ax - (nx * (w / 2))
-    let iy = ay - (ny * (w / 2))
-    let t  = ws([ax + dx,ay + dy], [dx,dy])
-    line(w, [ix,iy], [nx,ny], t)
-  | nil => nil<V2>
-  * nil<V2>
+//!V2.wave*n : dup line = V2.line(*) !{widths : List(Word), pos : V2, dxy : V2} -> List(V2)
+  //@ widths ~> List(V2)
+  //| cons =>
+    //let ws = V2.wave(tail)
+    //get [ax,ay] = pos
+    //get [dx,dy] = dxy
+    //cpy w  = head
+    //cpy ax = ax
+    //cpy ay = ay
+    //cpy dx = dx
+    //cpy dy = dy
+    //cpy nx = dy
+    //cpy ny = 0 - dx
+    //let ix = ax - (nx * (w / 2))
+    //let iy = ay - (ny * (w / 2))
+    //let t  = ws([ax + dx,ay + dy], [dx,dy])
+    //line(w, [ix,iy], [nx,ny], t)
+  //| nil => nil<V2>
+  //* nil<V2>

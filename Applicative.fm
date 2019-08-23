@@ -1,4 +1,0 @@
-T Applicative <M : Type -> Type, A : Type>
-| mkApplicative { pure : A -> M(A)
-                , ap : {~B : Type, :M(A -> B), :M(A)} -> M(B)
-                }

@@ -1,0 +1,5 @@
+T Applicative <M : Type -> Type, A : Type>
+| applicative
+  { pure  : A -> M(A)
+  , apply : {~B : Type, : M(A -> B), : M(A)} -> M(B)
+  }

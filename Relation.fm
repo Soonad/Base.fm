@@ -1,21 +1,2 @@
-// Relations : A -> A -> Type
-
-Reflexive : {~A : Type, ~R : A -> A -> Type} -> Type; {x : A} -> R(x,x)
-Coreflexive : {~A : Type, ~R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,x)} -> x == y
-
-Quasireflexive : {~A : Type, ~R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
-
-Transitive : {~A : Type, ~R : A -> A -> Type } -> Type
-  {x : A, y : A, z : A, :And(R(x,y), R(y,z))} -> R(x,z)
-
-Symmetric : {~A : Type, ~R : A -> A -> Type} -> Type;
-  {x : A, y : A, :R(x,y)} -> R(y,x)
-
-T Equivalence<A : Type>
-| mkEquivalence { bin : A -> A -> Type
-                , equivalence1 : Reflexive<A,bin>
-                , equivalence2 : Symmetric<A,bin>
-                , equivalence3 : Transitive<A,bin>
-                }
+import Relation.Binary open
+import Relation.Equality open
