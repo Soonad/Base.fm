@@ -1,0 +1,22 @@
+import Algebra.Magma open
+
+T Heyting<A : Type>
+| heyting
+  { meet                 : A -> A -> A
+  , join                 : A -> A -> A
+  , implies              : A -> A -> A
+  , e0                   : A
+  , e1                   : A
+  , meet.commutative     : Commutative(A,meet)
+  , meet.associative     : Associative(A,meet)
+  , meet.identity        : Identity(A,meet,e1)
+  , join.commutative     : Commutative(A,join)
+  , join.associative     : Associative(A,join)
+  , join.identity        : Identity(A,join,e0)
+  , absorption           : Absorption(A,meet,join)
+  , distributive         : Distributive(A,meet,join)
+  , implies.identity     : Identity(A,implies,e1)
+  , meet.antecedent      : {x : A, y : A} -> meet(x,implies(x,y)) == meet(x,y)
+  , meet.consequent      : {x : A, y : A} -> meet(y,implies(x,y)) == y
+  , implies.distributive : Distributive(A,implies,meet)
+  }

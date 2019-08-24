@@ -12,3 +12,21 @@ T Monoid<A:Type>
 // Monoids are Semigroups
 monoid_to_semigroup : {~A : Type, case m : Monoid(A)} -> Semigroup(A)
 | monoid => semigroup<A>(m.f, m.associative)
+
+T AbelianMonoid<A : Type>
+| abelian_monoid
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , identity    : Identity(A,f,e)
+  , commutative : Commutative(A,f)
+  }
+
+T IdempotentMonoid<A : Type>
+| idempotent_monoid
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , identity    : Identity(A,f,e)
+  , idempotent  : Idempotent(A,f)
+  }

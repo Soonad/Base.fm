@@ -33,3 +33,20 @@ T InverseSemigroup<A : Type>
   , associative : Associative(A,f)
   , inversion : {x : A} -> [y : A, And(x == f(x,f(y,x)), y == f(y,f(x,y)))]
   }
+
+
+T AbelianSemigroup<A : Type>
+| abelian_semigroup
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , commutative : Commutative(A,f)
+  }
+
+T IdempotentSemigroup<A : Type>
+| idempotent_semigroup
+  { f           : A -> A -> A
+  , e           : A
+  , associative : Associative(A,f)
+  , idempotent  : Idempotent(A,f)
+  }

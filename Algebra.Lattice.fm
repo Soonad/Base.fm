@@ -1,0 +1,66 @@
+import Algebra.Magma open
+
+T Lattice<A : Type>
+| lattice
+  { meet             : A -> A -> A
+  , join             : A -> A -> A
+  , meet.commutative : Commutative(A,meet)
+  , meet.associative : Associative(A,meet)
+  , join.commutative : Commutative(A,join)
+  , join.associative : Associative(A,join)
+  , absorption       : Absorption(A,meet,join)
+  }
+
+T Semilattice<A : Type>
+| semilattice
+  { f           : A -> A -> A
+  , commutative : Commutative(A,f)
+  , associative : Associative(A,f)
+  , idempotent  : Idempotent(A,f)
+  }
+
+T BoundedLattice<A : Type>
+| bounded_lattice
+  { meet             : A -> A -> A
+  , join             : A -> A -> A
+  , e0               : A
+  , e1               : A
+  , meet.commutative : Commutative(A,meet)
+  , meet.associative : Associative(A,meet)
+  , meet.identity    : Identity(A,meet,e1)
+  , join.commutative : Commutative(A,join)
+  , join.associative : Associative(A,join)
+  , join.identity    : Identity(A,join,e0)
+  , absorption       : Absorption(A,meet,join)
+  }
+
+T ComplementedLattice<A : Type>
+| complemeted_lattice
+  { meet             : A -> A -> A
+  , join             : A -> A -> A
+  , e0               : A
+  , e1               : A
+  , meet.commutative : Commutative(A,meet)
+  , meet.associative : Associative(A,meet)
+  , meet.identity    : Identity(A,meet,e1)
+  , meet.complement  : Inverse(A,meet,e1,meet.identity)
+  , join.commutative : Commutative(A,join)
+  , join.associative : Associative(A,join)
+  , join.identity    : Identity(A,join,e0)
+  , join.complement  : Inverse(A,join,e0,join.identity)
+  , absorption       : Absorption(A,meet,join)
+  }
+
+T DistributiveLattice<A : Type>
+| distributive_lattice
+  { meet             : A -> A -> A
+  , join             : A -> A -> A
+  , meet.commutative : Commutative(A,meet)
+  , meet.associative : Associative(A,meet)
+  , join.commutative : Commutative(A,join)
+  , join.associative : Associative(A,join)
+  , absorption       : Absorption(A,meet,join)
+  , distributive     : Distributive(A,meet,join)
+  }
+
+
