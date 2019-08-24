@@ -27,5 +27,5 @@ boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
   # f(x)
 
 // Function wrapper
-Fun : {A : Type, B :T ype} -> Type
+Fun : {A : Type, B : Type} -> Type
   A -> B
