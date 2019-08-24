@@ -25,3 +25,7 @@ boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
   dup f = f
   dup x = x
   # f(x)
+
+// Function wrapper
+Fun : {A : Type, B :T ype} -> Type
+  A -> B

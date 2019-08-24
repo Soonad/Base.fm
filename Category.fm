@@ -1,0 +1,53 @@
+import Relation.Equality open
+import Relation.Binary open
+import Data.And open
+
+// The Category namespace articulates the category theoretic interpretation
+// of mathematics and computation. In other words, this namespace represents
+// the "Lambek" in "Curry-Howard-Lambek" correspondence
+
+// A Category of objects A and morphisms M consists of...
+T Category<A : Type, M : A -> A -> Type>
+| category
+
+  // An equivalence relation between morphisms
+  { equivalence : {a : A, b : A} -> Equivalence(M(a,b))
+
+  // A composition of morphisms
+  , compose     : {a : A, b : A, c : A, g : M(b,c), f : M(a,b)} -> M(a,c)
+
+  // Such that omposition of morphisms is associative under equivalence
+  , associative :
+      { a : A
+      , b : A
+      , c : A
+      , d : A
+      , f : M(a,b)
+      , g : M(b,c)
+      , h : M(c,d)
+      , x : A
+      } -> case/Equivalence equivalence(a,d)
+           | equivalence =>
+              eq(compose(a,c,d,h,compose(a,b,c,g,f))
+                ,compose(a,b,d,compose(b,c,d,h,g),f)
+                )
+           : Type
+
+  // Such that every object `a` has an identity morphism `id`
+  // whose left-composition with any morphism `f` from `a` is equivalent to `f`
+  // whose right-composition with any morphism `g` to `a` is equivalent to `g`
+  , identity :
+      {a : A} -> [id : M(a,a)
+               , And({b : A, f : M(a,b)} ->
+                      case/Equivalence equivalence(a,b)
+                      | equivalence=> eq(compose(a,a,b,f,id),f)
+                      : Type
+                   , {b: A, g : M(b,a)} ->
+                      case/Equivalence equivalence(b,a)
+                      | equivalence=> eq(compose(b,a,a,id,g),g)
+                      : Type
+                   )
+              ]
+  }
+
+

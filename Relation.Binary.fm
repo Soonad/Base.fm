@@ -1,3 +1,5 @@
+import Data.And open
+
 // Relations : A -> A -> Type
 
 Reflexive : {~A : Type, ~R : A -> A -> Type} -> Type
@@ -16,9 +18,9 @@ Symmetric : {~A : Type, ~R : A -> A -> Type} -> Type;
   {x : A, y : A, :R(x,y)} -> R(y,x)
 
 T Equivalence<A : Type>
-| equivalence {
-  , bin          : A -> A -> Type
-  , equivalence1 : Reflexive<A,bin>
-  , equivalence2 : Symmetric<A,bin>
-  , equivalence3 : Transitive<A,bin>
+| equivalence
+  { eq         : A -> A -> Type
+  , reflexive  : Reflexive<A,eq>
+  , symmetric  : Symmetric<A,eq>
+  , transitive : Transitive<A,eq>
   }
