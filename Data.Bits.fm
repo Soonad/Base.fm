@@ -6,18 +6,14 @@ T Bits
 | b1 {pred : Bits}
 | be
 
-!bnot*n : !{bits : Bits} -> Bits
-  (case/Bits bits
-  | b0    => {bnot} b1(bnot(pred))
-  | b1    => {bnot} b0(bnot(pred))
-  | be    => {bnot} be
-  : {bnot : {bits : Bits} -> Bits} -> Bits)(bnot)
+!bnot*n : !{case bits : Bits} -> Bits
+  | b0 => b1(bnot(bits.pred))
+  | b1 => b0(bnot(bits.pred))
+  | be => be
   * bits
 
-!bnot.theo*n : !{bits : Bits} -> -#(bnot(n))(-#(bnot(n))(bits)) == bits
-  case/Bits bits
-  | b0   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b0, ~bnot.theo(pred))
-  | b1   => cong(~Bits, ~Bits, ~(-#(bnot(n)))((-#(bnot(n)))(pred)), ~pred, ~b1, ~bnot.theo(pred))
-  | be   => refl<be>
-  : -#(bnot(step(n)))(-#(bnot(step(n)))(self)) == self
-  * refl<bits>
+!bnot.theo*n : !{case bits : Bits} -> <bnot*n>(<bnot*n>(bits)) == bits
+| b0   => cong(~Bits, ~Bits, ~<bnot*n>(<bnot*n>(bits.pred)), ~bits.pred, ~b0, ~bnot.theo(bits.pred))
+| b1   => cong(~Bits, ~Bits, ~<bnot*n>(<bnot*n>(bits.pred)), ~bits.pred, ~b1, ~bnot.theo(bits.pred))
+| be   => refl(~be)
+* refl(~bits)

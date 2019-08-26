@@ -1,4 +1,4 @@
-// Relations : A -> A -> Type
+import Data.And open
 
 Reflexive : {~A : Type, ~R : A -> A -> Type} -> Type
   {x : A} -> R(x,x)

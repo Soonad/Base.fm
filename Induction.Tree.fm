@@ -1,49 +1,83 @@
-PBT : Type
+Ind2 : Type
   $ self
-  {~P   : {r : PBT} -> Type} ->
-  {node : ! {~r : PBT, L : P(r), R : P(r)} -> P(node(r))} ->
-  {leaf : ! P(leaf)} ->
+  {~P   : {self : Ind2} -> Type} ->
+  {step2 : ! {~l : Ind2, ~r : Ind2, L : P(l), R : P(r)} -> P(step2(l, r))} ->
+  {base2 : ! P(base2)} ->
   ! P(self)
 
-node : {r : PBT} -> PBT
-  new<PBT>{~P, node, leaf}
-  dup leaf = leaf
-  dup node = node
-  dup func = (%r)(~P, #node, #leaf)
-  # node(~r, func, func)
+step2 : {l : Ind2, r : Ind2} -> Ind2
+  new(~Ind2){~P, step2, base2}
+  dup base2 = base2
+  dup step2 = step2
+  dup fstv  = (%l)(~P, #step2, #base2)
+  dup sndv  = (%r)(~P, #step2, #base2)
+  # step2(~l, ~r, fstv, sndv)
 
-leaf : PBT
-  new<PBT>{~P, node, leaf}
-  dup leaf = leaf
-  dup node = node
-  # leaf
+base2 : Ind2
+  new(~Ind2){~P, step2, base2}
+  dup base2 = base2
+  dup step2 = step2
+  # base2
 
-PBT.0
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  # leaf
+Ind2.0
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  # base2
 
-PBT.1
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  # T
+Ind2.1
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  # tree
 
-PBT.2
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  dup T = # node(~PBT.1, T, T)
-  # T
+Ind2.2
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  dup tree  = # step2(~Ind2.1, ~Ind2.1, tree, tree)
+  # tree
 
-PBT.3
-  new<PBT>{~P, node, leaf}
-  dup node = node
-  dup leaf = leaf
-  dup T = # node(~PBT.0, leaf, leaf)
-  dup T = # node(~PBT.1, T, T)
-  dup T = # node(~PBT.2, T, T)
-  # T
+Ind2.3
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  dup tree  = # step2(~Ind2.1, ~Ind2.1, tree, tree)
+  dup tree  = # step2(~Ind2.2, ~Ind2.2, tree, tree)
+  # tree
+
+Ind2.4
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  dup tree  = # step2(~Ind2.1, ~Ind2.1, tree, tree)
+  dup tree  = # step2(~Ind2.2, ~Ind2.2, tree, tree)
+  dup tree  = # step2(~Ind2.3, ~Ind2.3, tree, tree)
+  # tree
+
+Ind2.5
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  dup tree  = # step2(~Ind2.1, ~Ind2.1, tree, tree)
+  dup tree  = # step2(~Ind2.2, ~Ind2.2, tree, tree)
+  dup tree  = # step2(~Ind2.3, ~Ind2.3, tree, tree)
+  dup tree  = # step2(~Ind2.4, ~Ind2.4, tree, tree)
+  # tree
+
+Ind2.6
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup tree  = # step2(~Ind2.0, ~Ind2.0, base2, base2)
+  dup tree  = # step2(~Ind2.1, ~Ind2.1, tree, tree)
+  dup tree  = # step2(~Ind2.2, ~Ind2.2, tree, tree)
+  dup tree  = # step2(~Ind2.3, ~Ind2.3, tree, tree)
+  dup tree  = # step2(~Ind2.4, ~Ind2.4, tree, tree)
+  dup tree  = # step2(~Ind2.5, ~Ind2.5, tree, tree)
+  # tree

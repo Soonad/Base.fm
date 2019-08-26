@@ -1,5 +1,4 @@
 import Data.And open
-import Data.Array open
 import Data.Bits open
 import Data.Bool open
 import Data.Empty open
@@ -11,4 +10,5 @@ import Data.Nat open
 import Data.Or open
 import Data.String open
 import Data.Unit open
+import Data.Vector open
 import Data.Vector2D open

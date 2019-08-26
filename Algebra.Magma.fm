@@ -1,7 +1,7 @@
 import Data.And open
 
 // A Magma is a type with a total binary operation between terms of that type
-T Magma<A:Type>
+T Magma {A : Type}
 | magma { f : A -> A -> A }
 
 // Properties of binary operations

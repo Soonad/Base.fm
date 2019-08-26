@@ -1,7 +1,7 @@
 import Algebra.Magma open
 import Algebra.Semigroup open
 
-T Monoid<A:Type>
+T Monoid {A : Type}
 | monoid
   { f           : A -> A -> A
   , e           : A
@@ -11,4 +11,4 @@ T Monoid<A:Type>
 
 // Monoids are Semigroups
 monoid_to_semigroup : {~A : Type, case m : Monoid(A)} -> Semigroup(A)
-| monoid => semigroup<A>(m.f, m.associative)
+| monoid => semigroup(~A, m.f, m.associative)

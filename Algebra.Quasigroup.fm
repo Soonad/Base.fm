@@ -1,12 +1,12 @@
 import Algebra.Magma open
 
-T Quasigroup<A:Type>
+T Quasigroup {A : Type}
 | quasigroup
   { f           : A -> A -> A
   , latinSquare : LatinSquare(A,f)
   }
 
-T LoopQuasigroup<A : Type>
+T LoopQuasigroup {A : Type}
 | loop_quasigroup
   { f           : A -> A -> A
   , e           : A
