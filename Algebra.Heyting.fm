@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Heyting<A : Type>
+T Heyting {A : Type}
 | heyting
   { meet                 : A -> A -> A
   , join                 : A -> A -> A

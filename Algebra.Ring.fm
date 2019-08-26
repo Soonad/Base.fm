@@ -1,7 +1,7 @@
 
 import Algebra.Magma open
 
-T Ring<A : Type>
+T Ring {A : Type}
 | ring
   { add              : A -> A -> A
   , mul              : A -> A -> A
@@ -17,7 +17,7 @@ T Ring<A : Type>
   , distributive     : Distributive(A,mul,add)
   }
 
-T NonUnitalRing<A : Type>
+T NonUnitalRing {A : Type}
 | nonunital_ring
   { add              : A -> A -> A
   , mul              : A -> A -> A

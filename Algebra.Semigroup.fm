@@ -1,7 +1,7 @@
 import Algebra.Magma open
 
 // A Semigroup is an associative Magma
-T Semigroup<A:Type>
+T Semigroup {A : Type}
 | semigroup 
   { f           : A -> A -> A
   , associative : Associative(A,f)
@@ -12,14 +12,14 @@ magma_to_semigroup :
   , case m      : Magma(A)
   , associative : Associative(A, case/Magma m | magma => f : A -> A -> A)
   } -> Semigroup(A)
-| magma => semigroup<A>(m.f, associative)
+| magma => semigroup(~A, m.f, associative)
 
 // All Semigroups are Magmas
 semigroup_to_magma : {~A : Type, case s : Semigroup(A)} -> Magma(A)
-| semigroup => magma<A>(s.f)
+| semigroup => magma(~A, s.f)
 
 // A RegularSemigroup is one which has a regular inversion for every element
-T RegularSemigroup<A : Type>
+T RegularSemigroup {A : Type}
 | regular_semigroup
   { f           : A -> A -> A
   , associative : Associative(A,f)
@@ -27,7 +27,7 @@ T RegularSemigroup<A : Type>
   }
 
 // An InverseSemigroup is one which has a unique inversion for every element
-T InverseSemigroup<A : Type>
+T InverseSemigroup {A : Type}
 | inverse_semigroup
   { f : A -> A -> A
   , associative : Associative(A,f)
@@ -35,7 +35,7 @@ T InverseSemigroup<A : Type>
   }
 
 
-T AbelianSemigroup<A : Type>
+T AbelianSemigroup {A : Type}
 | abelian_semigroup
   { f           : A -> A -> A
   , e           : A
@@ -43,7 +43,7 @@ T AbelianSemigroup<A : Type>
   , commutative : Commutative(A,f)
   }
 
-T IdempotentSemigroup<A : Type>
+T IdempotentSemigroup {A : Type}
 | idempotent_semigroup
   { f           : A -> A -> A
   , e           : A

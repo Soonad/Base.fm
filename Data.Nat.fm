@@ -23,11 +23,11 @@ pred : {case n : Nat} -> Nat
 // Non-recursive functions that use recursive functions must also be boxed.
 // They must unbox the recursive functions they use.
 !double.example : !Nat
-  double*256(succ(zero))
+  <double*256>(succ(zero))
 
 // Converts a native Word to a Nat
 !from_word*N : !{x : Word} -> Nat
-  if x === 0:
+  if x .= 0:
     zero
   else:
     succ(from_word(x - 1))

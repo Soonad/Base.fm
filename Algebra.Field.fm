@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Field<A : Type>
+T Field {A : Type}
 | field
   { add              : A -> A -> A
   , mul              : A -> A -> A
@@ -19,7 +19,7 @@ T Field<A : Type>
   , distributive     : Distributive(A,mul,add)
   }
 
-T DivisionRing<A : Type>
+T DivisionRing {A : Type}
 | division_ring
   { add              : A -> A -> A
   , mul              : A -> A -> A

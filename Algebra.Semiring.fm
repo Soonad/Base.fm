@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Semiring<A : Type>
+T Semiring {A : Type}
 | semiring
   { add              : A -> A -> A
   , mul              : A -> A -> A

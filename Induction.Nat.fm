@@ -7,14 +7,14 @@ Ind : Type
     P(self)
 
 step : {r : Ind} -> Ind
-  new<Ind>{~P, step}
+  new(~Ind){~P, step}
   dup step = step
   dup func = (%r)(~P, #step)
   # {base}
     step(~r, func(base))
 
 base : Ind
-  new<Ind>{~P, step}
+  new(~Ind){~P, step}
   dup step = step
   # {base}
     base
@@ -41,7 +41,7 @@ rec : {r : Ind, ~T : Type, step : !{x : T} -> T, base : !T} -> !T
 
 // Doubles the number of steps of an `ind`.
 twice : {n : Ind} -> Ind
-  new<Ind> {~P, STEP}
+  new(~Ind) {~P, STEP}
   dup STEP = STEP
   let moti = {n} P(twice(n))
   let STEP = {~n, i} => STEP(~step(twice(n)), STEP(~twice(n), i))
@@ -50,7 +50,7 @@ twice : {n : Ind} -> Ind
 
 // Adds two Inds.
 plus : {a : Ind, b : Ind} -> Ind
-  new<Ind> {~P, S}
+  new(~Ind) {~P, S}
   dup S = S
   dup A = (%a)(~{a} => P(plus(a, b)), #{~n, h} => S(~plus(n, b), h))
   dup B = (%b)(~{b} => P(plus(base, b)), #{~n, h} => S(~plus(base, n), h))

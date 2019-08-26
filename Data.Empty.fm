@@ -13,4 +13,3 @@ Not : {P : Type} -> Type
 // Non-contradiction
 Explosion : {A : Type, x : A, nx : Not(A)} -> Empty
   nx(x)
-

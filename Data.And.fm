@@ -1,5 +1,5 @@
 // A value (proof) of type `And(A,B)` contains *both*:
 // - a value (proof) of the first type, `A`, *and*...
 // - a value (proof) of the second type, `B`
-T And<A : Type, B: Type>
+T And {A : Type, B: Type}
 | both { left : A, right : B }

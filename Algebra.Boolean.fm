@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T BooleanAlgebra<A : Type>
+T BooleanAlgebra {A : Type}
 | boolean_algebra
   { meet                 : A -> A -> A
   , join                 : A -> A -> A
@@ -14,7 +14,7 @@ T BooleanAlgebra<A : Type>
   , join.commutative     : Commutative(A,join)
   , join.associative     : Associative(A,join)
   , join.identity        : Identity(A,join,e0)
-  , join.complement  : Inverse(A,join,e0,join.identity)
+  , join.complement      : Inverse(A,join,e0,join.identity)
   , absorption           : Absorption(A,meet,join)
   , distributive         : Distributive(A,meet,join)
   , implies.identity     : Identity(A,implies,e1)

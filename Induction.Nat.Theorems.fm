@@ -1,32 +1,32 @@
 import Induction.Nat open
 import Relation.Equality open
 
-sum_base_r : {a : Ind} -> !sum(a, base) == a
-  let motive = {x} => sum(x, base) == x
+plus_base_r : {a : Ind} -> !plus(a, base) == a
+  let motive = {x} => plus(x, base) == x
   let case_step = #{~pred, h} =>
-    cong(~Ind, ~Ind, ~sum(pred, base), ~pred, ~step, ~h)
-  let case_base = refl<base>
+    cong(~Ind, ~Ind, ~plus(pred, base), ~pred, ~step, ~h)
+  let case_base = refl(~base)
   dup S = (%a)(~motive, case_step)
 # S(case_base)
 
-sum_base_l : {a : Ind} -> !sum(a, base) == a
-  let motive = {x} => sum(x, base) == x
-  let case_step = #{~pred, h} => refl<step(pred)>
-  let case_base = refl<base>
-  dup S = (%a)(~motive, case_step)
-# S(case_base)
+//plus_base_l : {a : Ind} -> !plus(a, base) == a
+  //let motive = {x} => plus(x, base) == x
+  //let case_step = #{~pred, h} => refl(~step(pred))
+  //let case_base = refl(~base)
+  //dup S = (%a)(~motive, case_step)
+//# S(case_base)
 
-sum_step_r : {a : Ind, b : Ind} -> !sum(a, step(b)) == step(sum(a, b))
-  let motive = {self} => sum(self, step(b)) == step(sum(self, b))
-  let case_step = #{~pred, h} =>
-    cong(~Ind, ~Ind, ~sum(pred, step(b)), ~step(sum(pred, b)), ~step, ~h)
-  let case_base = refl<step(b)>
-  dup S = (%a)(~motive, case_step)
-# S(case_base)
+//plus_step_r : {a : Ind, b : Ind} -> !plus(a, step(b)) == step(plus(a, b))
+  //let motive = {self} => plus(self, step(b)) == step(plus(self, b))
+  //let case_step = #{~pred, h} =>
+    //cong(~Ind, ~Ind, ~plus(pred, step(b)), ~step(plus(pred, b)), ~step, ~h)
+  //let case_base = refl(~step(b))
+  //dup S = (%a)(~motive, case_step)
+//# S(case_base)
 
-sum_comm_base : {a : Ind} -> !sum(base, a) == sum(a, base)
-  let motive = {x} => sum(x, base) == sum(base, x)
-  let case_step = #{~pred, h} => refl<step(pred)>
-  let case_base = refl<sum(base, base)>
-  dup S = (%a)(~motive, case_step)
-# S(case_base)
+//plus_comm_base : {a : Ind} -> !plus(base, a) == plus(a, base)
+  //let motive = {x} => plus(x, base) == plus(base, x)
+  //let case_step = #{~pred, h} => refl(~step(pred))
+  //let case_base = refl(~plus(base, base))
+  //dup S = (%a)(~motive, case_step)
+//# S(case_base)

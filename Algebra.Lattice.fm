@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Lattice<A : Type>
+T Lattice {A : Type}
 | lattice
   { meet             : A -> A -> A
   , join             : A -> A -> A
@@ -11,7 +11,7 @@ T Lattice<A : Type>
   , absorption       : Absorption(A,meet,join)
   }
 
-T Semilattice<A : Type>
+T Semilattice {A : Type}
 | semilattice
   { f           : A -> A -> A
   , commutative : Commutative(A,f)
@@ -19,7 +19,7 @@ T Semilattice<A : Type>
   , idempotent  : Idempotent(A,f)
   }
 
-T BoundedLattice<A : Type>
+T BoundedLattice {A : Type}
 | bounded_lattice
   { meet             : A -> A -> A
   , join             : A -> A -> A
@@ -34,7 +34,7 @@ T BoundedLattice<A : Type>
   , absorption       : Absorption(A,meet,join)
   }
 
-T ComplementedLattice<A : Type>
+T ComplementedLattice {A : Type}
 | complemeted_lattice
   { meet             : A -> A -> A
   , join             : A -> A -> A
@@ -51,7 +51,7 @@ T ComplementedLattice<A : Type>
   , absorption       : Absorption(A,meet,join)
   }
 
-T DistributiveLattice<A : Type>
+T DistributiveLattice {A : Type}
 | distributive_lattice
   { meet             : A -> A -> A
   , join             : A -> A -> A

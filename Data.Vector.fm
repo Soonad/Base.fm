@@ -1,0 +1,26 @@
+import Data.Nat open
+import Induction.Nat open
+import Relation.Equality open
+
+T Vector {A : Type} (len : Nat)
+| vcons
+  { len  : Nat
+  , head : A
+  , tail : Vector(A, len)
+  } (succ(len))
+| vnil (zero)
+
+vhead : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> T
+  case/Vector vector
+  | vcons  => head
+  | vnil   => 0
+  : case/Nat len
+    | succ => T
+    | zero => Word
+    : Type
+
+vtail : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> Vector(T, len)
+  case/Vector vector
+  | vcons => tail
+  | vnil  => vnil(~T)
+  : Vector(T, pred(len))

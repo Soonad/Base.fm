@@ -1,7 +1,7 @@
 import Induction.Nat open
 import Relation.Equality open
 
-T List <A : Type>
+T List {A : Type}
 | cons {head : A, tail : List(A)}
 | nil
 
@@ -19,75 +19,75 @@ tail : {~T : Type, case list : List(T)} -> List(T)
 
 take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 | cons => [list.head, list.tail]
-| nil  => [default, nil<T>]
+| nil  => [default, nil(~T)]
 
 !list.id*n : !{~A : Type, case *list : List(A)} -> List(A)
-| cons => cons<A>(list.head, list.id<A>(list.tail))
-| nil  => nil<A>
+| cons => cons(~A, list.head, list.id(~A, list.tail))
+| nil  => nil(~A)
 
 !map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
-| cons => cons<B>(f(list.head), map(list.tail))
-| nil  => nil<B>
-* nil<B>
+| cons => cons(~B, f(list.head), map(list.tail))
+| nil  => nil(~B)
+* nil(~B)
 
 !concat*n : !{~T : Type, case *xs : List(T), ys : List(T)} -> List(T)
-| cons => cons<T>(xs.head, concat<T>(xs.tail, ys))
+| cons => cons(~T, xs.head, concat(~T, xs.tail, ys))
 | nil  => ys
 
 !reverse.go*n : !{~T : Type, case *list : List(T), result : List(T)} -> List(T)
-| cons  => reverse.go<T>(list.tail, cons<T>(list.head, result))
+| cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 
 // TODO: syntax to simplify those wrappers
 !reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
-  reverse(~T, list, nil<T>)
+  reverse(~T, list, nil(~T))
 
 !zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
-| cons cons => cons<B>(func.head(list.head), zipp<A, B>(func.tail, list.tail))
-| cons nil  => nil<B>
-| nil  cons => nil<B>
-| nil  nil  => nil<B>
-* nil<B>
+| cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
+| cons nil  => nil(~B)
+| nil  cons => nil(~B)
+| nil  nil  => nil(~B)
+* nil(~B)
 
 // Examples
 
 !list.id.example : !List(Word)
-  list.id*256<Word>(Word$[1,2,3,4])
+  <list.id*256>(~Word, Word$[1,2,3,4])
 
 !map.example : !List(Word)
-  map*256<Word, Word>(#{x} x + 1, Word$[1,2,3,4])
+  <map*256(~Word, ~Word, #{x} x + 1)>(Word$[1,2,3,4])
 
 // :::::::::::::::::::::::
 // :: Fusible functions ::
 // :::::::::::::::::::::::
 
 !list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
-  new<List(A)>{~P, cons, nil}
+  new(~List(A)){~P, cons, nil}
   case/List list
-  | cons => cons(head, list.id-f<A>(tail))
+  | cons => cons(head, list.id-f(~A, tail))
   | nil  => nil
-  : P(-#(list.id-f.step)(~n, list.id-f, ~A, self))
+  : P(<list.id-f.step>(~n, list.id-f, ~A, self))
 
 !map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
-  new<List(B)>{~P, cons, nil}
+  new(~List(B)){~P, cons, nil}
   case/List list
   | cons => cons(f(head), map-f(tail))
   | nil  => nil
-  : P(-#(map-f.step(~A, ~B, #f))(~n, map-f, self))
-  * nil<B>
+  : P(<map-f.step(~A, ~B, #f)>(~n, map-f, self))
+  * nil(~B)
 
 !zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
-  new<List(B)>{~P, consf, nilf}
+  new(~List(B)){~P, consf, nilf}
   (case/List func
   | cons => {consf, nilf}
     case/List list
-    | cons => consf(head^(head), zipp-f<A, B>(tail^, tail))
+    | cons => consf(head^(head), zipp-f(~A, ~B, tail^, tail))
     | nil  => nilf
-    : P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, cons<A -> B>(head, tail), self))
+    : P(<zipp-f.step>(~n, zipp-f, ~A, ~B, cons(~A -> B, head, tail), self))
   | nil => {consf, nilf}
     nilf
-  : {consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf : P(nil<B>)} -> P(-#(zipp-f.step)(~n, zipp-f, ~A, ~B, self, list)))(consf, nilf)
-  * nil<B>
+  : {consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf : P(nil(~B))} -> P(<zipp-f.step>(~n, zipp-f, ~A, ~B, self, list)))(consf, nilf)
+  * nil(~B)
 
 // Examples
 
@@ -96,16 +96,16 @@ list.id-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7]
   dup list.id   = list.id*256
   dup list.id-f = list.id-f*256
-  dup list = rec(*10000, ~List(Word), #list.id-f<Word>, #list)
-  # list.id<Word>(list)
+  dup list = rec(*10000, ~List(Word), #list.id-f(~Word), #list)
+  # list.id(~Word, list)
 
 // From 2.2m rewrites to 229k rewrites using map-f
 map-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
   dup list.id   = list.id*256
-  dup map  = map-f*256<Word, Word>(#{x} x + 1)
+  dup map  = map-f*256(~Word, ~Word, #{x} x + 1)
   dup list = rec(*10000, ~List(Word), #map, #list)
-  # list.id<Word>(list)
+  # list.id(~Word, list)
 
 // ::::::::::::::
 // :: Theorems ::
@@ -118,17 +118,17 @@ map-f.example
   , f  : !{:B} -> C
   , g  : !{:A} -> B
   , xs : List(A)
-  } -> -#(map*n<B,C>(f))(-#(map*n<A,B>(g))(xs)) == -#(map*n<A,C>(#{x}-#(f)(-#(g)(x))))(xs)
+  } -> <map*n(~B, ~C, f)>(<map*n(~A, ~B, g)>(xs)) == <map*n(~A, ~C, #{x}<f>(<g>(x)))>(xs)
   case/List xs
   | cons => 
     cong(
       ~ List(C),
       ~ List(C),
-      ~ -#(map(n, ~B, ~C, f))(-#(map(n, ~A, ~B, g))(tail)),
-      ~ -#(map(n, ~A, ~C, #{x}-#(f)(-#(g)(x))))(tail),
-      ~ {xs} cons<C>(-#(f)(-#(g)(head)), xs),
-      ~ map.composition<A, B, C>(f, g, tail))
+      ~ <map(n, ~B, ~C, f)>(<map(n, ~A, ~B, g)>(tail)),
+      ~ <map(n, ~A, ~C, #{x}<f>(<g>(x)))>(tail),
+      ~ {xs} cons(~C, <f>(<g>(head)), xs),
+      ~ map.composition(~A, ~B, ~C, f, g, tail))
   | nil =>
-    refl<nil>
-  : -#(map(step(n), ~B, ~C, f))(-#(map(step(n), ~A, ~B, g))(self)) == -#(map(step(n), ~A, ~C, #{x}-#(f)(-#(g)(x))))(self)
-  * refl<nil>
+    refl(~nil)
+  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
+  * refl(~nil)

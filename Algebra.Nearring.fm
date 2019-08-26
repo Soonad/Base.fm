@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Nearring<A : Type>
+T Nearring {A : Type}
 | nearring
   { add              : A -> A -> A
   , mul              : A -> A -> A

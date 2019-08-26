@@ -1,6 +1,6 @@
 import Algebra.Magma open
 
-T Group<A : Type>
+T Group {A : Type}
 | group
   { f           : A -> A -> A
   , e           : A
@@ -9,7 +9,7 @@ T Group<A : Type>
   , inverse     : Inverse(A,f,e,identity)
   }
 
-T AbelianGroup<A : Type>
+T AbelianGroup {A : Type}
 | abelian_group
   { f           : A -> A -> A
   , e           : A
@@ -19,7 +19,7 @@ T AbelianGroup<A : Type>
   , commutative : Commutative(A,f)
   }
 
-T IdempotentGroup<A : Type>
+T IdempotentGroup {A : Type}
 | idempotent_group
   { f           : A -> A -> A
   , e           : A

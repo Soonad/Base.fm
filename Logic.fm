@@ -2,16 +2,6 @@ import Data.Empty open
 import Data.Or open
 import Data.And open
 
-// The Logic namespace articulates the constructive-logical interpretation of
-// mathematics and computation. In other words, the "Howard" component of the
-// Curry-Howard-Lambek correspondence.
-
-// Logic is included in the Formality standard library primarily for educational
-// and historical reasons, and is not intended to be a practical aid to
-// computation. That is, by analogy with embyrological parallelism, the authors
-// intend for Formality's ontogeny to at least partially recapitulate its
-// phylogeny. https://en.wikipedia.org/wiki/Recapitulation_theory
-
 // If and only if
 Iff : {A : Type, B : Type} -> Type
   And(A -> B, B -> A)
