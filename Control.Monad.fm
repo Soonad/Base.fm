@@ -1,5 +1,5 @@
 // A functor consists of...
-T Monad<M : Type -> Type>
+T Monad {M : Type -> Type}
 
 // A monoid in the category of endofunctors why do you still ask
 | monad 
@@ -24,13 +24,13 @@ T Monad<M : Type -> Type>
     , ~B : Type
     , x : A
     , f : A -> M(B)
-    } -> bind<A,B>(pure<A>(x),f) == f(x)
+    } -> bind(~A, ~B, pure(~A, x),f) == f(x)
 
   // Satisfying this identity law
   , identity2 :
     { ~A : Type
     , m : M(A)
-    } -> bind<A,A>(m,pure<A>) == m
+    } -> bind(~A, ~A, m,pure(~A)) == m
 
   // Satisfying this associativity law
   , associative :
@@ -40,5 +40,5 @@ T Monad<M : Type -> Type>
     , m : M(A)
     , f : A -> M(B)
     , g : B -> M(C)
-    } -> bind<B,C>(bind<A,B>(m,f), g) == bind<A,C>(m, ({x : A} bind<B,C>(f(x), g)))
+    } -> bind(~B, ~C, bind(~A, ~B, m,f), g) == bind(~A, ~C, m, ({x : A} bind(~B, ~C, f(x), g)))
   }
