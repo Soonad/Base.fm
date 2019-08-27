@@ -1,19 +1,125 @@
 import Induction.Nat open
 import Relation.Equality open
+import Data.Nat open
+import Data.Maybe open
 
 T Bits
 | b0 {pred : Bits}
 | b1 {pred : Bits}
 | be
 
-!bnot*n : !{case bits : Bits} -> Bits
-  | b0 => b1(bnot(bits.pred))
-  | b1 => b0(bnot(bits.pred))
-  | be => be
-  * bits
+!bits.not*n : !{case x : Bits} -> Bits
+| b0 => b1(bits.not(x.pred))
+| b1 => b0(bits.not(x.pred))
+| be => be
+* x
 
-!bnot.theo*n : !{case bits : Bits} -> <bnot*n>(<bnot*n>(bits)) == bits
-| b0   => cong(~Bits, ~Bits, ~<bnot*n>(<bnot*n>(bits.pred)), ~bits.pred, ~b0, ~bnot.theo(bits.pred))
-| b1   => cong(~Bits, ~Bits, ~<bnot*n>(<bnot*n>(bits.pred)), ~bits.pred, ~b1, ~bnot.theo(bits.pred))
+!bits.not.theo*n : !{case x : Bits} -> <bits.not*n>(<bits.not*n>(x)) == x
+| b0   => cong(~Bits, ~Bits, ~<bits.not*n>(<bits.not*n>(x.pred))
+              , ~x.pred, ~b0, ~bits.not.theo(x.pred)
+              )
+| b1   => cong(~Bits, ~Bits, ~<bits.not*n>(<bits.not*n>(x.pred))
+              , ~x.pred, ~b1, ~bits.not.theo(x.pred)
+              )
 | be   => refl(~be)
-* refl(~bits)
+* refl(~x)
+
+!bits.and*n : !{case x : Bits, case y : Bits} -> Bits
+| b0 b0 => b0(bits.and(x.pred,y.pred))
+| b0 b1 => b0(bits.and(x.pred,y.pred))
+| b0 be => x.pred
+| b1 b0 => b0(bits.and(x.pred,y.pred))
+| b1 b1 => b1(bits.and(x.pred,y.pred))
+| b1 be => x.pred
+| be b0 => b0(y.pred) // these cases should just be `y`
+| be b1 => b1(y.pred)
+| be be => be
+* be
+
+!bits.or*n : !{case x : Bits, case y : Bits} -> Bits
+| b0 b0 => b0(bits.or(x.pred,y.pred))
+| b0 b1 => b1(bits.or(x.pred,y.pred))
+| b0 be => x.pred
+| b1 b0 => b1(bits.or(x.pred,y.pred))
+| b1 b1 => b1(bits.or(x.pred,y.pred))
+| b1 be => x.pred
+| be b0 => b0(y.pred) // these cases should just be `y`
+| be b1 => b1(y.pred)
+| be be => be
+* be
+
+!bits.xor*n : !{case x : Bits, case y : Bits} -> Bits
+| b0 b0 => b0(bits.xor(x.pred,y.pred))
+| b0 b1 => b1(bits.xor(x.pred,y.pred))
+| b0 be => x.pred
+| b1 b0 => b1(bits.xor(x.pred,y.pred))
+| b1 b1 => b0(bits.xor(x.pred,y.pred))
+| b1 be => x.pred
+| be b0 => b0(y.pred) // these cases should just be `y`
+| be b1 => b1(y.pred)
+| be be => be
+* be
+
+!bits.rsh*n : !{case n : Nat, case x : Bits} -> Bits
+| succ b0 => bits.rsh(n.pred, x.pred)
+| succ b1 => bits.rsh(n.pred, x.pred)
+| succ be => be
+| zero b0 => b0(x.pred)
+| zero b1 => b1(x.pred)
+| zero be => be
+* be
+
+!bits.lsh*n : !{case n : Nat, case x : Bits} -> Bits
+| succ b0 => bits.lsh(n.pred, b0(b0(x.pred)))
+| succ b1 => bits.lsh(n.pred, b0(b1(x.pred)))
+| succ be => be
+| zero b0 => b0(x.pred)
+| zero b1 => b1(x.pred)
+| zero be => be
+* be
+
+!bits_to_nat*n : !{case x : Bits} -> Nat
+| b0 => <double*255>(bits_to_nat(x.pred))
+| b1 => succ(<double*255>(bits_to_nat(x.pred)))
+| be => zero
+* zero
+
+!nat_to_bits*n : !{bits : Bits, case x : Nat} -> Bits
+| succ => nat_to_bits(<bits.succ*256>(bits), x.pred)
+| zero => bits
+* be
+
+!bits.succ*n : !{case x : Bits} -> Bits
+| b0 => b1(x.pred)
+| b1 => b0(bits.succ(x.pred))
+| be => b1(be)
+* be
+
+//test.n : Bits
+//  b1(b0(b1(b0(b0(b1(be))))))
+//
+//test.m : Bits
+//  b0(b1(b0(b1(b0(b0(b1(be)))))))
+//
+//!test.bits.and : !Word
+//  <to_word*1023>(<bits_to_nat*1023>(<bits.lsh*1023>(0n3,test.n)))
+
+//!test.bits_to_nat: !Word
+//  <to_word*255>(<bits_to_nat*255>(test.n))
+
+//!badd*n : !{case x : Bits, case y : Bits} -> Bits
+//| b0 b0 => b0(badd(x.pred,y.pred))
+//| b0 b1 => b1(badd(x.pred,y.pred))
+//| b0 be => x.pred
+//| b1 b0 => b1(badd(x.pred,y.pred))
+//| b1 b1 => b0(<bsucc*256>(badd(x.pred,y.pred)))
+//| b1 be => x.pred
+//| be b0 => b0(y.pred) // these cases should just be `y`
+//| be b1 => b1(y.pred)
+//| be be => be
+//* be
+
+//!test.badd: !Word
+//<to_word*256>(<bits_to_nat*256>(<badd*256>(test.n, test.n)))
+
+////badd.ok : {x : Bits, y : Bits} -> bn_add(x, y) == nat_to_bn(add(bn_to_nat(x), bn_to_nat(y)))
