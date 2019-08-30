@@ -26,7 +26,7 @@ or : {case a : Bool, b : Bool} -> Bool
 | false => b
 
 nand : {case a : Bool, case b : Bool} -> Bool
-| true  true  => false
+| true  true  => true
 | true  false => true
 | false true  => true
 | false false => false
