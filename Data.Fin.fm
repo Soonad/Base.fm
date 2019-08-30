@@ -1,0 +1,24 @@
+import Data.Nat open
+
+T Fin (n : Nat)
+| fsucc {~n : Nat, f : Fin(n)} (succ(n))
+| fzero {~n : Nat}             (succ(n))
+
+!fin_to_nat*N : !{~n : Nat, f : Fin(n)} -> Nat
+  case/Fin f
+  | fsucc => succ(fin_to_nat(~n, f))
+  | fzero => zero
+  : Nat
+  * zero
+
+!nat_to_fin*N : !{case n : Nat} -> Fin(succ(n))
+| succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
+| zero => fzero(~zero)
+* fzero(~n)
+
+!fin_inc*N : !{~n : Nat, f : Fin(n)} -> Fin(succ(n))
+  case/Fin f
+  | fsucc => fsucc(~succ(n), fin_inc(~n, f))
+  | fzero => fzero(~succ(n))
+  : Fin(succ(n))
+  * fzero(~n)
