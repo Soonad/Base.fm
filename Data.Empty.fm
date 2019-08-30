@@ -2,7 +2,7 @@
 T Empty
 
 // From falsehood, everything follows
-absurd : {e : Empty, P : Type} -> P
+absurd : {e : Empty, ~P : Type} -> P
   case/Empty e
   : P
 

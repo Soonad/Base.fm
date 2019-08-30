@@ -1,0 +1,34 @@
+import Induction.Nat open
+import Data.Bool open
+import Relation.Equality open
+
+unstep : {n : Ind} -> Ind
+  new(~Ind) {~P, S}
+  dup S = S
+  let motive = {n} {b : Bool} ->
+    (%b)(~{b}Type, P(unstep(n)), P(unstep(step(n))))
+  let case_s = {~n, h, b}
+    let motive = {b} {h : P(unstep(step(n)))} -> (%b)(~{b}Type, P(unstep(step(n))), P(step(unstep(step(n)))))
+    let case_t = {x} x
+    let case_f = S(~(unstep(step(n))))
+    (%b)(~motive, case_t, case_f, h(false))
+  dup F = (%n)(~motive, #case_s)
+  # {Z}
+  let case_z = {b}
+    let motive = {b} {n : P(base)} -> (%b)(~{b}Type, P(unstep(base)), P(unstep(step(base))))
+    let case_t = {z} z
+    let case_f = {z} z
+    (%b)(~motive, case_t, case_f, Z)
+  F(case_z, true)
+
+unstep_step : {i : Ind} -> !unstep(step(i)) == i
+  let motive = {i} unstep(step(i)) == i
+  let case_s = # {~n, h} cong(~Ind, ~Ind, ~unstep(step(n)), ~n, ~step, ~h)
+  dup F = (%i)(~motive, case_s)
+  # F(refl(~base))
+
+cong_unstep : {~a : Ind, ~b : Ind, ~e : step(a) == step(b)} -> a == b
+  let r0 = cong(~Ind, ~Ind, ~step(a), ~step(b), ~unstep, ~e)
+  let r1 = r0 :: rewrite x in x == unstep(step(b)) with <unstep_step(a)>
+  let r2 = r1 :: rewrite y in a == y with <unstep_step(b)>
+  r2
