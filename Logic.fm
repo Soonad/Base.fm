@@ -16,7 +16,7 @@ denies : {A : Type, B : Type, implies : A -> B, nb : Not(B)} -> Not(A)
 
 // Disjunctive syllogism (modus tollendo ponens)
 or_syllogism : {~A : Type, ~B : Type, case or_AB : Or(A,B), neg_A : Not(A)} -> B
-| left  => absurd(neg_A(or_AB.value), B)
+| left  => absurd(neg_A(or_AB.value), ~B)
 | right => or_AB.value
 
 // Hypothetical syllogism
