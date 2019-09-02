@@ -1,9 +1,9 @@
 // TODO: update
 
-//import Data.Function open
-//import Data.Nat open
-//import Induction.Nat open
-//import Relation.Equality open
+//import Data.Function
+//import Data.Nat
+//import Induction.Nat
+//import Relation.Equality
 
 //Array : {n : Nat} -> Type
   //case/Nat n

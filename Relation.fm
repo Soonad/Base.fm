@@ -1,2 +1,2 @@
-import Relation.Binary open
-import Relation.Equality open
+import Relation.Binary
+import Relation.Equality

@@ -1,4 +1,4 @@
-import Algebra.Magma open
+import Algebra.Magma
 
 T Quasiring {A : Type}
 | quasiring

@@ -1,6 +1,6 @@
-import Induction.Nat open
-import Data.Nat open
-import Data.List open
+import Induction.Nat
+import Data.Nat
+import Data.List
 
 V2 : Type
   [:Word, Word]

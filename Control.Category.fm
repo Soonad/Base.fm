@@ -1,5 +1,5 @@
-import Data.Function open
-import Category open
+import Data.Function
+import Category
 
 //functionEq : {A:Type, B:Type, f:Fun(A,B), g:Fun(A,B)
 //             , e:{x:A} -> f(x) == g(x)

@@ -1,5 +1,5 @@
-import Induction.Nat open
-import Relation.Equality open
+import Induction.Nat
+import Relation.Equality
 
 plus_base_r : {a : Ind} -> !plus(a, base) == a
   let motive = {x} => plus(x, base) == x

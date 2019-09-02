@@ -1,4 +1,4 @@
-import Data.Nat open
+import Data.Nat
 
 T Fin (n : Nat)
 | fsucc {~n : Nat, f : Fin(n)} (succ(n))

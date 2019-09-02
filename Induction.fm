@@ -1,2 +1,2 @@
-import Induction.Nat open
-import Induction.Tree open
+import Induction.Nat
+import Induction.Tree

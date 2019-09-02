@@ -1,6 +1,6 @@
-import Data.Empty open
-import Data.Or open
-import Data.And open
+import Data.Empty
+import Data.Or
+import Data.And
 
 // If and only if
 Iff : {A : Type, B : Type} -> Type

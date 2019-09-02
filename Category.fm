@@ -1,6 +1,6 @@
-import Relation.Equality open
-import Relation.Binary open
-import Data.And open
+import Relation.Equality
+import Relation.Binary
+import Data.And
 
 // The Category namespace articulates the category theoretic interpretation
 // of mathematics and computation. In other words, this namespace represents

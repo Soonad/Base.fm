@@ -1,5 +1,4 @@
-
-import Algebra.Magma open
+import Algebra.Magma
 
 T Ring {A : Type}
 | ring

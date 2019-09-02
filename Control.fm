@@ -1,6 +1,6 @@
-import Control.Applicative open
-import Control.Functor open
-import Control.Monad open
+import Control.Applicative
+import Control.Functor
+import Control.Monad
 
 // The Control module namespace describes abstractions over the category FORM
 // consisting of objects `Type` and morphisms `Type -> Type`. In other words,

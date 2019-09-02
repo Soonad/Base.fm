@@ -1,7 +1,7 @@
-import Induction.Nat open
-import Relation.Equality open
-import Data.Nat open
-import Data.Maybe open
+import Induction.Nat
+import Relation.Equality
+import Data.Nat
+import Data.Maybe
 
 T Bits
 | b0 {pred : Bits}

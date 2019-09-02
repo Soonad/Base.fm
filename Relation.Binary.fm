@@ -1,4 +1,4 @@
-import Data.And open
+import Data.And
 
 // Relations : A -> A -> Type
 

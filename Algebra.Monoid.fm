@@ -1,5 +1,5 @@
-import Algebra.Magma open
-import Algebra.Semigroup open
+import Algebra.Magma
+import Algebra.Semigroup
 
 T Monoid {A : Type}
 | monoid

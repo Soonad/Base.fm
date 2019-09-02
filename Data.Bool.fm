@@ -1,5 +1,5 @@
-import Data.Empty open
-import Data.Unit open
+import Data.Empty
+import Data.Unit
 
 T Bool
 | true

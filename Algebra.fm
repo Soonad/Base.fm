@@ -1,19 +1,19 @@
 
 // Group-like
-import Algebra.Group open
-import Algebra.Magma open
-import Algebra.Monoid open
-import Algebra.Quasigroup open
-import Algebra.Semigroup open
+import Algebra.Group
+import Algebra.Magma
+import Algebra.Monoid
+import Algebra.Quasigroup
+import Algebra.Semigroup
 
 // Ring-like
-import Algebra.Quasiring open
-import Algebra.Nearring open
-import Algebra.Semiring open
-import Algebra.Ring open
-import Algebra.Field open
+import Algebra.Quasiring
+import Algebra.Nearring
+import Algebra.Semiring
+import Algebra.Ring
+import Algebra.Field
 
 //Lattice-like
-import Algebra.Lattice open
-import Algebra.Heyting open
-import Algebra.Boolean open
+import Algebra.Lattice
+import Algebra.Heyting
+import Algebra.Boolean

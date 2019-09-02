@@ -1,5 +1,5 @@
-import Induction.Nat open
-import Relation.Equality open
+import Induction.Nat
+import Relation.Equality
 
 T List {A : Type}
 | cons {head : A, tail : List(A)}

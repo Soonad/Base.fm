@@ -1,4 +1,4 @@
-import Example.ExpMod.Tuples open
+import Example.ExpMod.Tuples
 
 // Computes `a^x mod n` (fast modular exponentiation with optimal reductions).
 // {a : !Cat, x : Cat, N : !Cat} -> ! Cat

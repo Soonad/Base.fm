@@ -1,8 +1,8 @@
-import Data.Empty open
-import Data.Nat open
-import Data.Unit open
-import Induction.Nat open
-import Induction.Nat.Unstep open
+import Data.Empty
+import Data.Nat
+import Data.Unit
+import Induction.Nat
+import Induction.Nat.Unstep
 
 // a < b
 T Less (a : Nat, b : Nat)

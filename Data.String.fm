@@ -1,5 +1,5 @@
-import Induction.Nat open
-import Data.List open
+import Induction.Nat
+import Data.List
 
 Char : Type
   Word

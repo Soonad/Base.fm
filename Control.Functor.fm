@@ -1,5 +1,5 @@
-import Data.Function open
-import Data.Unit open
+import Data.Function
+import Data.Unit
 
 // A functor consists of...
 T Functor {F : Type -> Type}

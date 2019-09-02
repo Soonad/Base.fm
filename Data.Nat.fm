@@ -1,4 +1,4 @@
-import Induction.Nat open
+import Induction.Nat
 
 T Nat
 | succ {pred : Nat}

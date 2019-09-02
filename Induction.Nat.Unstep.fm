@@ -1,6 +1,6 @@
-import Induction.Nat open
-import Data.Bool open
-import Relation.Equality open
+import Induction.Nat
+import Data.Bool
+import Relation.Equality
 
 unstep : {n : Ind} -> Ind
   new(~Ind) {~P, S}
