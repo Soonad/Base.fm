@@ -8,17 +8,25 @@ unstep : {n : Ind} -> Ind
   let motive = {n} {b : Bool} ->
     (%b)(~{b}Type, P(unstep(n)), P(unstep(step(n))))
   let case_s = {~n, h, b}
-    let motive = {b} {h : P(unstep(step(n)))} -> (%b)(~{b}Type, P(unstep(step(n))), P(step(unstep(step(n)))))
-    let case_t = {x} x
-    let case_f = S(~(unstep(step(n))))
-    (%b)(~motive, case_t, case_f, h(false))
+    (case/Bool b
+    | true  => {x} x
+    | false => S(~(unstep(step(n))))
+    : {h : P(unstep(step(n)))} ->
+      (case/Bool self
+      | true  => P(unstep(step(n)))
+      | false => P(step(unstep(step(n))))
+      : Type))(h(false))
   dup F = (%n)(~motive, #case_s)
   # {Z}
   let case_z = {b}
-    let motive = {b} {n : P(base)} -> (%b)(~{b}Type, P(unstep(base)), P(unstep(step(base))))
-    let case_t = {z} z
-    let case_f = {z} z
-    (%b)(~motive, case_t, case_f, Z)
+    (case/Bool b
+    | true  => {z} z
+    | false => {z} z
+    : {n : P(base)} ->
+      case/Bool self
+      | true  => P(unstep(base))
+      | false => P(unstep(step(base)))
+      : Type)(Z)
   F(case_z, true)
 
 unstep_step : {i : Ind} -> !unstep(step(i)) == i
