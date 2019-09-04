@@ -2,7 +2,7 @@
 T Monad {M : Type -> Type}
 
 // A monoid in the category of endofunctors why do you still ask
-| monad 
+| monad
 
   // A way to wrap values
   { pure :
@@ -40,5 +40,6 @@ T Monad {M : Type -> Type}
     , m : M(A)
     , f : A -> M(B)
     , g : B -> M(C)
-    } -> bind(~B, ~C, bind(~A, ~B, m,f), g) == bind(~A, ~C, m, ({x : A} bind(~B, ~C, f(x), g)))
+    } -> bind(~B, ~C, bind(~A, ~B, m,f), g) == 
+         bind(~A, ~C, m, ({x : A} bind(~B, ~C, f(x), g)))
   }

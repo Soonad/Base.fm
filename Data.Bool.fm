@@ -66,7 +66,9 @@ bool_if : {b : Bool, ~P : Type, T : P, F : P} -> P
 // ::::::::::::::
 
 true_not_false : {e : true == false} -> Empty
-  unit :: rewrite x in (case/Bool x | true => Unit | false => Empty : Type) with e
+  unit :: rewrite x
+    in (case/Bool x | true => Unit | false => Empty : Type)
+    with e
 
 false_not_true : {e : false == true} -> Empty
   true_not_false(sym(~e))
@@ -77,13 +79,19 @@ different_elem : {a : Bool} -> [b : Bool, ~{:a == b} -> Empty]
   | false => [true, ~{e : false == true} => true_not_false(sym(~e))]
   : [b : Bool, ~{:self == b} -> Empty]
 
-demorgan_0 : {case a : Bool, case b : Bool} -> not(or(a,b)) == and(not(a), not(b))
+demorgan_0 :
+  { case a : Bool
+  , case b : Bool
+  } -> not(or(a,b)) == and(not(a), not(b))
 | true  true  => refl(~false)
 | true  false => refl(~false)
 | false true  => refl(~false)
 | false false => refl(~true)
 
-demorgan_1 : {case a : Bool, case b : Bool} -> not(and(a,b)) == or(not(a), not(b))
+demorgan_1 :
+  { case a : Bool
+  , case b : Bool
+  } -> not(and(a,b)) == or(not(a), not(b))
 | true  true  => refl(~false)
 | true  false => refl(~true)
 | false true  => refl(~true)
@@ -101,21 +109,29 @@ nor.demorgan : {case a : Bool, case b : Bool} -> nor(a,b) == not(or(a,b))
 | false true  => refl(~false)
 | false false => refl(~true)
 
-xnor_is_eq : {case a : Bool, case b : Bool}
-  -> bool_if(xnor(a,b), ~Type, a == b, Not(a == b))
+xnor_is_eq :
+  { case a : Bool
+  , case b : Bool
+  } -> bool_if(xnor(a,b), ~Type, a == b, Not(a == b))
 | true true   => refl(~true)
 | true false  => true_not_false
 | false true  => false_not_true
 | false false => refl(~false)
 
-xor_is_neq : {case a : Bool, case b : Bool}
-  -> bool_if(xor(a,b), ~Type, Not(a == b), a == b)
+xor_is_neq :
+  { case a : Bool
+  , case b : Bool
+  } -> bool_if(xor(a,b), ~Type, Not(a == b), a == b)
 | true true   => refl(~true)
 | true false  => true_not_false
 | false true  => false_not_true
 | false false => refl(~false)
 
-and.associative.proof : {case a : Bool, case b : Bool, case c : Bool} -> and(and(a,b),c) == and(a,and(b,c))
+and.associative : 
+  { case a : Bool
+  , case b : Bool
+  , case c : Bool
+  } -> and(and(a,b),c) == and(a,and(b,c))
 | true  true  true   => refl(~true)
 | true  true  false  => refl(~false)
 | true  false true   => refl(~false)
@@ -125,7 +141,11 @@ and.associative.proof : {case a : Bool, case b : Bool, case c : Bool} -> and(and
 | false false true   => refl(~false)
 | false false false  => refl(~false)
 
-or.associative : {case a : Bool, case b : Bool, case c : Bool} -> or(or(a,b),c) == or(a,or(b,c))
+or.associative :
+  { case a : Bool
+  , case b : Bool
+  , case c : Bool
+  } -> or(or(a,b),c) == or(a,or(b,c))
 | true  true  true   => refl(~true)
 | true  true  false  => refl(~true)
 | true  false true   => refl(~true)

@@ -18,36 +18,38 @@ T Category<A : Type, M : A -> A -> Type>
 
   // Such that omposition of morphisms is associative under equivalence
   , associative :
-      { a : A
-      , b : A
-      , c : A
-      , d : A
-      , f : M(a,b)
-      , g : M(b,c)
-      , h : M(c,d)
-      , x : A
-      } -> case/Equivalence equivalence(a,d)
-           | equivalence =>
-              eq(compose(a,c,d,h,compose(a,b,c,g,f))
-                ,compose(a,b,d,compose(b,c,d,h,g),f)
-                )
-           : Type
+    { a : A
+    , b : A
+    , c : A
+    , d : A
+    , f : M(a,b)
+    , g : M(b,c)
+    , h : M(c,d)
+    , x : A
+    } -> case/Equivalence equivalence(a,d)
+         | equivalence =>
+            eq(compose(a,c,d,h,compose(a,b,c,g,f))
+            , compose(a,b,d,compose(b,c,d,h,g),f)
+            )
+         : Type
 
   // Such that every object `a` has an identity morphism `id`
   // whose left-composition with any morphism `f` from `a` is equivalent to `f`
   // whose right-composition with any morphism `g` to `a` is equivalent to `g`
   , identity :
-      {a : A} -> [id : M(a,a)
-               , And({b : A, f : M(a,b)} ->
-                      case/Equivalence equivalence(a,b)
-                      | equivalence=> eq(compose(a,a,b,f,id),f)
-                      : Type
-                   , {b: A, g : M(b,a)} ->
-                      case/Equivalence equivalence(b,a)
-                      | equivalence=> eq(compose(b,a,a,id,g),g)
-                      : Type
-                   )
-              ]
+    {a : A} ->
+      [id : M(a,a)
+      , And(
+          {b : A, f : M(a,b)} ->
+          case/Equivalence equivalence(a,b)
+          | equivalence=> eq(compose(a,a,b,f,id),f)
+          : Type
+        , {b: A, g : M(b,a)} ->
+          case/Equivalence equivalence(b,a)
+          | equivalence=> eq(compose(b,a,a,id,g),g)
+          : Type
+        )
+      ]
   }
 
 
