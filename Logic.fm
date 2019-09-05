@@ -2,23 +2,109 @@ import Data.Empty
 import Data.Or
 import Data.And
 
-// If and only if
+// If and only if: p <-> q
 Iff : {A : Type, B : Type} -> Type
   And(A -> B, B -> A)
 
-// Modus ponens
-affirms : {A : Type, B : Type, implies : A -> B, a : A} -> B
-  implies(a)
+// (p -> q) && p |- q
+modus_ponens : {~P : Type, ~Q : Type, implies : P -> Q, p : P} -> Q
+  implies(p)
 
-// Modus tollens
-denies : {A : Type, B : Type, implies : A -> B, nb : Not(B)} -> Not(A)
+// ((p -> q) && ~q) |- ~p
+modus_tollens : {P : Type, Q : Type, implies : P -> Q, nb : Not(Q)} -> Not(P)
   {x} nb(implies(x))
 
-// Disjunctive syllogism (modus tollendo ponens)
-or_syllogism : {~A : Type, ~B : Type, case or_AB : Or(A,B), neg_A : Not(A)} -> B
-| left  => absurd(neg_A(or_AB.value), ~B)
-| right => or_AB.value
-
-// Hypothetical syllogism
-logical_chain_rule : {~A : Type, ~B : Type, ~C : Type, f : A -> B, g : B -> C, x : A} -> C
+// (p -> q) && (q -> r) |- (p -> r)
+hypothetical_syllogism : 
+  {~P : Type, ~Q : Type, ~R : Type, f : P -> Q, g : Q -> R, x : P} -> R
   g(f(x))
+
+// Modus tollendo ponens: ((p || q) && ~p) |- q
+disjunctive_syllogism :
+  {~P : Type, ~Q : Type
+  , case c : Or(P,Q)
+  , nP : Not(P)
+  } -> Q
+| left  => absurd(nP(c.value), ~Q)
+| right => c.value
+
+// (p -> q) && (r -> s) && (p || r) |- (q || s)
+constructive_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(P,R)
+  } -> Or(Q,S)
+| left  => left(~Q, ~S, f(c.value))
+| right => right(~Q, ~S, g(c.value))
+
+// (p -> q) && (r -> s) && (~q || ~s) |- (~p || ~r)
+destructive_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(Not(Q),Not(S))
+  } -> Or(Not(P),Not(R))
+| left  =>  left(~Not(P), ~Not(R), {p} c.value(f(p)))
+| right => right(~Not(P), ~Not(R), {r} c.value(g(r)))
+
+// (p -> q) && (r -> s) && (p || ~s) |- (q || ~r)
+bidirectional_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(P,Not(S))
+  } -> Or(Q,Not(R))
+| left  =>  left(~Q, ~Not(R), f(c.value))
+| right => right(~Q, ~Not(R), {r} c.value(g(r)))
+
+// (p && q) |- p
+logic.simplification : {~P : Type, ~Q : Type , case c : And(P,Q)} -> P
+| both => c.left
+
+// p,q |- (p && q)
+logic.conjunction : {~P : Type, ~Q : Type, p : P , q : Q} -> And(P,Q)
+  both(~P,~Q,p,q)
+
+// p |- (p || q)
+logic.addition : {~P : Type, ~Q : Type, p : P} -> Or(P,Q)
+  left(~P,~Q,p)
+
+// (p -> q) && (p -> r) |- (p -> (q && r))
+logic.composition :
+  {~P : Type, ~Q : Type, ~R : Type
+  , f : !(P -> Q)
+  , g : !(P -> R)
+  , p : !P
+  } -> And(!Q,!R)
+  dup p = p
+  dup f = f
+  dup g = g
+  both(~!Q,~!R,#f(p),#g(p))
+
+logic.demorgan1a :
+  {~P : Type, ~Q : Type
+  , case c : Or(Not(P), Not(Q))
+  } -> Not(And(P,Q))
+| left  => {pq} case/And pq | both => c.value(left)  : Empty
+| right => {pq} case/And pq | both => c.value(right) : Empty
+
+//logic.demorgan1b :
+//  {~P : Type, ~Q : Type
+//  , c : Not(And(P,Q))
+//  } -> Or(Not(P), Not(Q))
+
+logic.demorgan2a :
+  {~P : Type, ~Q : Type
+  , case c : And(Not(P), Not(Q))
+  } -> Not(Or(P,Q))
+| both => {pq} case/Or pq
+  | left => c.left(value)
+  | right => c.right(value)
+  : Empty
+
+//logic.demorgan2b :
+//  {~P : Type, ~Q : Type
+//  , case c : Not(Or(P,Q))
+//  } -> And(Not(P), Not(Q))
+

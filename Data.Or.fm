@@ -4,3 +4,8 @@
 T Or {A : Type, B: Type}
 | left  { value : A }
 | right { value : B }
+
+Or.commutation : {~A : Type, ~B : Type , case c : Or(A,B) } -> Or(B,A)
+| left  => right(~B,~A, c.value)
+| right => left(~B,~A, c.value)
+

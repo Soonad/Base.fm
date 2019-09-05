@@ -122,13 +122,37 @@ map-f.example
   case/List xs
   | cons => 
     cong(
-      ~ List(C),
-      ~ List(C),
-      ~ <map(n, ~B, ~C, f)>(<map(n, ~A, ~B, g)>(tail)),
-      ~ <map(n, ~A, ~C, #{x}<f>(<g>(x)))>(tail),
-      ~ {xs} cons(~C, <f>(<g>(head)), xs),
-      ~ map.composition(~A, ~B, ~C, f, g, tail))
-  | nil =>
-    refl(~nil)
-  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
+        ~List(C)
+      , ~List(C)
+      , ~<map(n, ~B, ~C, f)>(<map(n, ~A, ~B, g)>(tail))
+      , ~<map(n, ~A, ~C, #{x}<f>(<g>(x)))>(tail)
+      , ~{xs} cons(~C, <f>(<g>(head)), xs)
+      , ~map.composition(~A, ~B, ~C, f, g, tail)
+      )
+  | nil => refl(~nil)
+  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) ==
+    <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
   * refl(~nil)
+
+//!concat.associative*n : 
+//  !{ ~T : Type
+//   , xs : List(T)
+//   , ys : List(T)
+//   , zs : List(T)
+//   } -> <concat*n>(~T,xs,<concat*n>(~T,ys,zs)) ==
+//        <concat*n>(~T,<concat*n>(~T,xs,ys),zs)
+//  case/List xs
+//  | cons =>
+//    cong(
+//        ~List(C)
+//      , ~List(C)
+//      , ~<concat(n, ~T)>(tail, <concat(n, ~T)>(ys, zs))
+//      , ~<concat(n, ~T)>(<concat(n, ~T)>(tail, ys),zs)
+//      , ~{t} cons(~T, head, t)
+//      , ~concat.associative(~T, tail, ys, zs)
+//      )
+//  | nil => refl(~nil)
+//  : <concat(step(n))>(~T,self,concat(step(n),~T,ys,zs)) ==
+//    <concat(step(n))>(~T,concat(step(n), ~T,self,ys), zs)
+//  * refl(~xs)
+
