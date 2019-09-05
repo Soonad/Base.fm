@@ -1,6 +1,7 @@
 import Induction.Nat
 import Data.Nat
 import Data.List
+import Data.Word
 
 V2 : Type
   [:Word, Word]
@@ -33,29 +34,20 @@ V2.cpy: {a : V2} -> [:V2, V2]
   cpy ay      = ay
   [[ax,ay], [ax,ay]]
 
-Num.dif: {a : Word, b : Word} -> Word
-  cpy a = a
-  cpy b = b
-  if a .> b: a - b
-  else: b - a
-
 V2.sqr_dist: {a : V2, b : V2} -> Word
   get [ax,ay] = a
   get [bx,by] = b
-  cpy dx = Num.dif(ax, bx) ^ 2
-  cpy dy = Num.dif(ay, by) ^ 2
+  cpy dx = difference(ax, bx) ^ 2
+  cpy dy = difference(ay, by) ^ 2
   dx + dy
 
-Num.sqrt: {n : Word} -> Word
-  n ** 2147483648
-
 V2.dist: {a : V2, b : V2} -> Word
-  Num.sqrt(V2.sqr_dist(a, b))
+  sqrt(V2.sqr_dist(a, b))
 
 V2.flat_dist: {a : V2, b : V2} -> Word
   get [ax,ay] = a
   get [bx,by] = b
-  Num.dif(ax, bx) + Num.dif(ay, by)
+  difference(ax, bx) + difference(ay, by)
 
 !V2.line*n: !{len : Word, pos : V2, dxy : V2} -> List(V2) -> List(V2)
     get [ax,ay] = pos
@@ -97,7 +89,7 @@ V2.rect.ex
 V2.circle: {mlen : Ind, srad : !Word} -> !{pos : V2} -> List(V2)
   dup srad = srad
   let isin = {cen, siz, pos} (V2.sqr_dist(cen, pos) .< srad)
-  dup size = #((Num.sqrt(srad) * 2) + 1)
+  dup size = #((sqrt(srad) * 2) + 1)
   V2.area(mlen, #[size,size], #isin)
 
 // . . .

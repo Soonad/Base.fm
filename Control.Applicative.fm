@@ -31,19 +31,12 @@ T Applicative {M : Type -> Type}
     , u  : M(B -> C)
     , v  : M(A -> B)
     , w  : M(A)
-    } -> let U = B -> C; let V = A -> B; let AC = A -> C;
-         apply(~B, ~C, u, apply(~A, ~B, v, w)) ==
-         apply(
-           ~A
-         , ~C
-         , apply(
-             ~V
-           , ~AC
-           , apply(~U, ~V -> AC, pure(~(U -> V -> AC), F/compose(~A,~B,~C)), u)
-           , v
-           )
-         , w
-         )
+    } ->
+      let U = B -> C
+      let V = A -> B
+      let AC = A -> C;
+      // TODO: shorten line
+      apply(~B, ~C, u, apply(~A, ~B, v, w)) == apply(~A, ~C, apply(~V, ~AC, apply(~U, ~V -> AC, pure(~(U -> V -> AC), F/compose(~A,~B,~C)), u), v), w)
 
   // applying a wrapped function to a wrapped value is the same unwrapped
   // function application
@@ -60,6 +53,5 @@ T Applicative {M : Type -> Type}
     , ~B : Type
     , f : M(A -> B)
     , x : A
-    } -> apply(~A, ~B, f, pure(~A, x)) ==
-         apply(~(A -> B), ~B, pure(~((A -> B) -> B), F/pipe(~A,~B,x)), f)
+    } -> apply(~A, ~B, f, pure(~A, x)) == apply(~(A -> B), ~B, pure(~((A -> B) -> B), F/pipe(~A,~B,x)), f)
   }

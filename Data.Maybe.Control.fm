@@ -51,6 +51,5 @@ maybe.monad : Monad(Maybe)
       | none => refl(~none)
       : bind(~B,~C,self,g) == bind(~B,~C,self,g)
     | none => refl(~none)
-    : bind(~B,~C,bind(~A,~B,self,f),g) ==
-      bind(~A,~C,self,{x:A} bind(~B,~C,f(x),g))
+    : bind(~B,~C,bind(~A,~B,self,f),g) == bind(~A,~C,self,{x:A} bind(~B,~C,f(x),g))
   monad(~Maybe,pure,bind,identity1,identity2,associative)
