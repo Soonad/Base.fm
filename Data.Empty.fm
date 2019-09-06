@@ -10,6 +10,3 @@ absurd : {e : Empty, ~P : Type} -> P
 Not : {P : Type} -> Type
   {x : P} -> Empty
 
-// Non-contradiction
-Explosion : {A : Type, x : A, nx : Not(A)} -> Empty
-  nx(x)

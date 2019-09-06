@@ -4,6 +4,50 @@
 T And {A : Type, B: Type}
 | both { left : A, right : B }
 
+// (p && q) <-> (q && p)
 And.commutation : {~A : Type, ~B : Type , case c : And(A,B) } -> And(B,A)
 | both => both(~B,~A,c.right,c.left)
+
+// p -> (p && p)
+And.tautology : {~A : Type, a : !A} -> And(!A,!A)
+  dup a = a
+  both(~!A,~!A, #a, #a)
+
+// If and only if: p <-> q
+Iff : {A : Type, B : Type} -> Type
+  And(A -> B, B -> A)
+
+// (p && q) && r <-> p && (q && r)
+And.association :
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  } -> Iff(And(A,And(B,C)), And(And(A,B), C))
+  both(
+      ~(And(A,And(B,C)) -> And(And(A,B), C))
+    , ~(And(And(A,B), C) -> And(A,And(B,C)))
+    , {c} And.association1(~A,~B,~C,c)
+    , {c} And.association2(~A,~B,~C,c)
+    )
+
+And.association1 :
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  , case c : And(A,And(B,C))
+  } -> And(And(A,B), C)
+| both => case/And c.right
+  | both => both(~And(A,B), ~C, both(~A,~B, c.left, left), right)
+  : And(And(A,B),C)
+
+And.association2 :
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  , case c : And(And(A,B), C)
+  } -> And(A,And(B,C))
+| both => case/And c.left
+  | both => both(~A, ~And(B,C), left, both(~B,~C, right, c.right))
+  : And(A,And(B,C))
+
 

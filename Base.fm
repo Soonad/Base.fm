@@ -3,3 +3,4 @@ import Control
 import Data
 import Induction
 import Logic
+import Logic.Classical
