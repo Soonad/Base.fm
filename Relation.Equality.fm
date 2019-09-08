@@ -14,6 +14,10 @@ subst : {~A : Type, ~a : A, ~b : A, ~e : a == b, ~P : A -> Type, x : P(a)} -> P(
 cong : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : A -> B, ~e : a == b} -> f(a) == f(b)
   refl(~f(a)) :: rewrite x in f(a) == f(x) with e
 
+// Transitivity
+trans : {~A : Type, ~a : A, ~b : A, ~c : A, ab : a == b, bc : b == c} -> a == c
+  ab :: rewrite x in a == x with bc
+
 // Non-builtin propositional equality
 T Equal {A : Type, a : A} (b : A)
 | reflect (a)
