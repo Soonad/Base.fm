@@ -1,0 +1,25 @@
+UPair : {A : Type} -> Type
+  $self
+    { ~P   : {wit : UPair(A)} -> Type
+    , upair : {left : A, right : A} -> P(upair(~A, left, right))
+    , usame : {left : A, right : A} -> upair(left, right) == upair(right, left)
+    } -> P(self)
+
+upair : {~A : Type, a : A, b : A} -> UPair(A)
+  new(~UPair(A)){~P, upair, usame}
+  upair(a, b)
+
+// Not definable: we can't return the first element of a, because, if we could,
+// we'd have `upair(a,b) == upair(b,a)`, yet `first(upair(a,b)) != first(upair(b,a))`,
+// which would be a contradiction.
+// first : {A : Type, upair : UPair(A)} -> A
+//  (%upair)(~{self} A
+//    , {a, b} a
+//    , {a, b} ?
+//    )
+
+// We can sum the elements, as long as `sum` is a commutative operation.
+sum_upair : {A : Type, upair : UPair(A), sum : {x : A, y : A} -> A, sum_eq : {a : A, b : A} -> sum(a, b) == sum(b, a)} -> A
+  (%upair)(~{self} A
+    , {a, b} sum(a, b)
+    , {a, b} sum_eq(a, b))
