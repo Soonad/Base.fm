@@ -130,8 +130,7 @@ map-f.example
       , ~map.composition(~A, ~B, ~C, f, g, tail)
       )
   | nil => refl(~nil)
-  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) ==
-    <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
+  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
   * refl(~nil)
 
 //!concat.associative*n : 
