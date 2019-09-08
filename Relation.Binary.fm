@@ -2,25 +2,31 @@ import Data.And
 
 // Relations : A -> A -> Type
 
-Reflexive : {~A : Type, ~R : A -> A -> Type} -> Type
+Reflexive : {A : Type, R : A -> A -> Type} -> Type
   {x : A} -> R(x,x)
 
-Coreflexive : {~A : Type, ~R : A -> A -> Type} -> Type
+Coreflexive : {A : Type, R : A -> A -> Type} -> Type
   {x : A, y : A, :R(x,x)} -> x == y
 
-Quasireflexive : {~A : Type, ~R : A -> A -> Type} -> Type
+Quasireflexive : {A : Type, R : A -> A -> Type} -> Type
   {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
 
-Transitive : {~A : Type, ~R : A -> A -> Type } -> Type
+Transitive : {A : Type, R : A -> A -> Type } -> Type
   {x : A, y : A, z : A, :And(R(x,y), R(y,z))} -> R(x,z)
 
-Symmetric : {~A : Type, ~R : A -> A -> Type} -> Type;
+Symmetric : {A : Type, R : A -> A -> Type} -> Type;
   {x : A, y : A, :R(x,y)} -> R(y,x)
 
-T Equivalence<A : Type>
+T Equivalence {A : Type, eq : A -> A -> Type}
 | equivalence
-  { eq         : A -> A -> Type
-  , reflexive  : Reflexive<A,eq>
-  , symmetric  : Symmetric<A,eq>
-  , transitive : Transitive<A,eq>
+  { reflexive  : Reflexive(A,eq)
+  , symmetric  : Symmetric(A,eq)
+  , transitive : Transitive(A,eq)
+  }
+
+
+T Quotient {A : Type}
+| quotient
+  { eq          : A -> A -> Type
+  , equivalence : Equivalence(~A, ~eq)
   }
