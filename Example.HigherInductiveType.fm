@@ -42,25 +42,45 @@ circle_rec1 : {~A : Type, x : A, l : x == x, circle : Circle} -> A
 //                       (p : Paths x x'), (P x) -> (P x').
 
 // T Interval
-// | one     : Interval
-// | zero    : Interval
-// | segment : base == base
+// | i0 : Interval
+// | i1 : Interval
+// | se : base == base
 
 Interval : Type
   $self
-    { ~P   : {wit : Interval} -> Type
-    , one : P(one)
-    , zero :P(zero)
-    , seg : zero == one
+    { ~P : {w : Interval} -> Type
+    , i0 : P(i0)
+    , i1 : P(i1)
+    , se : i0 == i1
     } -> P(self)
 
-one : Interval
-  new(~Interval){~P, one, zero, seg}
-  one
+i0 : Interval
+  new(~Interval){~P, i0, i1, se}
+  i0
 
-zero : Interval
-  new(~Interval){~P, one, zero, seg}
-  zero
+i1 : Interval
+  new(~Interval){~P, i0, i1, se}
+  i1
+
+// Not sure this is quite right...
+// Seems like we need the `se` constructor but we don't (can't?) have that.
+
+// T Path {A : Inter -> Type} (x : A(i0), y : A(i1))
+// | prefl {x : A(i0), se : i0 == i1} -> Path(x, x :: rewrite X in A(X) with se)
+
+PathP : {A : Interval -> Type, x : A(i0), y : A(i1)} -> Type
+  $self
+  { ~P    : {x : A(i0), y : A(i1), wit : PathP(A, x, y)} -> Type
+  , prefl : {x : A(i0), se : i0 == i1} -> P(x, x :: rewrite X in A(X) with se, prefl(~A, x, se))
+  } -> P(x, y, self)
+
+prefl : {~A : Interval -> Type, x : A(i0), se : i0 == i1} -> PathP(A, x, x)
+  new(~PathP(A, x, x :: rewrite X in A(X) with se)){~P, prefl}
+  prefl(x, se)
+
+Path : {A : Type, x : A, y : A} -> Type
+  PathP({x} A, x, y)
+
 
 // T Sphere2
 // | base2  : Sphere
@@ -306,3 +326,22 @@ funext_helper.go :
   , ga
   , Ha
   )
+
+// I think the above isn't the right translation of the pdf, shouldn't it be
+// something like this?
+
+funext_helper2 :
+  { A : Type
+  , B : A -> Type
+  , f : {x : A} -> B(x)
+  , g : {x : A} -> B(x)
+  , h : f == g
+  //, h : ({x : A} f(x)) == ({x : A} g(x)) // doesn't work because Formality can't eta-reduce
+  , i : Interval
+  } -> {x : A} -> B(x)
+  (%i)(~{self} {x : A} -> B(x)
+    , f
+    , g
+    , h)
+
+//main PathP
