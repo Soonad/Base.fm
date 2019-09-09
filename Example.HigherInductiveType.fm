@@ -1,0 +1,308 @@
+import Data.Bool
+import Relation.Equality
+
+// https://home.sandiego.edu/~shulman/hottminicourse2012/04induction.pdf
+
+// T Circle
+// | base : Circle
+// | loop : base == base
+Circle : Type
+  $self
+    { ~P   : {wit : Circle} -> Type
+    , base : P(base)
+    , loop : base == base
+    } -> P(self)
+
+base : Circle
+  new(~Circle){~P, base, loop}
+  base
+
+circle_rec1 : {~A : Type, x : A, l : x == x, circle : Circle} -> A
+   (%circle)(~{self} A
+  , x
+  , l
+  )
+
+// https://homotopytypetheory.org/2011/04/24/higher-inductive-types-a-tour-of-the-menagerie/
+//
+//circle_rec2 :
+//  {~P : Circle -> Type
+//  , x : P(base)
+//  , l : x == x
+//  , circle : Circle
+//  } -> P(circle)
+//   (%circle)(~{self} P(self)
+//  , x
+//  , l
+//  )
+//
+//  We need `transport`, translating:
+//
+// Lemma transport : forall {X : Type} {P : X -> Type} {x x' : X}
+//                       (p : Paths x x'), (P x) -> (P x').
+
+// T Interval
+// | one     : Interval
+// | zero    : Interval
+// | segment : base == base
+
+Interval : Type
+  $self
+    { ~P   : {wit : Interval} -> Type
+    , one : P(one)
+    , zero :P(zero)
+    , seg : zero == one
+    } -> P(self)
+
+one : Interval
+  new(~Interval){~P, one, zero, seg}
+  one
+
+zero : Interval
+  new(~Interval){~P, one, zero, seg}
+  zero
+
+// T Sphere2
+// | base2  : Sphere
+// | loop2  : refl(~base2) == refl(~base2)
+Sphere2 : Type
+  $self
+    { ~P   : {wit : Sphere2} -> Type
+    , base2  : P(base2)
+    , loop2  : refl(~base2) == refl(~base2)
+    } -> P(self)
+
+base2 : Sphere2
+  new(~Sphere2){~P, base2, loop2}
+  base2
+
+// https://ncatlab.org/nlab/show/higher+inductive+type#suspension
+// T Suspension {A : Type}
+// | north : Suspension(A)
+// | south : Suspension(A)
+// | merid : {a : A} -> north == south
+Suspension : {A : Type} -> Type
+  $self
+    { ~P   : {wit : Suspension(A)} -> Type
+    , north : P(north(~A))
+    , south : P(south(~A))
+    , merid : {a : A} -> north(a) == south(a)
+    } -> P(self)
+
+north : {~A : Type} ->Suspension(A)
+  new(~Suspension(A)){~P, north, south, seg}
+  north
+
+south : {~A : Type} -> Suspension(A)
+  new(~Suspension(A)){~P, north, south, same}
+  south
+
+// T Cylinder {A : Type}
+// | top : {a : A} -> Cylinder(A)
+// | bot : {a : A} -> Cylinder(A)
+// | seg : {a : A} -> top(a) == bot(a)
+
+Cylinder : {A : Type} -> Type
+  $self
+    { ~P   : {wit : Cylinder(A)} -> Type
+    , top : {a: A} -> P(top(~A,a))
+    , bot : {a: A} -> P(bot(~A,a))
+    , seg : {a : A} -> top(a) == bot(a)
+    } -> P(self)
+
+top : {~A : Type, a : A} -> Cylinder(A)
+  new(~Cylinder(A)){~P, top, bot, seg}
+  top(a)
+
+bot : {~A : Type, a : A} -> Cylinder(A)
+  new(~Cylinder(A)){~P, top, bot, same}
+  bot(a)
+
+// https://ncatlab.org/nlab/show/higher+inductive+type#QuotientsOfSets
+// T Quotient {A : Type, R : A -> A -> Type)
+// | proj   : {a : A} -> Quotient(A,R)
+// | relate : {x : A, y : A, :R(x,y)} -> proj(x) == proj(y)
+// | contr1 :
+//    { x : Quotient(A,R)
+//    , y : Quotient(A,R)
+//    , p : x == y
+//    , q : x == y
+//    } -> p == q
+//
+Quotient : {A : Type, R : A -> A -> Type} -> Type
+  $self
+    { ~P   : {wit : Quotient(A,R)} -> Type
+    , proj : {a: A} -> P(proj(~A,~R, a))
+    , relate : {x : A, y : A, :R(x,y)} -> proj(~A,~R,x) == proj(~A,~R,y)
+    , contr1 :
+        { x : Quotient(A,R)
+        , y : Quotient(A,R)
+        , p : x == y
+        , q : x == y
+        } -> p == q
+    } -> P(self)
+
+proj : {~A : Type, ~R : A -> A -> Type, a : A} -> Quotient(A,R)
+  new(~Quotient(A,R)){~P, proj, relate, contr1}
+  proj(a)
+
+// T Pair {A : Type}
+// | pair {left : A, right : A} : Pair
+// | same {left : A, right : A} : pair(left, right) == pair(right,left)
+
+Pair : {A : Type} -> Type
+  $self
+    { ~P   : {wit : Pair(A)} -> Type
+    , pair : {left : A, right : A} -> P(pair(~A, left, right))
+    , same : {left : A, right : A} -> pair(left, right) == pair(right, left)
+    } -> P(self)
+
+pair : {~A : Type, a : A, b : A} -> Pair(A)
+  new(~Pair(A)){~P, pair, same}
+  pair(a, b)
+
+// Not definable: we can't return the first element of a, because, if we could,
+// we'd have `pair(a,b) == pair(b,a)`, yet `first(pair(a,b)) != first(pair(b,a))`,
+// which would be a contradiction.
+// first : {A : Type, pair : UPair(A)} -> A
+//  (%pair)(~{self} A
+//    , {a, b} a
+//    , {a, b} ?
+//    )
+//
+//sum :
+//  { A      : Type
+//  , case pair   : Pair(A)
+//  , sum    : {x : A, y : A} -> A
+//  , sum-eq : {a : A, b : A} -> sum(a, b) == sum(b, a)
+//  } -> A
+//| pair => sum(pair.left, pair.right)
+//| same => sum-eq(left, right)
+
+sum :
+  { A      : Type
+  , pair   : Pair(A)
+  , sum    : {x : A, y : A} -> A
+  , sum-eq : {a : A, b : A} -> sum(a, b) == sum(b, a)
+  } -> A
+  (%pair)(~{self} A
+    , {a, b} sum(a, b)
+    , {a, b} sum-eq(a, b)
+    )
+
+T Trit
+| A
+| B
+| C
+
+// Converting from Trit to Pair(Bool) is straightforward
+
+t2p : {case t : Trit} -> Pair(Bool)
+| A => pair(~Bool, true, true)
+| B => pair(~Bool, true, false)
+| C => pair(~Bool, false, false)
+
+// Converting Pair(Bool) to Trit requires a proof that the
+// [true,false] and [false,true] cases return the case Trit
+
+p2t.aux.type : {a : Bool, b : Bool} -> Type
+  let e0 = a(~{self} => {:Bool} -> Trit
+           , {b} => b(~{self} => Trit, A, B)
+           , {b} => b(~{self} => Trit, B, C)
+           , b
+           )
+  let e1 = b(~{self} => {:Bool} -> Trit
+            , {b} => b(~{self} => Trit, A, B)
+            , {b} => b(~{self} => Trit, B, C)
+            , a
+            )
+  e0 == e1
+
+p2t.aux : {case a : Bool, case b : Bool} -> p2t.aux.type(a, b)
+| true  true  => refl(~A)
+| true  false => refl(~B)
+| false true  => refl(~B)
+| false false => refl(~C)
+
+// p2t : {case p : Pair(Bool)} -> Trit
+// | pair => (case/Bool p.left
+//    | true  => {b} case/Bool b | true  => A | false => B : Trit
+//    | false => {b} case/Bool b | true  => B | false => C : Trit
+//    : Bool -> Trit)(p.right)
+// | same => p2t.aux(left,right)
+p2t : {p : Pair(Bool)} -> Trit
+  (%p)(~{self} Trit,
+    {a} case/Bool a
+      | true  => {b} case/Bool b | true  => A | false => B : Trit
+      | false => {b} case/Bool b | true  => B | false => C : Trit
+      : Bool -> Trit,
+    p2t.aux)
+
+// It is easy to prove that `p2t(t2p(t)) == t`
+
+iso_t2p : {case t : Trit} -> p2t(t2p(t)) == t
+| A => refl(~A)
+| B => refl(~B)
+| C => refl(~C)
+
+// But for `t2p(p2t(t)) == t`, it is not possible, because [true,false] and
+// [false,true] have different normal forms, and `==` is "normal form
+// equality". Is there a different notion of equality can be used here?
+//
+
+//iso_p2t : { : Pair(Bool)} -> t2p(p2t(p)) == p
+//  (%p)(~{self} t2p(p2t(self)) == self
+//    , {a, b}
+//      (case/Bool a
+//      | true => {b}
+//        case/Bool b
+//        | true  => refl(~pair(~Bool, true, true))
+//        | false => refl(~pair(~Bool, true, false))
+//        : t2p(p2t(pair(~Bool, true, self))) == pair(~Bool, true, self)
+//      | false => {b}
+//        case/Bool b
+//        | true  => ?
+//        | false => ?
+//        : t2p(p2t(pair(~Bool, false, self))) == pair(~Bool, false, self)
+//      : {b : Bool} -> t2p(p2t(upair(~Bool, self, b))) == pair(~Bool, self, b))(b)
+//    , ?) 
+
+// However we can show that once we map `[true, false]` and `[false, true]` to 
+// `B`, via `t2p`, that we are then ismorphic to a subset of `Pair(Bool)`
+iso_t2p_2 : {case t : Trit} -> t2p(p2t(t2p(t))) == t2p(t)
+| A => cong(~Trit, ~Pair(Bool), ~A, ~A, ~t2p, ~refl(~A))
+| B => cong(~Trit, ~Pair(Bool), ~B, ~B, ~t2p, ~refl(~B))
+| C => cong(~Trit, ~Pair(Bool), ~C, ~C, ~t2p, ~refl(~C))
+
+
+// Exploring extentional equality with HITs
+// http://people.csail.mit.edu/jgross/CSW/csw_paper_template/paper.pdf
+
+funext_helper :
+  { ~A : Type
+  , ~B : Type
+  , f  : !(A -> B)
+  , g  : !(A -> B)
+  , H  : !({x : A} -> <g>(x) == <f>(x))
+  , interval : !Interval
+  , a  : !A
+  } -> !B
+  dup a = a
+  dup f = f
+  dup g = g
+  dup H = H
+  dup interval = interval
+  # funext_helper.go(~B,interval,f(a),g(a), H(a))
+
+funext_helper.go :
+  { ~B : Type
+  , interval : Interval
+  , fa  : B
+  , ga  : B
+  , Ha  : ga == fa
+  } -> B
+   (%interval)(~{self} B
+  , fa
+  , ga
+  , Ha
+  )
