@@ -11,4 +11,5 @@ import Data.Nat
 import Data.Or
 import Data.String
 import Data.Unit
+import Data.Vector
 import Data.Vector2D

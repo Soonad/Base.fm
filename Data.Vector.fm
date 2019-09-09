@@ -1,10 +1,11 @@
+import Data.Fin
 import Data.Nat
 import Induction.Nat
 import Relation.Equality
 
 T Vector {A : Type} (len : Nat)
 | vcons
-  { len  : Nat
+  { ~len : Nat
   , head : A
   , tail : Vector(A, len)
   } (succ(len))

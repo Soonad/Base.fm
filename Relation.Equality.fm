@@ -31,11 +31,3 @@ equal : {~A : Type, ~a : A, ~b : A, ~e : a == b} -> Equal(A, a, b)
       , reflect : P(a, reflect(~A, ~a))
       } -> P(x, self)
     with e
-
-// Extensional Equality
-T ExtEq <A : Type, B : Type>
-| extEq
-   { f     : A -> B
-   , g     : A -> B
-   , axiom : {x : A} -> f(x) == g(x)
-   }
