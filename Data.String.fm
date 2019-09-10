@@ -42,7 +42,8 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
   | nil => 
     nil(~Word)
   : List(Char)
-  * nil(~Word)
+halt:
+  nil(~Word)
 
 #chars_to_string.go*N : !{case chrs : List(Char), word : Word} -> String
 | cons =>
@@ -53,7 +54,8 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
   cons(chars_to_string.go(chrs.tail, word))
 | nil =>
   cons(~Word, word, nil(~Word))
-* nil(~Word)
+halt:
+  nil(~Word)
 
 #chars_to_string : {N : Ind} -> dup f = chars_to_string.go*N; !{chrs : List(Char)} -> String
   f(chrs, 0)
@@ -82,7 +84,7 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
     loop_aux((c .>> 0) .& 0xFF, loop_aux((c .>> 8) .& 0xFF, loop_aux((c .>> 16) .& 0xFF, loop_aux((c .>> 24) .& 0xFF, h))), i)
   | nil => {i, k} => nil(~Char)
   : {i : Word, k : Word -> Word} -> List(Char)
-  * {i, k} => nil(~Char)
+halt: {i, k} => nil(~Char)
 
 to_codepoints: {N : Ind} -> !{str : String} -> List(Char)
   dup f = to_codepoints_aux*N

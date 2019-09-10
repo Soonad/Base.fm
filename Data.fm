@@ -4,6 +4,7 @@ import Data.Bool
 import Data.Empty
 import Data.Function
 import Data.List
+import Data.List.Sort
 import Data.Maybe
 import Data.Maybe.Control
 import Data.Nat

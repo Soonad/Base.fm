@@ -9,16 +9,16 @@ T Fin (n : Nat)
   | fsucc => succ(fin_to_nat(~n, pred))
   | fzero => zero
   : Nat
-  * zero
+halt: zero
 
 #nat_to_fin*N : !{case n : Nat} -> Fin(succ(n))
 | succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
 | zero => fzero(~zero)
-* fzero(~n)
+halt: fzero(~n)
 
 #fin_inc*N : !{~n : Nat, f : Fin(n)} -> Fin(succ(n))
   case/Fin f
   | fsucc => fsucc(~succ(n), fin_inc(~n, pred))
   | fzero => fzero(~succ(n))
   : Fin(succ(n))
-  * fzero(~n)
+halt: fzero(~n)

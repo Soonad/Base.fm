@@ -1,0 +1,46 @@
+// Simple but inefficient implementation of Sort by inserting on a set and
+// converting back to a list. Loses duplicates.
+
+import Data.Bits
+import Data.List
+import Data.Nat
+
+#natset_insert*N : !{case n : Nat, case bs : Bits} -> Bits
+| succ b0 => b0(natset_insert(n.pred, bs.pred))
+| succ b1 => b1(natset_insert(n.pred, bs.pred))
+| succ be => b0(natset_insert(n.pred, be))
+| zero b0 => b1(bs.pred)
+| zero b1 => b1(bs.pred)
+| zero be => b1(be)
+halt: be
+
+#natset_to_list*N : !{case bs : Bits, n : Nat} -> List(Nat)
+| b0 =>
+  natset_to_list(bs.pred, succ(n))
+| b1 =>
+  get [n0, n1] = <copy_nat*>(n)
+  cons(~Nat, n0, natset_to_list(bs.pred, succ(n1)))
+| be =>
+  nil(~Nat)
+halt: nil(~Nat)
+
+#list_to_natset*N : !{case xs : List(Nat)} -> Bits
+| cons => <natset_insert*>(xs.head, list_to_natset(xs.tail))
+| nil  => be
+halt: be
+  
+#sort_nats*N : !{xs : List(Nat)} -> List(Nat)
+  let natset = <list_to_natset*>(xs)
+  let nats   = <natset_to_list*>(natset, 0n0)
+  nats
+halt: nil(~Nat)
+  
+#sort_words*N : !{xs : List(Word)} -> List(Word)
+  let nats   = <map*(~Word, ~Nat, word_to_nat*)>(xs)
+  let sorted = <sort_nats*>(nats)
+  let words  = <map*(~Nat, ~Word, nat_to_word*)>(sorted)
+  words
+halt: nil(~Word)
+  
+#sort_words.example : !List(Word)
+  <sort_words*>(Word$[7,3,5,1,0,2,4,9,8])

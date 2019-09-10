@@ -8,38 +8,71 @@ T Nat
 // :: Simple functions ::
 // ::::::::::::::::::::::
 
+// Predecessor
 pred : {case n : Nat} -> Nat
 | succ => n.pred
 | zero => zero
 
-#add*N : !{case n : Nat, *m : Nat} -> Nat
+// Addition
+#add*N : !{case n : Nat, halt m : Nat} -> Nat
 | succ => succ(add(n.pred, m))
 | zero => m
 
-#double*N : !{case *n : Nat} -> Nat
+// Doubles
+#double*N : !{case halt n : Nat} -> Nat
 | succ => succ(succ(double(n.pred)))
 | zero => zero
 
-// Non-recursive functions that use recursive functions must also be boxed.
-// They must unbox the recursive functions they use.
-#double.example : !Nat
-  <double*256>(succ(zero))
-
 // Converts a native Word to a Nat
-#from_word*N : !{x : Word} -> Nat
+#word_to_nat*N : !{x : Word} -> Nat
   if x .= 0:
     zero
   else:
-    succ(from_word(x - 1))
-  * zero
+    succ(word_to_nat(x - 1))
+  halt:
+    zero
 
 // Converts a Nat to a native Word
-#to_word*N : !{case n : Nat} -> Word
-| succ => 1 + to_word(n.pred)
+#nat_to_word*N : !{case n : Nat} -> Word
+| succ => 1 + nat_to_word(n.pred)
 | zero => 0
-* 0
+halt: 0
 
 // Converts a Ind to a Nat
 ind_to_nat : {r : Ind} -> !Nat
   dup func = (%r)(~{r}Nat, #{~r}succ)
   # func(zero)
+
+// Multiplication
+#mul*N :
+  {n : !Nat} ->
+    dup adder = (add*)
+    dup add_n = #adder(n)
+    ! {m : Nat} -> Nat
+  case/Nat m
+  | succ => add_n(mul(pred))
+  | zero => zero
+  : Nat
+halt: zero
+
+// Returns two copies of the same Nat
+#copy_nat*N : !{case n : Nat} -> [:Nat, Nat]
+| succ =>
+  get [n0, n1] = copy_nat(n.pred)
+  [succ(n0), succ(n1)]
+| zero => 
+  [zero, zero]
+halt: [zero, zero]
+
+// ::::::::::::::
+// :: Examples ::
+// ::::::::::::::
+
+#add.example : !Nat
+  <add*>(0n3, 0n2)
+
+#double.example : !Nat
+  <double*>(succ(zero))
+
+#mul.example : !Nat
+  <mul*(#0n4)>(0n3)
