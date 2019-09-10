@@ -1,0 +1,79 @@
+import Data.Function
+
+// A Comonad consists of...
+T Comonad {W : Type -> Type}
+
+// A monoid in the opposite category of endofunctors, so simple
+| comonad
+
+  // A way to produce values
+  { extract :
+    { ~A : Type
+    , x  : W(A)
+    } -> A
+
+  // A function that, given an unwrapped value, does something and wraps it
+  , extend :
+    { ~A : Type
+    , ~B : Type
+    , f  : W(A) -> B
+    , w  : W(A)
+    } -> W(B)
+
+  // Satisfying this identity law
+  , identity1 :
+    { ~A : Type
+    , ~B : Type
+    , f : W(A)-> B
+    , w : W(A)
+    } -> extract(~B, extend(~A,~B,f,w)) == f(w)
+
+  // Satisfying this identity law
+  , identity2 :
+    { ~A : Type
+    , w : W(A)
+    } -> extend(~A, ~A, extract(~A), w) == w
+
+//  // Satisfying this associativity law
+  , associative :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type 
+    , w : W(A)
+    , f : W(A) -> B
+    , g : W(B) -> C
+    } -> let ext1 = extend(~B, ~C)
+         let ext2 = extend(~A, ~B)
+         let ext3 = extend(~A, ~C)
+         let ext4 = extend(~B, ~C)
+         ext1(g, ext2(f, w)) == ext3(f(ext4(g)), w)
+  }
+
+// A generic extract for monads
+extract :
+  { ~W : Type -> Type
+  , case com : Comonad(W)
+  , ~A : Type
+  , w : W(A)
+  } -> A
+| comonad => com.extract(~A, w)
+
+// A generic extend for monads
+extend :
+  { ~W : Type -> Type
+  , case com : Comonad(W)
+  , ~A : Type
+  , ~B : Type
+  ,  f : W(A) -> B
+  } -> W(A) -> W(B)
+| comonad => com.extend(~A, ~B, f)
+
+// A generic join for monads
+duplicate :
+  { ~W : Type -> Type
+  , case com : Comonad(W)
+  , ~A : Type
+  ,  w : W(A)
+  } -> W(W(A))
+| comonad => com.extend(~A, ~W(A), id(~W(A)), w)
+

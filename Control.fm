@@ -1,6 +1,10 @@
 import Control.Applicative
 import Control.Functor
+import Control.Contravariant
+import Control.Bifunctor
+import Control.Profunctor
 import Control.Monad
+import Control.Comonad
 
 // The Control module namespace describes abstractions over the category FORM
 // consisting of objects `Type` and morphisms `Type -> Type`. In other words,

@@ -6,18 +6,10 @@ T Functor {F : Type -> Type}
 | functor
 
   // A mapping function
-  { map :
-    { ~A : Type
-    , ~B : Type
-    , f  : A -> B
-    , x  : F(A)
-    } -> F(B)
+  { map : {~A : Type , ~B : Type , f : A -> B, x : F(A)} -> F(B)
 
   // Satisfying the identity law
-  , identity :
-    {~A  : Type
-    , fa : F(A)
-    } -> map(~A, ~A, id(~A),fa) == fa
+  , identity : {~A : Type , fa : F(A)} -> map(~A, ~A, id(~A),fa) == fa
 
   // Satisfying the composition law
   , composition :
@@ -49,3 +41,5 @@ map_const :
   , x : B
   } -> F(A) -> F(B)
 | functor => fun.map(~A, ~B, const(~B, ~A, x))
+
+

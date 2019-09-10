@@ -1,45 +1,60 @@
-import Data.Maybe open
-import Control.Functor open
-import Control.Monad open
+import Data.Maybe
+import Control.Functor
+import Control.Monad
 
 maybe.functor : Functor(Maybe)
-  let map = {~A : Type, ~B : Type, f : A -> B, ma : Maybe(A)}
-    case/Maybe ma
+
+  // A mapping function
+  let map = {~A, ~B, f, x}
+    case/Maybe x
     | just => just(~B, f(some))
     | none => none(~B)
     : Maybe(B)
-  let identity = {~A : Type, ma : Maybe(A)}
+
+  // Satisfying the identity law
+  let identity = {~A, ma}
     case/Maybe ma
     | just => refl(~just(~A,some))
     | none => refl(~none)
     : map(~A,~A,id(~A),self) == self
-  let composition =
-    {~A : Type, ~B : Type, ~C : Type, g : B -> C, f : A -> B, ma : Maybe(A)}
+
+  // Satisfying the composition law
+  let composition = {~A, ~B, ~C, g, f, ma}
     case/Maybe ma
     | just => refl(~just(~C,(g(f(some)))))
     | none => refl(~none)
     : map(~A,~C,{x:A} g(f(x)),self) == map(~B,~C,g,map(~A,~B,f,self))
+
   functor(~Maybe,map,identity,composition)
 
 maybe.monad : Monad(Maybe)
-  let pure = {~A : Type, x : A} just(~A,x)
-  let bind = {~A : Type, ~B : Type, ma : Maybe(A), f : A -> Maybe(B)}
+
+  // A way to wrap values
+  let pure = {~A, x} just(~A,x)
+
+  // A function that, given an unwrapped value, does something and wraps it
+  let bind = {~A, ~B, f, ma}
     case/Maybe ma
     | just => f(some)
     | none => none(~B)
     : Maybe(B)
-  let identity1 = {~A : Type, ~B : Type, x : A, f : A -> Maybe(B)}
+
+  // Satisfying this identity law
+  let identity1 = {~A, ~B, x, f}
     case/Maybe f(x)
     | just => refl(~just(~B,some))
     | none => refl(~none)
     : self == self
-  let identity2 = {~A : Type, m : Maybe(A)}
+
+  // Satisfying this identity law
+  let identity2 = {~A, m}
     case/Maybe m
     | just => refl(~just(~A,some))
     | none => refl(~none)
-    : bind(~A,~A,self,pure(~A)) == self
-  let associative =
-    {~A:Type, ~B:Type, ~C:Type , m:Maybe(A), f:A -> Maybe(B), g:B -> Maybe(C)}
+    : bind(~A,~A,pure(~A),self) == self
+
+  // Satisfying this associativity law
+  let associative = {~A, ~B, ~C, m, f, g}
     case/Maybe m
     | just =>
       case/Maybe f(some)
@@ -49,7 +64,12 @@ maybe.monad : Monad(Maybe)
         | none => refl(~none)
         : self == self
       | none => refl(~none)
-      : bind(~B,~C,self,g) == bind(~B,~C,self,g)
+      : bind(~B,~C,g,self) == bind(~B,~C,g,self)
     | none => refl(~none)
-    : bind(~B,~C,bind(~A,~B,self,f),g) == bind(~A,~C,self,{x:A} bind(~B,~C,f(x),g))
+    : let b1 = bind(~B, ~C)
+      let b2 = bind(~A, ~B)
+      let b3 = bind(~A, ~C)
+      let b4 = bind(~B, ~C)
+      b1(g,b2(f,self)) == b3({x} b4(g,f(x)),self)
+
   monad(~Maybe,pure,bind,identity1,identity2,associative)
