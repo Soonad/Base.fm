@@ -1,7 +1,9 @@
-// A functor consists of...
+import Data.Function
+
+// A Monad consists of...
 T Monad {M : Type -> Type}
 
-// A monoid in the category of endofunctors why do you still ask
+// A monoid in the category of endofunctors why do you even ask
 | monad
 
   // A way to wrap values
@@ -14,8 +16,8 @@ T Monad {M : Type -> Type}
   , bind :
     { ~A : Type
     , ~B : Type
-    , m  : M(A)
     , f  : A -> M(B)
+    , m  : M(A)
     } -> M(B)
 
   // Satisfying this identity law
@@ -24,13 +26,13 @@ T Monad {M : Type -> Type}
     , ~B : Type
     , x : A
     , f : A -> M(B)
-    } -> bind(~A, ~B, pure(~A, x),f) == f(x)
+    } -> bind(~A, ~B, f, pure(~A, x)) == f(x)
 
   // Satisfying this identity law
   , identity2 :
     { ~A : Type
     , m : M(A)
-    } -> bind(~A, ~A, m,pure(~A)) == m
+    } -> bind(~A, ~A, pure(~A), m) == m
 
   // Satisfying this associativity law
   , associative :
@@ -40,6 +42,38 @@ T Monad {M : Type -> Type}
     , m : M(A)
     , f : A -> M(B)
     , g : B -> M(C)
-    } -> bind(~B, ~C, bind(~A, ~B, m,f), g) == 
-         bind(~A, ~C, m, ({x : A} bind(~B, ~C, f(x), g)))
+    } -> let b1 = bind(~B, ~C)
+         let b2 = bind(~A, ~B)
+         let b3 = bind(~A, ~C)
+         let b4 = bind(~B, ~C)
+          b1(g, b2(m,f)) == b3({x} b4(g, f(x)), m)
   }
+
+// A generic pure for monads
+pure :
+  { ~M : Type -> Type
+  , case mon : Monad(M)
+  , ~A : Type
+  , x : A
+  } -> M(A)
+| monad => mon.pure(~A, x)
+
+// A generic bind for monads
+bind :
+  { ~M : Type -> Type
+  , case mon : Monad(M)
+  , ~A : Type
+  , ~B : Type
+  ,  f : A -> M(B)
+  } -> M(A) -> M(B)
+| monad => mon.bind(~A, ~B, f)
+
+// A generic join for monads
+join :
+  { ~M : Type -> Type
+  , case mon : Monad(M)
+  , ~A : Type
+  ,  mma : M(M(A))
+  } -> M(A)
+| monad => mon.bind(~M(A), ~A, id(~M(A)), mma)
+

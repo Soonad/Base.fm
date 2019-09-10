@@ -42,7 +42,8 @@ Semimedial : {A : Type, f : A -> A -> A} -> Type
 
 Idempotent : {A : Type, f : A -> A -> A} -> Type; {x : A} -> f(x,x) == x
 
-Unipotent : {A : Type, f : A -> A -> A} -> Type; {x : A, y : A} -> f(x,x) == f(y,y)
+Unipotent : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(x,x) == f(y,y)
 
 Zeropotent : {A : Type, f : A -> A -> A} -> Type
   {x : A, y : A} -> And(f(f(x,x),y) == f(x,x), f(y,f(x,x)) == f(x,x))

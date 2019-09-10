@@ -1,0 +1,77 @@
+import Data.Function
+import Data.And
+
+T Bifunctor {F : Type -> Type -> Type}
+| bifunctor
+
+  // A mapping function for both functors
+  { bimap :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type
+    , ~D : Type
+    , f  : A -> B
+    , g  : C -> D
+    , x  : F(A,C)
+    } -> F(B,D)
+
+  // Satisfying the identity law
+  , identity :
+    {~A  : Type
+    ,~C  : Type
+    , fac : F(A,C)
+    } -> bimap(~A, ~A, ~C, ~C, id(~A),id(~C),fac) == fac
+
+  // Satisfying the composition law
+  , composition :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type
+    , ~X : Type
+    , ~Y : Type
+    , ~Z : Type
+    , g  : B -> C
+    , f  : A -> B
+    , i  : Y -> Z
+    , h  : X -> Y
+    , fax : F(A,X)
+    } -> let bi1 = bimap(~A, ~C, ~X, ~Z)
+         let bi2 = bimap(~B, ~C, ~Y, ~Z)
+         let bi3 = bimap(~A, ~B, ~X, ~Y)
+         bi1({x} g(f(x)), {x} i(h(x)), fax) == bi2(g, i, bi3(f, h, fax))
+  }
+
+// A generic bimap for bifunctors
+bimap :
+  { ~F : Type -> Type -> Type
+  , case bifun : Bifunctor(F)
+  , ~A : Type
+  , ~B : Type
+  , ~C : Type
+  , ~D : Type
+  ,  f : A -> B
+  ,  g : C -> D
+  } -> F(A,C) -> F(B,D)
+| bifunctor => bifun.bimap(~A, ~B, ~C, ~D, f, g)
+
+// map over the first functor
+first :
+  { ~F : Type -> Type -> Type
+  , case bifun : Bifunctor(F)
+  , ~A : Type
+  , ~B : Type
+  , ~C : Type
+  ,  f : A -> B
+  } -> F(A,C) -> F(B,C)
+| bifunctor => bifun.bimap(~A, ~B, ~C, ~C, f, id(~C))
+
+// map over the second functor
+second :
+  { ~F : Type -> Type -> Type
+  , case bifun : Bifunctor(F)
+  , ~A : Type
+  , ~C : Type
+  , ~D : Type
+  ,  g : C -> D
+  } -> F(A,C) -> F(A,D)
+| bifunctor => bifun.bimap(~A, ~A, ~C, ~D, id(~A), g)

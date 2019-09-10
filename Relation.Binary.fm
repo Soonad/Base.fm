@@ -1,7 +1,11 @@
 import Data.And
+import Data.Or
+import Data.Empty
+
 
 // Relations : A -> A -> Type
 
+// properties of relations
 Reflexive : {A : Type, R : A -> A -> Type} -> Type
   {x : A} -> R(x,x)
 
@@ -14,8 +18,64 @@ Quasireflexive : {A : Type, R : A -> A -> Type} -> Type
 Transitive : {A : Type, R : A -> A -> Type } -> Type
   {x : A, y : A, z : A, :And(R(x,y), R(y,z))} -> R(x,z)
 
-Symmetric : {A : Type, R : A -> A -> Type} -> Type;
+Symmetric : {A : Type, R : A -> A -> Type} -> Type
   {x : A, y : A, :R(x,y)} -> R(y,x)
+
+AntiSymmetric : {A : Type, R : A -> A -> Type} -> Type
+  {x : A, y : A, :R(x,y), :R(y,x)} -> x == y
+
+Connexity : {A : Type, R : A -> A -> Type} -> Type
+  {x : A, y : A} -> Or(R(x,y), R(y,x))
+
+SemiConnexity : {A : Type, R : A -> A -> Type} -> Type
+  {x : A, y : A, :Not(x == y)} -> Or(R(x,y), R(y,x))
+
+// specific relations
+
+T Preorder {A : Type, eq : A -> A -> Type}
+| preorder
+  { reflexive  : Reflexive(A,eq)
+  , transitive : Transitive(A,eq)
+  }
+
+T Proset {A : Type}
+| proset
+  { eq : A -> A -> Type
+  , preorder : Preorder(A, eq)
+  }
+
+T PartialOrder {A : Type, eq : A -> A -> Type}
+| partial_order
+  { reflexive      : Reflexive(A,eq)
+  , antisymmetric  : AntiSymmetric(A,eq)
+  , transitive     : Transitive(A,eq)
+  }
+
+T Poset {A : Type}
+| { eq            : A -> A -> Type
+  , partial_order : PartialOrder(A, eq)
+  }
+
+
+T TotalOrder {A : Type, eq : A -> A -> Type}
+| total_order
+  { antisymmetric  : AntiSymmetric(A,eq)
+  , transitive     : Transitive(A,eq)
+  , connexity      : Connexity(A,eq)
+  }
+
+T Chain {A : Type}
+| chain
+  { eq          : A -> A -> Type
+  , total_order : TotalOrder(A,eq)
+  }
+
+T Poset {A : Type}
+| { eq            : A -> A -> Type
+  , partial_order : PartialOrder(A, eq)
+  }
+
+
 
 T Equivalence {A : Type, eq : A -> A -> Type}
 | equivalence
@@ -24,9 +84,9 @@ T Equivalence {A : Type, eq : A -> A -> Type}
   , transitive : Transitive(A,eq)
   }
 
-
-T Quotient {A : Type}
-| quotient
+T Setoid {A : Type}
+| setoid
   { eq          : A -> A -> Type
-  , equivalence : Equivalence(~A, ~eq)
+  , equivalence : Equivalence(A, eq)
   }
+

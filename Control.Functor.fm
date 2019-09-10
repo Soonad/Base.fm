@@ -49,3 +49,5 @@ map_const :
   , x : B
   } -> F(A) -> F(B)
 | functor => fun.map(~A, ~B, const(~B, ~A, x))
+
+
