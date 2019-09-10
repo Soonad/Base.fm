@@ -1,15 +1,32 @@
 // TODO: update
 
-//import Data.Function
-//import Data.Nat
-//import Induction.Nat
-//import Relation.Equality
+import Data.Function
+import Data.Nat
+import Induction.Nat
+import Relation.Equality
 
-//Array : {n : Nat} -> Type
-  //case/Nat n
-  //| succ => [x : Array(pred), Array(pred)]
-  //| zero => Word
-  //: Type
+Array : {n : Nat} -> Type
+  case/Nat n
+  | succ => [x : Array(pred), Array(pred)]
+  | zero => Word
+  : Type
+
+#with*D : !{path : Word, fun : {x : Word} -> Word, arr : Array(<ind_to_nat(D)>)} -> [arr : Array(<ind_to_nat(D)>), Word]
+  let noswap = {a : Array(D), b : Array(D)} [a, b]
+  let doswap = {a : Array(D), b : Array(D)} [b, a]
+  get [a, b] = arr
+  //get [a, b] = (if path % 2: doswap else: noswap)(a, b)
+  : [arr : Array(<ind_to_nat(step(D))>), Word] ?
+  
+  //let result = with.make(~succ(n), path / 2, {arr}
+    //get [a, b] = arr
+    //get [a, b] = (if path % 2: doswap else: noswap)(a, b)
+    //get [a, e] = fun(a)
+    //get [a, b] = (if path % 2: doswap else: noswap)(a, b)
+    //[[a, b], e])
+  * ?
+
+main with
 
 //!array.example : ![:Word, [:Word, Word]]
   //let arr      = a8

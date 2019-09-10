@@ -4,19 +4,19 @@ T Fin (n : Nat)
 | fsucc {~n : Nat, pred : Fin(n)} (succ(n))
 | fzero {~n : Nat}                (succ(n))
 
-!fin_to_nat*N : !{~n : Nat, f : Fin(n)} -> Nat
+#fin_to_nat*N : !{~n : Nat, f : Fin(n)} -> Nat
   case/Fin f
   | fsucc => succ(fin_to_nat(~n, pred))
   | fzero => zero
   : Nat
   * zero
 
-!nat_to_fin*N : !{case n : Nat} -> Fin(succ(n))
+#nat_to_fin*N : !{case n : Nat} -> Fin(succ(n))
 | succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
 | zero => fzero(~zero)
 * fzero(~n)
 
-!fin_inc*N : !{~n : Nat, f : Fin(n)} -> Fin(succ(n))
+#fin_inc*N : !{~n : Nat, f : Fin(n)} -> Fin(succ(n))
   case/Fin f
   | fsucc => fsucc(~succ(n), fin_inc(~n, pred))
   | fzero => fzero(~succ(n))

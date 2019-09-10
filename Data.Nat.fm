@@ -12,21 +12,21 @@ pred : {case n : Nat} -> Nat
 | succ => n.pred
 | zero => zero
 
-!add*N : !{case n : Nat, *m : Nat} -> Nat
+#add*N : !{case n : Nat, *m : Nat} -> Nat
 | succ => succ(add(n.pred, m))
 | zero => m
 
-!double*N : !{case *n : Nat} -> Nat
+#double*N : !{case *n : Nat} -> Nat
 | succ => succ(succ(double(n.pred)))
 | zero => zero
 
 // Non-recursive functions that use recursive functions must also be boxed.
 // They must unbox the recursive functions they use.
-!double.example : !Nat
+#double.example : !Nat
   <double*256>(succ(zero))
 
 // Converts a native Word to a Nat
-!from_word*N : !{x : Word} -> Nat
+#from_word*N : !{x : Word} -> Nat
   if x .= 0:
     zero
   else:
@@ -34,7 +34,7 @@ pred : {case n : Nat} -> Nat
   * zero
 
 // Converts a Nat to a native Word
-!to_word*N : !{case n : Nat} -> Word
+#to_word*N : !{case n : Nat} -> Word
 | succ => 1 + to_word(n.pred)
 | zero => 0
 * 0

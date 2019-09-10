@@ -26,7 +26,7 @@ absurd_bound : {n : Nat, bound : Bound(n, base)} -> Empty
   : <ind(i, ~{i}Type, #{~r,i}Unit, #Empty)>
 
 // ∀ n . n < n+1
-!less_than_succ*N : !{n : Nat, bound : Bound(n, N)} -> Less(n, succ(n))
+#less_than_succ*N : !{n : Nat, bound : Bound(n, N)} -> Less(n, succ(n))
   (case/Bound bound
   | bound_succ => {e}
     let r0 = cong_unstep(~i, ~N, ~e)

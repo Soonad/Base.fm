@@ -25,3 +25,20 @@ vtail : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> Vector(T, len)
   | vcons => tail
   | vnil  => vnil(~T)
   : Vector(T, pred(len))
+
+//Vector(T, <fin_to_nat(step(N))>(~<ind_to_nat(step(N))>, len))
+
+//!replicate*N : {~T : Type, x : !T} -> !{len : Fin(<ind_to_nat(N)>)} -> Vector(T, <fin_to_nat*N>(~<ind_to_nat(N)>, len)) 
+  //(case/Fin len
+  //| fsucc => {e} replicate(pred)
+  //| fzero => {e} ?
+  //: {e : len == self} -> Vector(T, <fin_to_nat*N>(~n, self)))(refl(~len))
+  //* ?
+  
+// Vector(T, <fin_to_nat(N)>(~succ(n), fsucc(~n, f)))
+
+//main replicate
+
+//replicate : ∀ {a n} {A : Set a} → A → Vec A n
+//replicate {n = zero}  x = []
+//replicate {n = suc n} x = x ∷ replicate x

@@ -13,7 +13,7 @@ Output : Type
 print : {str : String} -> Output
   [0x53484f57, str]
 
-!string.example : !Output
+#string.example : !Output
   let str = "Hello, world!"
   let str = <string_to_chars*256>(str)
   let str = <reverse*256>(~Char, str)
@@ -29,7 +29,7 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
       {chrs : List(Char)} chrs
   fun(chrs)
 
-!string_to_chars*N : !{str : String} -> List(Char)
+#string_to_chars*N : !{str : String} -> List(Char)
   case/List str
   | cons =>
     cpy word = head
@@ -44,7 +44,7 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
   : List(Char)
   * nil(~Word)
 
-!chars_to_string.go*N : !{case chrs : List(Char), word : Word} -> String
+#chars_to_string.go*N : !{case chrs : List(Char), word : Word} -> String
 | cons =>
   cpy word = (word .>> 8) .| (chrs.head .<< 24)
   let done = (word .& 0xFF) .> 0
@@ -55,10 +55,10 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
   cons(~Word, word, nil(~Word))
 * nil(~Word)
 
-!chars_to_string : {N : Ind} -> dup f = chars_to_string.go*N; !{chrs : List(Char)} -> String
+#chars_to_string : {N : Ind} -> dup f = chars_to_string.go*N; !{chrs : List(Char)} -> String
   f(chrs, 0)
 
-!to_codepoints_aux*N: !{str : String} -> Word -> (Word -> Word) -> List(Char)
+#to_codepoints_aux*N: !{str : String} -> Word -> (Word -> Word) -> List(Char)
   case/List str
   | cons => {i}
     let loop_aux = {x : Word, h : {i : Word, k : Word -> Word} -> List(Char)} =>

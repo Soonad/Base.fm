@@ -1,5 +1,4 @@
 import Data.And
-import Data.Array
 import Data.Bits
 import Data.Bool
 import Data.Empty

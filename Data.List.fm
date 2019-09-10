@@ -21,28 +21,28 @@ take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 | cons => [list.head, list.tail]
 | nil  => [default, nil(~T)]
 
-!list.id*n : !{~A : Type, case *list : List(A)} -> List(A)
+#list.id*n : !{~A : Type, case *list : List(A)} -> List(A)
 | cons => cons(~A, list.head, list.id(~A, list.tail))
 | nil  => nil(~A)
 
-!map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+#map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
 | cons => cons(~B, f(list.head), map(list.tail))
 | nil  => nil(~B)
 * nil(~B)
 
-!concat*n : !{~T : Type, case *xs : List(T), ys : List(T)} -> List(T)
+#concat*n : !{~T : Type, case *xs : List(T), ys : List(T)} -> List(T)
 | cons => cons(~T, xs.head, concat(~T, xs.tail, ys))
 | nil  => ys
 
-!reverse.go*n : !{~T : Type, case *list : List(T), result : List(T)} -> List(T)
+#reverse.go*n : !{~T : Type, case *list : List(T), result : List(T)} -> List(T)
 | cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 
 // TODO: syntax to simplify those wrappers
-!reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
+#reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
   reverse(~T, list, nil(~T))
 
-!zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
+#zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
 | cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
 | cons nil  => nil(~B)
 | nil  cons => nil(~B)
@@ -51,24 +51,24 @@ take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 
 // Examples
 
-!list.id.example : !List(Word)
+#list.id.example : !List(Word)
   <list.id*256>(~Word, Word$[1,2,3,4])
 
-!map.example : !List(Word)
+#map.example : !List(Word)
   <map*256(~Word, ~Word, #{x} x + 1)>(Word$[1,2,3,4])
 
 // :::::::::::::::::::::::
 // :: Fusible functions ::
 // :::::::::::::::::::::::
 
-!list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
+#list.id-f*n : !{~A : Type, *list : List(A)} -> List(A)
   new(~List(A)){~P, cons, nil}
   case/List list
   | cons => cons(head, list.id-f(~A, tail))
   | nil  => nil
   : P(<list.id-f.step>(~n, list.id-f, ~A, self))
 
-!map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
+#map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
   new(~List(B)){~P, cons, nil}
   case/List list
   | cons => cons(f(head), map-f(tail))
@@ -76,7 +76,7 @@ take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
   : P(<map-f.step(~A, ~B, #f)>(~n, map-f, self))
   * nil(~B)
 
-!zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
+#zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   new(~List(B)){~P, consf, nilf}
   (case/List func
   | cons => {consf, nilf}
@@ -111,7 +111,7 @@ map-f.example
 // :: Theorems ::
 // ::::::::::::::
 
-!map.composition*n :
+#map.composition*n :
   !{~A : Type
   , ~B : Type
   , ~C : Type
