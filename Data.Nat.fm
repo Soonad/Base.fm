@@ -43,14 +43,6 @@ nat : {r : Ind} -> !Nat
   dup func = (%r)(~{r}Nat, #{~r}succ)
   # func(zero)
 
-// Multiplication
-#mul*N : {n : !Nat} -> ! {m : Nat} -> Nat
-  case/Nat m
-  | succ => <#<(add*)>(n)>(mul(pred))
-  | zero => zero
-  : Nat
-halt: zero
-
 // Returns two copies of the same Nat
 #copy_nat*N : !{case n : Nat} -> [:Nat, Nat]
 | succ =>
@@ -59,6 +51,30 @@ halt: zero
 | zero => 
   [zero, zero]
 halt: [zero, zero]
+
+// Multiplication by a static `n`. This requires a small amount of gas (`N`
+// must be >= `m`), but `n` must be static w.r.t `m`.
+#muln*N : {n : !Nat} -> !{m : Nat} -> Nat
+  case/Nat m
+  | succ => <#<(add*)>(n)>(muln(pred))
+  | zero => zero
+  : Nat
+halt: zero
+
+// Helper for the multiplication below.
+#mul.go*N : ! {case add : Nat, n : Nat, m : Nat} -> Nat
+| succ => succ(mul.go(add.pred, succ(n), m))
+| zero =>
+  case/Nat m
+  | succ => mul.go(n, zero, pred)
+  | zero => zero
+  : Nat
+halt: zero
+
+// Multiplication. This allows `n` and `m` to be dynamic relative to
+// each-other, but requires more gas (`N` must be >= `n * m`).
+#mul : {N : Ind} -> ! {n : Nat, m : Nat} -> Nat
+  <mul.go*N>(zero, n, m)
 
 // ::::::::::::::
 // :: Examples ::
@@ -70,5 +86,8 @@ halt: [zero, zero]
 #double.example : !Nat
   <double*>(succ(zero))
 
-#mul.example : !Nat
-  <mul*(#0n4)>(0n3)
+#muln.example : !Word
+  <nat_to_word*>(<muln*(#0n3)>(0n4))
+
+#mul.example : !Word
+  <nat_to_word*>(<mul*>(0n3, 0n4))
