@@ -39,7 +39,7 @@ pred : {case n : Nat} -> Nat
 halt: 0
 
 // Converts a Ind to a Nat
-ind_to_nat : {r : Ind} -> !Nat
+nat : {r : Ind} -> !Nat
   dup func = (%r)(~{r}Nat, #{~r}succ)
   # func(zero)
 

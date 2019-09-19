@@ -35,4 +35,4 @@ absurd_bound : {n : Nat, bound : Bound(n, base)} -> Empty
     r2
   | bound_zero => {e} less_zero(~zero)
   : {e : i == step(N)} -> Less(n, succ(n)))(refl(~step(N)))
-  * absurd(absurd_bound(n, bound), ~Less(n, succ(n)))
+halt: absurd(absurd_bound(n, bound), ~Less(n, succ(n)))

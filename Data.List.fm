@@ -21,26 +21,50 @@ take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 | cons => [list.head, list.tail]
 | nil  => [default, nil(~T)]
 
-#list.id*n : !{~A : Type, case halt list : List(A)} -> List(A)
-| cons => cons(~A, list.head, list.id(~A, list.tail))
+// :::::::::::::::::::::::::
+// :: Recursive functions ::
+// :::::::::::::::::::::::::
+
+// Returns the same list
+#same*n : !{~A : Type, case halt list : List(A)} -> List(A)
+| cons => cons(~A, list.head, same(~A, list.tail))
 | nil  => nil(~A)
 
+// Allocates a Vec with given length
+#alloc*N : {~A : Type, x : !A} -> !List(A)
+  cons(~A, x, alloc)
+halt: nil(~A)
+
+// Creates a list with `N` ascending words starting from `idx` 
+#range*N : !{init : Word} -> List(Word)
+  cons(~Word, init, range(init + 1))
+halt: cons(~Word, init, nil(~Word))
+
+// Sums every word in a list
+#sum*n : !{case list : List(Word)} -> Word
+| cons => list.head + sum(list.tail)
+| nil  => 0
+halt: 0
+
+// Applies a function to every element of a list
 #map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
 | cons => cons(~B, f(list.head), map(list.tail))
 | nil  => nil(~B)
 halt: nil(~B)
 
+// Concatenates two lists
 #concat*n : !{~T : Type, case halt xs : List(T), ys : List(T)} -> List(T)
 | cons => cons(~T, xs.head, concat(~T, xs.tail, ys))
 | nil  => ys
 
+// Helper for reverse
 #reverse.go*n : !{~T : Type, case halt list : List(T), result : List(T)} -> List(T)
 | cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 
-// TODO: syntax to simplify those wrappers
-#reverse : {n : Ind} -> dup reverse = reverse.go(n); !{~T : Type, list : List(T)} -> List(T)
-  reverse(~T, list, nil(~T))
+// Reverses a list
+#reverse : {n : Ind} -> !{~T : Type, list : List(T)} -> List(T)
+  <reverse.go(n)>(~T, list, nil(~T))
 
 #zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
 | cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
@@ -51,22 +75,25 @@ halt: nil(~B)
 
 // Examples
 
-#list.id.example : !List(Word)
-  <list.id*256>(~Word, Word$[1,2,3,4])
+#same.example : !List(Word)
+  <same*>(~Word, Word$[1,2,3,4])
 
 #map.example : !List(Word)
-  <map*256(~Word, ~Word, #{x} x + 1)>(Word$[1,2,3,4])
+  <map*(~Word, ~Word, #{x} x + 1)>(Word$[1,2,3,4])
+
+#reverse.example : !List(Word)
+  <reverse*>(~Word, Word$[1,2,3,4])
 
 // :::::::::::::::::::::::
 // :: Fusible functions ::
 // :::::::::::::::::::::::
 
-#list.id-f*n : !{~A : Type, halt list : List(A)} -> List(A)
+#same-f*n : !{~A : Type, halt list : List(A)} -> List(A)
   new(~List(A)){~P, cons, nil}
   case/List list
-  | cons => cons(head, list.id-f(~A, tail))
+  | cons => cons(head, same-f(~A, tail))
   | nil  => nil
-  : P(<list.id-f.step>(~n, list.id-f, ~A, self))
+  : P(<same-f.step>(~n, same-f, ~A, self))
 
 #map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
   new(~List(B)){~P, cons, nil}
@@ -93,21 +120,21 @@ halt:
 
 // Examples
 
-// From 1.7m to 3.2k rewrites by using `list.id-f` to build the list
-list.id-f.example
+// From 1.7m to 3.2k rewrites by using `same-f` to build the list
+same-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7]
-  dup list.id   = list.id*256
-  dup list.id-f = list.id-f*256
-  dup list = rec(*10000, ~List(Word), #list.id-f(~Word), #list)
-  # list.id(~Word, list)
+  dup same   = same*256
+  dup same-f = same-f*256
+  dup list = rec(*10000, ~List(Word), #same-f(~Word), #list)
+  # same(~Word, list)
 
 // From 2.2m rewrites to 229k rewrites using map-f
 map-f.example
   let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
-  dup list.id   = list.id*256
+  dup same   = same*256
   dup map  = map-f*256(~Word, ~Word, #{x} x + 1)
   dup list = rec(*10000, ~List(Word), #map, #list)
-  # list.id(~Word, list)
+  # same(~Word, list)
 
 // ::::::::::::::
 // :: Theorems ::
