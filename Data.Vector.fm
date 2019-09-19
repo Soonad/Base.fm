@@ -1,7 +1,7 @@
 import Data.Fin
 import Data.Nat
-import Data.Unit
 import Induction.Nat
+import Relation.Equality
 
 T Vector {A : Type} (len : Nat)
 | vcons
@@ -15,26 +15,26 @@ T Vector {A : Type} (len : Nat)
 // :: Simple functions ::
 // ::::::::::::::::::::::
 
-vhead : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> T
-  case/Vector vector
-  | vcons  => head
-  | vnil   => 0
-  : case/Nat len
-    | succ => T
-    | zero => Word
-    : Type
+vhead : {~T : Type, ~n : Nat, vector : Vector(T, succ(n))} -> T
+  (case/Vector vector
+  | vcons  => {~e} head
+  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~T)
+  : {~e : len == succ(n)} -> T
+  )(~refl(~succ(n)))
 
-vtail : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> Vector(T, len)
-  case/Vector vector
-  | vcons => tail
-  | vnil  => unit
-  : case/Nat len | succ => Vector(T, pred) | zero => Unit : Type
+vtail : {~T : Type, ~n : Nat , vector : Vector(T, succ(n))} -> Vector(T, n)
+  (case/Vector vector
+  | vcons  => {~e} tail :: rewrite len in Vector(T,len) with preds(len, n, e)
+  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~Vector(T,n))
+  : {~e : len == succ(n)} -> Vector(T, n)
+  )(~refl(~succ(n)))
 
-vtake : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> [x : T, Vector(T, len)]
-  case/Vector vector
-  | vcons => [head, tail]
-  | vnil  => unit
-  : case/Nat len | succ => [x : T, Vector(T, pred)] | zero => Unit : Type
+vtake : {~T : Type, ~n : Nat, vector : Vector(T, succ(n))} -> [:T, Vector(T,n)]
+  (case/Vector vector
+  | vcons  => {~e} [head, tail :: rewrite m in Vector(T,m) with preds(len,n,e)]
+  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~[:T, Vector(T,n)])
+  : {~e : len == succ(n)} -> [:T, Vector(T,n)]
+  )(~refl(~succ(n)))
 
 // :::::::::::::::::::::::::
 // :: Recursive Functions ::
@@ -45,7 +45,8 @@ vtake : {~T : Type, ~len : Nat, vector : Vector(T, succ(len))} -> [x : T, Vector
   (case/Vector vector
   | vcons => {vsame} vcons(~A, ~len, head, vsame(~A, tail))
   | vnil  => {vsame} vnil(~A)
-  : {vsame : {~A : Type, vector : Vector(A, pred(len))} -> Vector(A, pred(len))} -> Vector(A, len))(vsame)
+  : { vsame : {~A : Type, vector : Vector(A, pred(len))} -> Vector(A, pred(len))
+    } -> Vector(A, len))(vsame)
 halt: vnil(~A)
 
 // Allocates a Vec with given length
@@ -59,7 +60,12 @@ halt: vnil(~A)
 halt: vnil(~Word)
 
 // Applies a function to every element of a vector
-#vmap*N : {~A : Type, ~B : Type, f : !A -> B} -> ! {vector : Vector(A, <nat(N)>)} -> Vector(B, <nat(N)>)
+#vmap*N :
+  { ~A : Type
+  , ~B : Type
+  , f : !A -> B
+  } -> ! {vector : Vector(A, <nat(N)>)} -> Vector(B, <nat(N)>)
+
   (case/Vector vector
   | vcons => {~e}
     let tail = tail       :: rewrite x in Vector(A, x) with e
@@ -71,15 +77,20 @@ halt: vnil(~Word)
 halt: vnil(~B)
 
 // Concatenates two vectors
-#vconcat*N : !{~A : Type, xs : Vector(A, <nat(N)>), m : Nat, ys : Vector(A, m)} -> Vector(A, <add_ind(N)>(m))
+#vconcat*N :
+  !{ ~A : Type
+  , xs : Vector(A, <nat(N)>)
+  , m : Nat
+  , ys : Vector(A, m)
+  } -> Vector(A, <add_ind(N)>(m))
+
+  let n = <nat(N)>
   (case/Vector xs
   | vcons => {~e}
-    let tail = vconcat(~A, tail :: rewrite x in Vector(A, x) with e, m, ys)
-    vcons(~A, ~<add_ind(N)>(m), head, tail)
-  | vnil => unit
-  : case/Nat len
-    | succ => {~e : Data.Nat/pred(len) == <nat(N)>} -> Vector(A, <add_ind(step(N))>(m))
-    | zero => Unit
-    : Type
-  )(~refl(~<nat(N)>))
+      let tail = tail :: rewrite x in Vector(A, x) with preds(len, n, e)
+      vcons(~A, ~<add_ind(N)>(m), head, vconcat(~A, tail, m, ys))
+  | vnil => {~e}
+      absurd(zero.not_succ(~n, ~sym(~e)), ~Vector(A, <add_ind(step(N))>(m)))
+  : {~e : len == succ(n)} -> Vector(A, <add_ind(step(N))>(m))
+  )(~refl(~succ(n)))
 halt: ys

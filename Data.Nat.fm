@@ -1,4 +1,7 @@
 import Induction.Nat
+import Data.Unit
+import Data.Empty
+import Relation.Equality
 
 T Nat
 | succ {pred : Nat}
@@ -12,6 +15,19 @@ T Nat
 pred : {case n : Nat} -> Nat
 | succ => n.pred
 | zero => zero
+
+zero.not_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
+  unit :: rewrite x
+  in (case/Nat x | succ => Unit | zero => Empty : Type)
+  with e
+
+
+pred_succ : {case x : Nat} -> pred(succ(x)) == x
+| succ => refl(~succ(x.pred))
+| zero => refl(~zero)
+
+preds : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
+  cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)
 
 // Addition
 #add*N : !{case n : Nat, halt m : Nat} -> Nat
