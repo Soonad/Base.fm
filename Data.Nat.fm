@@ -44,13 +44,9 @@ nat : {r : Ind} -> !Nat
   # func(zero)
 
 // Multiplication
-#mul*N :
-  {n : !Nat} ->
-    dup adder = (add*)
-    dup add_n = #adder(n)
-    ! {m : Nat} -> Nat
+#mul*N : {n : !Nat} -> ! {m : Nat} -> Nat
   case/Nat m
-  | succ => add_n(mul(pred))
+  | succ => <#<(add*)>(n)>(mul(pred))
   | zero => zero
   : Nat
 halt: zero

@@ -17,7 +17,7 @@ LeftAlternative : {A : Type, f : A -> A -> A} -> Type
   {x : A, y : A} -> f(f(x,x),y) == f(x,f(x,y))
 
 RightAlternative : {A : Type, f : A -> A -> A} -> Type
-  {x : A, y : A} -> f(y,f(x,x)) == f(f(y,x),x))
+  {x : A, y : A} -> f(y,f(x,x)) == f(f(y,x),x)
 
 Alternative : {A : Type, f : A -> A -> A} -> Type
   And(LeftAlternative(A,f), RightAlternative(A,f))
@@ -108,4 +108,3 @@ Distributive : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
 
 Absorption : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
   {x : A, y : A} -> And(g(x, f(x, y)) == x, f(x, g(x,y)) == x)
-
