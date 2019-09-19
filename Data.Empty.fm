@@ -9,4 +9,3 @@ absurd : {e : Empty, ~P : Type} -> P
 // A false proposition returns a falsehood
 Not : {P : Type} -> Type
   {x : P} -> Empty
-

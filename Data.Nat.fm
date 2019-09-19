@@ -38,11 +38,6 @@ pred : {case n : Nat} -> Nat
 | zero => 0
 halt: 0
 
-// Converts a Ind to a Nat
-nat : {r : Ind} -> !Nat
-  dup func = (%r)(~{r}Nat, #{~r}succ)
-  # func(zero)
-
 // Returns two copies of the same Nat
 #copy_nat*N : !{case n : Nat} -> [:Nat, Nat]
 | succ =>
@@ -75,6 +70,16 @@ halt: zero
 // each-other, but requires more gas (`N` must be >= `n * m`).
 #mul : {N : Ind} -> ! {n : Nat, m : Nat} -> Nat
   <mul.go*N>(zero, n, m)
+
+// Converts a Ind to a Nat
+nat : {i : Ind} -> !Nat
+  dup add_i = (%i)(~{i}Nat, #{~i}succ)
+  # add_i(zero)
+
+// Increments a Nat with an Ind
+add_ind : {i : Ind} -> !{n : Nat} -> Nat
+  dup add_i = (%i)(~{i}Nat, #{~i}succ)
+  # {n} add_i(n)
 
 // ::::::::::::::
 // :: Examples ::
