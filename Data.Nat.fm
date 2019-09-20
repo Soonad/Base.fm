@@ -32,8 +32,7 @@ pred : {case n : Nat} -> Nat
     zero
   else:
     succ(word_to_nat(x - 1))
-  halt:
-    zero
+halt: zero
 
 // Converts a Nat to a native Word
 #nat_to_word*N : !{case n : Nat} -> Word
@@ -90,8 +89,11 @@ add_ind : {i : Ind} -> !{n : Nat} -> Nat
 
 zero_not_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
   unit :: rewrite x
-  in (case/Nat x | succ => Unit | zero => Empty : Type)
-  with e
+    in (case/Nat x
+      | succ => Unit
+      | zero => Empty
+      : Type)
+    with e
 
 pred_succ : {case x : Nat} -> pred(succ(x)) == x
 | succ => refl(~succ(x.pred))
