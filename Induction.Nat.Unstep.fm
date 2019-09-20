@@ -29,7 +29,7 @@ unstep : {n : Ind} -> Ind
       : Type)(Z)
   F(case_z, true)
 
-unstep_step : {i : Ind} -> !unstep(step(i)) == i
+unstep_step_is_id : {i : Ind} -> !unstep(step(i)) == i
   let motive = {i} unstep(step(i)) == i
   let case_s = # {~n, h} cong(~Ind, ~Ind, ~unstep(step(n)), ~n, ~step, ~h)
   dup F = (%i)(~motive, case_s)
@@ -37,6 +37,6 @@ unstep_step : {i : Ind} -> !unstep(step(i)) == i
 
 cong_unstep : {~a : Ind, ~b : Ind, ~e : step(a) == step(b)} -> a == b
   let r0 = cong(~Ind, ~Ind, ~step(a), ~step(b), ~unstep, ~e)
-  let r1 = r0 :: rewrite x in x == unstep(step(b)) with <unstep_step(a)>
-  let r2 = r1 :: rewrite y in a == y with <unstep_step(b)>
+  let r1 = r0 :: rewrite x in x == unstep(step(b)) with <unstep_step_is_id(a)>
+  let r2 = r1 :: rewrite y in a == y with <unstep_step_is_id(b)>
   r2

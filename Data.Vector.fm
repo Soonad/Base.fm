@@ -17,22 +17,22 @@ T Vector {A : Type} (len : Nat)
 
 vhead : {~T : Type, ~n : Nat, vector : Vector(T, succ(n))} -> T
   (case/Vector vector
-  | vcons  => {~e} head
-  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~T)
+  | vcons => {~e} head
+  | vnil  => {~e} absurd(zero_not_succ(~n,~sym(~e)), ~T)
   : {~e : len == succ(n)} -> T
   )(~refl(~succ(n)))
 
 vtail : {~T : Type, ~n : Nat , vector : Vector(T, succ(n))} -> Vector(T, n)
   (case/Vector vector
-  | vcons  => {~e} tail :: rewrite len in Vector(T,len) with preds(len, n, e)
-  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~Vector(T,n))
+  | vcons => {~e} tail :: rewrite len in Vector(T,len) with cong_pred(len, n, e)
+  | vnil  => {~e} absurd(zero_not_succ(~n,~sym(~e)), ~Vector(T,n))
   : {~e : len == succ(n)} -> Vector(T, n)
   )(~refl(~succ(n)))
 
 vtake : {~T : Type, ~n : Nat, vector : Vector(T, succ(n))} -> [:T, Vector(T,n)]
   (case/Vector vector
-  | vcons  => {~e} [head, tail :: rewrite m in Vector(T,m) with preds(len,n,e)]
-  | vnil   => {~e} absurd(zero.not_succ(~n,~sym(~e)), ~[:T, Vector(T,n)])
+  | vcons => {~e} [head, tail :: rewrite m in Vector(T,m) with cong_pred(len,n,e)]
+  | vnil  => {~e} absurd(zero_not_succ(~n,~sym(~e)), ~[:T, Vector(T,n)])
   : {~e : len == succ(n)} -> [:T, Vector(T,n)]
   )(~refl(~succ(n)))
 
@@ -65,7 +65,6 @@ halt: vnil(~Word)
   , ~B : Type
   , f : !A -> B
   } -> ! {vector : Vector(A, <nat(N)>)} -> Vector(B, <nat(N)>)
-
   (case/Vector vector
   | vcons => {~e}
     let tail = tail       :: rewrite x in Vector(A, x) with e
@@ -83,14 +82,12 @@ halt: vnil(~B)
   , m : Nat
   , ys : Vector(A, m)
   } -> Vector(A, <add_ind(N)>(m))
-
-  let n = <nat(N)>
   (case/Vector xs
   | vcons => {~e}
-      let tail = tail :: rewrite x in Vector(A, x) with preds(len, n, e)
-      vcons(~A, ~<add_ind(N)>(m), head, vconcat(~A, tail, m, ys))
+    let tail = tail :: rewrite x in Vector(A, x) with cong_pred(len, <nat(N)>, e)
+    vcons(~A, ~<add_ind(N)>(m), head, vconcat(~A, tail, m, ys))
   | vnil => {~e}
-      absurd(zero.not_succ(~n, ~sym(~e)), ~Vector(A, <add_ind(step(N))>(m)))
-  : {~e : len == succ(n)} -> Vector(A, <add_ind(step(N))>(m))
-  )(~refl(~succ(n)))
+    absurd(zero_not_succ(~<nat(N)>, ~sym(~e)), ~Vector(A, <add_ind(step(N))>(m)))
+  : {~e : len == succ(<nat(N)>)} -> Vector(A, <add_ind(step(N))>(m))
+  )(~refl(~succ(<nat(N)>)))
 halt: ys

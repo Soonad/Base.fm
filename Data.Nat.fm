@@ -16,19 +16,6 @@ pred : {case n : Nat} -> Nat
 | succ => n.pred
 | zero => zero
 
-zero.not_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
-  unit :: rewrite x
-  in (case/Nat x | succ => Unit | zero => Empty : Type)
-  with e
-
-
-pred_succ : {case x : Nat} -> pred(succ(x)) == x
-| succ => refl(~succ(x.pred))
-| zero => refl(~zero)
-
-preds : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
-  cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)
-
 // Addition
 #add*N : !{case n : Nat, halt m : Nat} -> Nat
 | succ => succ(add(n.pred, m))
@@ -96,6 +83,22 @@ nat : {i : Ind} -> !Nat
 add_ind : {i : Ind} -> !{n : Nat} -> Nat
   dup add_i = (%i)(~{i}Nat, #{~i}succ)
   # {n} add_i(n)
+
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
+zero_not_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
+  unit :: rewrite x
+  in (case/Nat x | succ => Unit | zero => Empty : Type)
+  with e
+
+pred_succ : {case x : Nat} -> pred(succ(x)) == x
+| succ => refl(~succ(x.pred))
+| zero => refl(~zero)
+
+cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
+  cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)
 
 // ::::::::::::::
 // :: Examples ::
