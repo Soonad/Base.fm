@@ -87,7 +87,7 @@ add_ind : {i : Ind} -> !{n : Nat} -> Nat
 // :: Theorems ::
 // ::::::::::::::
 
-zero_not_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
+zero_isnt_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
   unit :: rewrite x
     in (case/Nat x
       | succ => Unit

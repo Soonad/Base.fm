@@ -65,18 +65,18 @@ bool_if : {b : Bool, ~P : Type, T : P, F : P} -> P
 // :: Theorems ::
 // ::::::::::::::
 
-true_not_false : {e : true == false} -> Empty
+true_isnt_false : {e : true == false} -> Empty
   unit :: rewrite x
     in (case/Bool x | true => Unit | false => Empty : Type)
     with e
 
-false_not_true : {e : false == true} -> Empty
-  true_not_false(sym(~e))
+false_isnt_true : {e : false == true} -> Empty
+  true_isnt_false(sym(~e))
 
 different_elem : {a : Bool} -> [b : Bool ~ {:a == b} -> Empty]
   case/Bool a
-  | true  => [false ~ true_not_false]
-  | false => [true ~ {e : false == true} => true_not_false(sym(~e))]
+  | true  => [false ~ true_isnt_false]
+  | false => [true ~ {e : false == true} => true_isnt_false(sym(~e))]
   : [b : Bool ~ {:self == b} -> Empty]
 
 demorgan_0 :
@@ -114,8 +114,8 @@ xnor_is_eq :
   , case b : Bool
   } -> bool_if(xnor(a,b), ~Type, a == b, Not(a == b))
 | true true   => refl(~true)
-| true false  => true_not_false
-| false true  => false_not_true
+| true false  => true_isnt_false
+| false true  => false_isnt_true
 | false false => refl(~false)
 
 xor_is_neq :
@@ -123,8 +123,8 @@ xor_is_neq :
   , case b : Bool
   } -> bool_if(xor(a,b), ~Type, Not(a == b), a == b)
 | true true   => refl(~true)
-| true false  => true_not_false
-| false true  => false_not_true
+| true false  => true_isnt_false
+| false true  => false_isnt_true
 | false false => refl(~false)
 
 and.associative : 
