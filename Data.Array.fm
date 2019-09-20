@@ -1,15 +1,20 @@
 import Base
 
 // TODO: 
-// - array getter that doesn't consume the array
-// - array setter
+// - abstract builder to avoid code duplication
+// - array updater
 // - instead of Word, use Copiable
+// - clean up and finish API
 
 Array : {n : Nat} -> Type
   case/Nat n
   | succ => [x : Array(pred), Array(pred)]
   | zero => Word
   : Type
+
+// ::::::::::::
+// :: Getter ::
+// ::::::::::::
 
 ArgetBuilder : {n : Nat} -> Type
   { ~A : Type,
@@ -19,137 +24,63 @@ ArgetBuilder : {n : Nat} -> Type
 arget_builder.zero : ArgetBuilder(zero)
   {~A, E} E({a} a)
 
-arget_builder.succ : {~n : Nat, path : Word, gb : ArgetBuilder(n)} -> [path : Word, ArgetBuilder(succ(n))]
-  [path / 2, {~A, E}
+arget_builder.succ : {~n : Nat, side : Word, gb : ArgetBuilder(n)} -> ArgetBuilder(succ(n))
+  {~A, E}
     let type = {fn : Array(succ(n))} -> Word
     let func = {fn, a}
       get [a, b] = a
-      fn(if path % 2: b else: a)
-    E(gb(~type, func))]
+      fn(if side: b else: a)
+    E(gb(~type, func))
   
-#arget_builder*N : {path : !Word} -> ![path : Word, ArgetBuilder(<nat(N)>)]
-  get [path, arb] = arget_builder
-  arget_builder.succ(~<nat(N)>, path, arb)
-halt: [path, arget_builder.zero]
+#arget_builder*N : !{path : Word} -> [idx : Word, ArgetBuilder(<nat(N)>)]
+  get [idx, arb] = arget_builder(path)
+  cpy idx = idx
+  log([idx, (path .>> idx) .& 1])
+  [idx + 1, arget_builder.succ(~<nat(N)>, (path .>> idx) .& 1, arb)]
+halt: [0, arget_builder.zero]
 
-// TODO: use `arget_builder` to make `arget`
+arget.test
+  dup arget = arget_builder*4
+  dup arget = #{x : Word} snd(arget(x))(~Array(0n4) -> Word, {x}x)
+  # let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+    arget(4, arr) + arget(8, arr)
 
-// Each additional call of get_4 only costs 20
-arget.example : !Word 
-  let array = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
-  dup agb_4 = arget_builder*4(#4)
-  # let get_4 = snd(agb_4)(~Array(0n4) -> Word, {x} x)
-    get_4(array) + get_4(array) + get_4(array)
+// ::::::::::::
+// :: Reader ::
+// ::::::::::::
 
-//import Data.Function
-//import Data.Nat
-//import Induction.Nat
-//import Relation.Equality
+ArreadBuilder : {n : Nat} -> Type
+  { ~A : Type,
+    E  : {fn : Array(n) -> [x : Word, Array(n)]} -> A
+  } -> A
 
-//Array : {n : Nat} -> Type
-  //case/Nat n
-  //| succ => [x : Array(pred), Array(pred)]
-  //| zero => Word
-  //: Type
+arread_builder.zero : ArreadBuilder(zero)
+  {~A, E} E({a} cpy a = a; [a, a])
 
-//#with*D : !{path : Word, fun : {x : Word} -> Word, arr : Array(<ind_to_nat(D)>)} -> [arr : Array(<ind_to_nat(D)>), Word]
-  //let noswap = {a : Array(D), b : Array(D)} [a, b]
-  //let doswap = {a : Array(D), b : Array(D)} [b, a]
-  //get [a, b] = arr
-  ////get [a, b] = (if path % 2: doswap else: noswap)(a, b)
-  //: [arr : Array(<ind_to_nat(step(D))>), Word] ?
+arread_builder.succ : {~n : Nat, side : Word, gb : ArreadBuilder(n)} -> ArreadBuilder(succ(n))
+  {~A, E}
+    let type = {fn : Array(succ(n))} -> [x : Word, Array(succ(n))]
+    let func = {fn, arr}
+      let swap = {a : Array(n), b : Array(n)} [b, a]
+      let keep = {a : Array(n), b : Array(n)} [a, b]
+      get [a, b] = arr
+      get [a, b] = (if side: swap else: keep)(a,b)
+      get [w, a] = fn(a)
+      get [a, b] = (if side: swap else: keep)(a,b)
+      [w, [a, b]]
+    E(gb(~type, func))
   
-  ////let result = with.make(~succ(n), path / 2, {arr}
-    ////get [a, b] = arr
-    ////get [a, b] = (if path % 2: doswap else: noswap)(a, b)
-    ////get [a, e] = fun(a)
-    ////get [a, b] = (if path % 2: doswap else: noswap)(a, b)
-    ////[[a, b], e])
-  //* ?
+#arread_builder*N : !{path : Word} -> [idx : Word, ArreadBuilder(<nat(N)>)]
+  get [idx, arb] = arread_builder(path)
+  cpy idx = idx
+  log([idx, (path .>> idx) .& 1])
+  [idx + 1, arread_builder.succ(~<nat(N)>, (path .>> idx) .& 1, arb)]
+halt: [0, arread_builder.zero]
 
-//main with
-
-////!array.example : ![:Word, [:Word, Word]]
-  ////let arr      = a8
-  ////let arr      = write*8(0, 0, arr)
-  ////let arr      = write*8(1, 1, arr)
-  ////let arr      = write*8(2, 2, arr)
-  ////let arr      = update*8(2, {x} x * 10, arr)
-  ////get [arr, x] = read*8(0, arr)
-  ////get [arr, y] = read*8(1, arr)
-  ////get [arr, z] = read*8(2, arr)
-  ////[x, [y, z]]
-
-////a0 : Array(0n0) 0
-////a1 : Array(0n1) [a0, a0]
-////a2 : Array(0n2) [a1, a1]
-////a3 : Array(0n3) [a2, a2]
-////a4 : Array(0n4) [a3, a3]
-////a5 : Array(0n5) [a4, a4]
-////a6 : Array(0n6) [a5, a5]
-////a7 : Array(0n7) [a6, a6]
-////a8 : Array(0n8) [a7, a7]
-
-////rec_plus_nat : {r : Ind, n : !Nat} -> !Nat
-  ////rec(r, ~Nat, #succ, n)
-
-////!with.theo*r : !{~n : !Nat} -> rec_plus_nat(r, #succ(-#(n))) == rec_plus_nat(step(r), n)
-  ////cong<
-    ////!Nat,
-    ////!Nat,
-    ////rec_plus_nat(r, #succ(-#(n))),
-    ////rec_plus_nat(step(r), n),
-    ////boxed<Nat>(#succ),
-    ////with.theo(~n)>
-  ///[> refl<succ(-#(n))>
-
-////!with.make*D : !
-  ////{ ~n   : Nat
-  ////, path : Word
-  ////, fun  : {arr : Array(n)} -> [:Array(n), Word]}
-  ////-> {arr : Array(-#(rec_plus_nat(D, #n)))}
-  ////-> [:Array(-#(rec_plus_nat(D, #n))), Word]
-  ////// Swappers to navigate through the tree with the path
-  ////let noswap = {a : Array(n), b : Array(n)} [a, b]
-  ////let doswap = {a : Array(n), b : Array(n)} [b, a]
-  ////// Extends `fun` so that it updates a bigger array
-  ////let result = with.make(~succ(n), path / 2, {arr}
-    ////get [a, b] = arr
-    ////get [a, b] = (if path % 2: doswap else: noswap)(a, b)
-    ////get [a, e] = fun(a)
-    ////get [a, b] = (if path % 2: doswap else: noswap)(a, b)
-    ////[[a, b], e])
-  ////let ty = {X : !Nat} => {x : Array(-#(X))} -> [:Array(-#(X)), Word]
-  ////rewrite<-#(with.theo(D))(~#n)>{x in ty(x)}(result)
-  ///[> fun
-
-////!with : {D : Ind} ->
-  ////dup with.make = with.make(D)
-  ////! { path : Word
-    ////, fun  : {arr : Word} -> [:Word, Word]
-    ////, arr  : Array(-#(from_ind(D)))}
-    ////-> [:Array(-#(from_ind(D))), Word]
-  ////with.make(~0n0, path, fun, arr)
-
-////!update : {D : Ind} ->
-  ////dup with = with(D)
-  ////! { path : Word
-    ////, fun  : {arr : Word} -> Word
-    ////, arr  : Array(-#(from_ind(D)))}
-    ////-> Array(-#(from_ind(D)))
-  ////fst(with(path, {x} [fun(x), 0], arr))
-
-////!write : {D : Ind} ->
-  ////dup with = with(D)
-  ////! { path : Word
-    ////, val  : Word
-    ////, arr  : Array(-#(from_ind(D)))}
-    ////-> Array(-#(from_ind(D)))
-  ////fst(with(path, {x} [val, 0], arr))
-
-////!read : {D : Ind} ->
-  ////dup with = with(D)
-  ////! { path : Word
-    ////, arr  : Array(-#(from_ind(D)))}
-    ////-> [:Array(-#(from_ind(D))), Word]
-  ////with(path, {x} cpy x = x; [x, x], arr)
+arread.test
+  dup arread = arread_builder*4
+  dup arread = #{x : Word} snd(arread(x)) (~Array(0n4) -> [x : Word, Array(0n4)], {x}x)
+  # let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+    get [a, arr] = arread(4, arr)
+    get [b, arr] = arread(8, arr)
+    a + b
