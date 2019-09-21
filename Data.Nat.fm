@@ -101,6 +101,38 @@ pred_succ : {x : Nat} -> pred(succ(x)) == x
 cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
   cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)
 
+// An Ind that is equal to a Nat
+IndOf : {n : Nat} -> Type
+  [N : Ind ~ <nat(N)> == n]
+
+#add_zero_is_id.aux*N : ! <add*N>(<nat(N)>, zero) == <nat(N)>
+  let lft = <add(N)>(<nat(N)>, zero)
+  let rgt = <nat(N)>
+  let eql = add_zero_is_id.aux
+  cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
+halt: refl(~zero)
+
+#add_succ_is_inc.aux*N : ! {~m : Nat} -> <add*N>(<nat(N)>, succ(m)) == succ(<add*N>(<nat(N)>, m))
+  let lft = <add*N>(<nat(N)>, succ(m))
+  let rgt = succ(<add*N>(<nat(N)>, m))
+  let eql = add_succ_is_inc.aux(~m)
+  cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
+halt: refl(~succ(m))
+
+#add_comm.aux*N : ! {M : Ind, m : Nat, e : <nat(M)> == m} -> <add*N>(<nat(N)>, <nat(M)>) == <add*M>(<nat(M)>, <nat(N)>)
+  let a = sym(~<add_succ_is_inc.aux(M)>(~<nat(N)>))
+  let b = cong(~Nat, ~Nat, ~<add(N)>(<nat(N)>, <nat(M)>), ~<add(M)>(<nat(M)>, <nat(N)>), ~succ, ~add_comm.aux(M, m, e))
+  b :: rewrite X in succ(<add(N)>(<nat(N)>, <nat(M)>)) == X with a
+halt: sym(~<add_zero_is_id.aux(M)>)
+
+add_comm : {n : Nat, m : Nat, ~N : IndOf(n), ~M : IndOf(m)} -> <add*N>(n,m) == <add*M>(m,n)
+  get [N ~ ne] = N
+  get [M ~ me] = M
+  let a = <add_comm.aux(N)>(M, m, me)
+  let b = a :: rewrite x in <add*N>(x, <nat(M)>) == <add*M>(<nat(M)>, x) with ne
+  let c = b :: rewrite x in <add*N>(n, x       ) == <add*M>(x       , n) with me
+  c
+
 // ::::::::::::::
 // :: Examples ::
 // ::::::::::::::
