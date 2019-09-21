@@ -87,7 +87,7 @@ add_ind : {i : Ind} -> !{n : Nat} -> Nat
 // :: Theorems ::
 // ::::::::::::::
 
-zero_isnt_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
+succ_isnt_zero : {~x : Nat, ~e : succ(x) == zero} -> Empty
   unit :: rewrite x
     in (case/Nat x
       | succ => Unit
@@ -95,9 +95,8 @@ zero_isnt_succ : {~x : Nat, ~e : succ(x) == zero} -> Empty
       : Type)
     with e
 
-pred_succ : {case x : Nat} -> pred(succ(x)) == x
-| succ => refl(~succ(x.pred))
-| zero => refl(~zero)
+pred_succ : {x : Nat} -> pred(succ(x)) == x
+  refl(~x)
 
 cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
   cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)

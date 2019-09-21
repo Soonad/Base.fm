@@ -1,4 +1,5 @@
 import Data.Nat
+import Data.Empty
 
 T Fin (n : Nat)
 | fsucc {~n : Nat, pred : Fin(n)} (succ(n))
@@ -22,3 +23,25 @@ halt: fzero(~n)
   | fzero => fzero(~succ(n))
   : Fin(succ(n))
 halt: fzero(~n)
+
+no_fin_zero : {a : Fin(zero)} -> Empty
+  (case/Fin a
+  | fsucc => {~e} succ_isnt_zero(~n, ~e)
+  | fzero => {~e} succ_isnt_zero(~n, ~e)
+  : {~e : n == zero} -> Empty)(~refl(~zero))
+
+#fin_raise*N : !{~n : Nat, f : Fin(n)} -> Fin(<add*N>(<nat(N)>, n))
+  fsucc(~<add(N)>(<nat(N)>, n), fin_raise(~n, f))
+halt: f
+
+#fin_inject*N : !{~k : Nat, f : Fin(<nat(N)>)} -> Fin(<add*N>(<nat(N)>, k))
+  (case/Fin f
+  | fsucc => {~e}
+    let e = cong_pred(n, <nat(N)>, e)
+    let p = pred :: rewrite x in Fin(x) with e
+    fsucc(~<add(N)>(<nat(N)>, k), fin_inject(~k, p))
+  | fzero => {~e}
+    fzero(~<add(N)>(<nat(N)>, k))
+  : {~e : n == <nat(step(N))>} ->
+    Fin(<add(step(N))>(<nat(step(N))>, k)))(~refl(~<nat(step(N))>))
+halt: absurd(no_fin_zero(f), ~Fin(k))
