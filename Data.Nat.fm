@@ -1,6 +1,7 @@
 import Induction.Nat
 import Data.Unit
 import Data.Empty
+import Data.And
 import Relation.Equality
 
 T Nat
@@ -45,9 +46,23 @@ halt: 0
 | succ =>
   get [n0, n1] = copy_nat(n.pred)
   [succ(n0), succ(n1)]
-| zero => 
+| zero =>
   [zero, zero]
 halt: [zero, zero]
+
+#copy_nat_ev*N : ![a : Nat, b : Nat ~ And(a == <nat(N)>, b == <nat(N)>)]
+  get [a, b ~ e] = copy_nat_ev
+  case/And e
+  | both => 
+    let ap = cong(~Nat, ~Nat, ~a, ~<nat(N)>, ~succ, ~left)
+    let bp = cong(~Nat, ~Nat, ~b, ~<nat(N)>, ~succ, ~right)
+    let p0 = succ(a) == <nat(step(N))>
+    let p1 = succ(b) == <nat(step(N))>
+    [succ(a), succ(b) ~ both(~p0, ~p1, ap, bp)]
+  : [a : Nat, b : Nat ~ And(a == <nat(step(N))>, b == <nat(step(N))>)]
+halt: let zb = zero == <nat(base)>
+  [zero, zero ~ both(~zb,~zb,refl(~zero), refl(~zero))]
+
 
 // Multiplication by a static `n`. This requires a small amount of gas (`N`
 // must be >= `m`), but `n` must be static w.r.t `m`.
@@ -105,6 +120,11 @@ cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
 IndOf : {n : Nat} -> Type
   [N : Ind ~ <nat(N)> == n]
 
+#make_IndOf*N : ! IndOf(<nat(N)>)
+  get [i ~ e] = make_IndOf
+  [step(i) ~ cong(~Nat, ~Nat, ~<nat(i)>, ~<nat(N)>, ~succ, ~e)]
+halt: [base ~ refl(~zero)]
+
 #add_zero_is_id.aux*N : ! <add*N>(<nat(N)>, zero) == <nat(N)>
   let lft = <add(N)>(<nat(N)>, zero)
   let rgt = <nat(N)>
@@ -112,20 +132,38 @@ IndOf : {n : Nat} -> Type
   cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
 halt: refl(~zero)
 
-#add_succ_is_inc.aux*N : ! {~m : Nat} -> <add*N>(<nat(N)>, succ(m)) == succ(<add*N>(<nat(N)>, m))
+#add_succ_is_inc.aux*N :
+  ! { ~m : Nat
+    } -> <add*N>(<nat(N)>, succ(m)) == succ(<add*N>(<nat(N)>, m))
   let lft = <add*N>(<nat(N)>, succ(m))
   let rgt = succ(<add*N>(<nat(N)>, m))
   let eql = add_succ_is_inc.aux(~m)
   cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
 halt: refl(~succ(m))
 
-#add_comm.aux*N : ! {M : Ind, m : Nat, e : <nat(M)> == m} -> <add*N>(<nat(N)>, <nat(M)>) == <add*M>(<nat(M)>, <nat(N)>)
+#add_comm.aux*N :
+  ! { M : Ind
+    , m : Nat
+    , e : <nat(M)> == m
+    } -> <add*N>(<nat(N)>, <nat(M)>) == <add*M>(<nat(M)>, <nat(N)>)
   let a = sym(~<add_succ_is_inc.aux(M)>(~<nat(N)>))
-  let b = cong(~Nat, ~Nat, ~<add(N)>(<nat(N)>, <nat(M)>), ~<add(M)>(<nat(M)>, <nat(N)>), ~succ, ~add_comm.aux(M, m, e))
+  let b = cong(
+            ~Nat
+          , ~Nat
+          , ~<add(N)>(<nat(N)>, <nat(M)>)
+          , ~<add(M)>(<nat(M)>, <nat(N)>)
+          , ~succ
+          , ~add_comm.aux(M, m, e)
+          )
   b :: rewrite X in succ(<add(N)>(<nat(N)>, <nat(M)>)) == X with a
 halt: sym(~<add_zero_is_id.aux(M)>)
 
-add_comm : {n : Nat, m : Nat, ~N : IndOf(n), ~M : IndOf(m)} -> <add*N>(n,m) == <add*M>(m,n)
+add_comm :
+  { n : Nat
+  , m : Nat
+  , ~N : IndOf(n)
+  , ~M : IndOf(m)
+  } -> <add*N>(n,m) == <add*M>(m,n)
   get [N ~ ne] = N
   get [M ~ me] = M
   let a = <add_comm.aux(N)>(M, m, me)
