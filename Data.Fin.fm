@@ -45,5 +45,3 @@ halt: f
   : {~e : n == <nat(step(N))>} ->
     Fin(<add(step(N))>(<nat(step(N))>, k)))(~refl(~<nat(step(N))>))
 halt: absurd(no_fin_zero(f), ~Fin(k))
-
-main fin_inject
