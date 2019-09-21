@@ -54,8 +54,6 @@ Or.association :
     , {c} Or.association2(~A,~B,~C,c)
     )
 
-  : And(Or(!P,Q), Or(!P,R))
-
 // (p || q) && (p || r) -> p || (q && r)
 Or.distribution1 :
   { ~P : Type
@@ -63,31 +61,34 @@ Or.distribution1 :
   , ~R : Type
   , case c : And(Or(P,Q), Or(P,R))
   } -> Or(P,And(Q,R))
-| both => case/Or c.left
-  | left => left(~P,~And(Q,R), value)
-  | right => case/Or c.right
+  | both =>
+    case/Or c.left
     | left => left(~P,~And(Q,R), value)
-    | right => right(~P,~And(Q,R), both(~Q,~R,value^,value))
+    | right => case/Or c.right
+      | left => left(~P,~And(Q,R), value)
+      | right => right(~P,~And(Q,R), both(~Q,~R,value^,value))
+      : Or(P,And(Q,R))
     : Or(P,And(Q,R))
-  : Or(P,And(Q,R))
 
 // p || (q && r) -> (p || q) && (p || r)
-Or.distribution2 :
-  { ~P : Type
-  , ~Q : Type
-  , ~R : Type
-  , case c : Or(!P,And(Q,R))
-  } -> And(Or(!P,Q), Or(!P,R))
-| left => dup value = c.value
-  both(~Or(!P,Q), ~Or(!P,R), left(~!P,~Q, #value), left(~!P,~R, #value))
-| right => case/And c.value
-  | both =>
-      both(
-        ~Or(!P,Q)
-      , ~Or(!P,R)
-      , right^(~!P,~Q,left)
-      , right^(~!P,~R,right)
-      )
+//Or.distribution2 :
+  //{ ~P : Type
+  //, ~Q : Type
+  //, ~R : Type
+  //, case c : Or(!P,And(Q,R))
+  //} -> And(Or(!P,Q), Or(!P,R))
+//| left =>
+  //dup value = c.value
+  //both(~Or(!P,Q), ~Or(!P,R), left(~!P,~Q, #value), left(~!P,~R, #value))
+//| right =>
+  //case/And c.value
+  //| both =>
+      //both(
+        //~Or(!P,Q)
+      //, ~Or(!P,R)
+      //, right^(~!P,~Q,left)
+      //, right^(~!P,~R,right)
+      //)
 
 // (p || q) && (p || r) <-> p || (q && r)
 Or.distribution :
