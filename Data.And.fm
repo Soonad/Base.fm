@@ -4,8 +4,12 @@
 T And {A : Type, B: Type}
 | both { left : A, right : B }
 
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
 // (p && q) <-> (q && p)
-And.commutation : {~A : Type, ~B : Type , case c : And(A,B) } -> And(B,A)
+And.commutation : {~A : Type, ~B : Type , case c : And(A,B)} -> And(B,A)
 | both => both(~B,~A,c.right,c.left)
 
 // p -> (p && p)
@@ -18,36 +22,21 @@ Iff : {A : Type, B : Type} -> Type
   And(A -> B, B -> A)
 
 // (p && q) && r <-> p && (q && r)
-And.association :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  } -> Iff(And(A,And(B,C)), And(And(A,B), C))
-  both(
-      ~(And(A,And(B,C)) -> And(And(A,B), C))
-    , ~(And(And(A,B), C) -> And(A,And(B,C)))
-    , {c} And.association1(~A,~B,~C,c)
-    , {c} And.association2(~A,~B,~C,c)
-    )
+And.association : {~A : Type, ~B : Type, ~C : Type} -> Iff(And(A,And(B,C)), And(And(A,B), C))
+  let Lft = And(A,And(B,C)) -> And(And(A,B), C)
+  let Rgt = And(And(A,B), C) -> And(A,And(B,C))
+  let lft = {c} And.association1(~A,~B,~C,c)
+  let rgt = {c} And.association2(~A,~B,~C,c)
+  both(~Lft, ~Rgt, lft, rgt)
 
-And.association1 :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  , case c : And(A,And(B,C))
-  } -> And(And(A,B), C)
-| both => case/And c.right
-  | both => both(~And(A,B), ~C, both(~A,~B, c.left, left), right)
+And.association1 : {~A : Type, ~B : Type, ~C : Type, case x : And(A,And(B,C))} -> And(And(A,B), C)
+| both =>
+  case/And x.right as xr
+  | both => both(~And(A,B), ~C, both(~A,~B, x.left, xr.left), xr.right)
   : And(And(A,B),C)
 
-And.association2 :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  , case c : And(And(A,B), C)
-  } -> And(A,And(B,C))
-| both => case/And c.left
-  | both => both(~A, ~And(B,C), left, both(~B,~C, right, c.right))
+And.association2 : {~A : Type, ~B : Type, ~C : Type, case x : And(And(A,B), C)} -> And(A,And(B,C))
+| both =>
+  case/And x.left as xl
+  | both => both(~A, ~And(B,C), xl.left, both(~B,~C, xl.right, x.right))
   : And(A,And(B,C))
-
-

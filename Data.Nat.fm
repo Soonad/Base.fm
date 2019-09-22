@@ -51,11 +51,9 @@ halt: [zero, zero]
 
 // Multiplication by a static `n`. This requires a small amount of gas (`N`
 // must be >= `m`), but `n` must be static w.r.t `m`.
-#muln*N : {n : !Nat} -> !{m : Nat} -> Nat
-  case/Nat m
-  | succ => <#<(add*)>(n)>(muln(pred))
-  | zero => zero
-  : Nat
+#muln*N : {n : !Nat} -> !{case m : Nat} -> Nat
+| succ => <#<(add*)>(n)>(muln(m.pred))
+| zero => zero
 halt: zero
 
 // Helper for the multiplication below.
@@ -63,7 +61,7 @@ halt: zero
 | succ => succ(mul.go(add.pred, succ(n), m))
 | zero =>
   case/Nat m
-  | succ => mul.go(n, zero, pred)
+  | succ => mul.go(n, zero, m.pred)
   | zero => zero
   : Nat
 halt: zero
@@ -89,17 +87,20 @@ add_ind : {i : Ind} -> !{n : Nat} -> Nat
 
 succ_isnt_zero : {~x : Nat, ~e : succ(x) == zero} -> Empty
   unit :: rewrite x
-    in (case/Nat x
+    in case/Nat x
       | succ => Unit
       | zero => Empty
-      : Type)
+      : Type
     with e
+
+zero_isnt_succ : {~x : Nat, ~e : zero == succ(x)} -> Empty
+  succ_isnt_zero(~x, ~sym(~e))
 
 pred_succ : {x : Nat} -> pred(succ(x)) == x
   refl(~x)
 
 cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
-  cong(~Nat, ~Nat, ~succ(n), ~succ(m), ~pred, ~e)
+  cong(~pred, ~e)
 
 // An Ind that is equal to a Nat
 IndOf : {n : Nat} -> Type
@@ -109,19 +110,19 @@ IndOf : {n : Nat} -> Type
   let lft = <add(N)>(<nat(N)>, zero)
   let rgt = <nat(N)>
   let eql = add_zero_is_id.aux
-  cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
+  cong(~succ, ~eql)
 halt: refl(~zero)
 
 #add_succ_is_inc.aux*N : ! {~m : Nat} -> <add*N>(<nat(N)>, succ(m)) == succ(<add*N>(<nat(N)>, m))
   let lft = <add*N>(<nat(N)>, succ(m))
   let rgt = succ(<add*N>(<nat(N)>, m))
   let eql = add_succ_is_inc.aux(~m)
-  cong(~Nat, ~Nat, ~lft, ~rgt, ~succ, ~eql)
+  cong(~succ, ~eql)
 halt: refl(~succ(m))
 
 #add_comm.aux*N : ! {M : Ind, m : Nat, e : <nat(M)> == m} -> <add*N>(<nat(N)>, <nat(M)>) == <add*M>(<nat(M)>, <nat(N)>)
   let a = sym(~<add_succ_is_inc.aux(M)>(~<nat(N)>))
-  let b = cong(~Nat, ~Nat, ~<add(N)>(<nat(N)>, <nat(M)>), ~<add(M)>(<nat(M)>, <nat(N)>), ~succ, ~add_comm.aux(M, m, e))
+  let b = cong(~succ, ~add_comm.aux(M, m, e))
   b :: rewrite X in succ(<add(N)>(<nat(N)>, <nat(M)>)) == X with a
 halt: sym(~<add_zero_is_id.aux(M)>)
 

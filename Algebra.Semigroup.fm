@@ -10,7 +10,7 @@ T Semigroup {A : Type}
 magma_to_semigroup :
   { ~A          : Type
   , case m      : Magma(A)
-  , associative : Associative(A, case/Magma m | magma => f : A -> A -> A)
+  , associative : Associative(A, case/Magma m | magma => m.f : A -> A -> A)
   } -> Semigroup(A)
 | magma => semigroup(~A, m.f, associative)
 

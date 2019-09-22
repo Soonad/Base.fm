@@ -91,32 +91,36 @@ halt: nil(~B)
 #same-f*n : !{~A : Type, halt list : List(A)} -> List(A)
   new(~List(A)){~P, cons, nil}
   case/List list
-  | cons => cons(head, same-f(~A, tail))
+  | cons => cons(list.head, same-f(~A, list.tail))
   | nil  => nil
-  : P(<same-f.step>(~n, same-f, ~A, self))
+  : P(<same-f.step>(~n, same-f, ~A, list))
 
 #map-f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
   new(~List(B)){~P, cons, nil}
   case/List list
-  | cons => cons(f(head), map-f(tail))
+  | cons => cons(f(list.head), map-f(list.tail))
   | nil  => nil
-  : P(<map-f.step(~A, ~B, #f)>(~n, map-f, self))
+  : P(<map-f.step(~A, ~B, #f)>(~n, map-f, list))
 halt:
   nil(~B)
 
 #zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   new(~List(B)){~P, consf, nilf}
-  (case/List func
-  | cons => {consf, nilf}
+  case/List func
+  move consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
+  move nilf  : P(nil(~B))
+  | cons =>
     case/List list
-    | cons => consf(head^(head), zipp-f(~A, ~B, tail^, tail))
+    | cons => consf(func.head(list.head), zipp-f(~A, ~B, func.tail, list.tail))
     | nil  => nilf
-    : P(<zipp-f.step>(~n, zipp-f, ~A, ~B, cons(~A -> B, head, tail), self))
-  | nil => {consf, nilf}
+    : P(<zipp-f.step>(~n, zipp-f, ~A, ~B, cons(~A -> B, func.head, func.tail), list))
+  | nil =>
     nilf
-  : {consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail)), nilf : P(nil(~B))} -> P(<zipp-f.step>(~n, zipp-f, ~A, ~B, self, list)))(consf, nilf)
+  : P(<zipp-f.step>(~n, zipp-f, ~A, ~B, func, list))
 halt:
   nil(~B)
+
+main zipp-f
 
 // Examples
 
@@ -150,16 +154,9 @@ map-f.example
   } -> <map*n(~B, ~C, f)>(<map*n(~A, ~B, g)>(xs)) == <map*n(~A, ~C, #{x}<f>(<g>(x)))>(xs)
   case/List xs
   | cons => 
-    cong(
-        ~List(C)
-      , ~List(C)
-      , ~<map(n, ~B, ~C, f)>(<map(n, ~A, ~B, g)>(tail))
-      , ~<map(n, ~A, ~C, #{x}<f>(<g>(x)))>(tail)
-      , ~{xs} cons(~C, <f>(<g>(head)), xs)
-      , ~map.composition(~A, ~B, ~C, f, g, tail)
-      )
-  | nil => refl(~nil)
-  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(self)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(self)
+    cong(~{k} cons(~C, <f>(<g>(xs.head)), k), ~map.composition(~A, ~B, ~C, f, g, xs.tail))
+  | nil  => refl(~nil)
+  : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(xs)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(xs)
 halt:
   refl(~nil)
 

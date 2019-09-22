@@ -11,7 +11,7 @@ subst : {~A : Type, ~a : A, ~b : A, ~e : a == b, ~P : A -> Type, x : P(a)} -> P(
   x :: rewrite x in P(x) with e
 
 // Congruence (`a == b` implies `f(a) == f(b)`)
-cong : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : A -> B, ~e : a == b} -> f(a) == f(b)
+cong2 : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : A -> B, ~e : a == b} -> f(a) == f(b)
   refl(~f(a)) :: rewrite x in f(a) == f(x) with e
 
 // Transitivity

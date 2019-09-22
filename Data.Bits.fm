@@ -15,20 +15,8 @@ T Bits
 halt: x
 
 #bits.not.theo*n : !{case x : Bits} -> <bits.not*n>(<bits.not*n>(x)) == x
-| b0 => cong(
-  ~Bits,
-  ~Bits,
-  ~<bits.not*n>(<bits.not*n>(x.pred)),
-  ~x.pred,
-  ~b0,
-  ~bits.not.theo(x.pred))
-| b1 => cong(
-  ~Bits,
-  ~Bits,
-  ~<bits.not*n>(<bits.not*n>(x.pred)),
-  ~x.pred,
-  ~b1,
-  ~bits.not.theo(x.pred))
+| b0 => cong(~b0, ~bits.not.theo(x.pred))
+| b1 => cong(~b1, ~bits.not.theo(x.pred))
 | be => refl(~be)
 halt: refl(~x)
 

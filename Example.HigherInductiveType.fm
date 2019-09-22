@@ -290,42 +290,42 @@ iso_t2p : {case t : Trit} -> p2t(t2p(t)) == t
 // However we can show that once we map `[true, false]` and `[false, true]` to 
 // `B`, via `t2p`, that we are then ismorphic to a subset of `Pair(Bool)`
 iso_t2p_2 : {case t : Trit} -> t2p(p2t(t2p(t))) == t2p(t)
-| A => cong(~Trit, ~Pair(Bool), ~A, ~A, ~t2p, ~refl(~A))
-| B => cong(~Trit, ~Pair(Bool), ~B, ~B, ~t2p, ~refl(~B))
-| C => cong(~Trit, ~Pair(Bool), ~C, ~C, ~t2p, ~refl(~C))
+| A => cong(~t2p, ~refl(~A))
+| B => cong(~t2p, ~refl(~B))
+| C => cong(~t2p, ~refl(~C))
 
 
 // Exploring extentional equality with HITs
 // http://people.csail.mit.edu/jgross/CSW/csw_paper_template/paper.pdf
 
-funext_helper :
-  { ~A : Type
-  , ~B : Type
-  , f  : !(A -> B)
-  , g  : !(A -> B)
-  , H  : !({x : A} -> <g>(x) == <f>(x))
-  , interval : !Interval
-  , a  : !A
-  } -> !B
-  dup a = a
-  dup f = f
-  dup g = g
-  dup H = H
-  dup interval = interval
-  # funext_helper.go(~B,interval,f(a),g(a), H(a))
+//funext_helper :
+  //{ ~A : Type
+  //, ~B : Type
+  //, f  : !(A -> B)
+  //, g  : !(A -> B)
+  //, H  : !({x : A} -> <g>(x) == <f>(x))
+  //, interval : !Interval
+  //, a  : !A
+  //} -> !B
+  //dup a = a
+  //dup f = f
+  //dup g = g
+  //dup H = H
+  //dup interval = interval
+  //# funext_helper.go(~B,interval,f(a),g(a), H(a))
 
-funext_helper.go :
-  { ~B : Type
-  , interval : Interval
-  , fa  : B
-  , ga  : B
-  , Ha  : ga == fa
-  } -> B
-   (%interval)(~{self} B
-  , fa
-  , ga
-  , Ha
-  )
+//funext_helper.go :
+  //{ ~B : Type
+  //, interval : Interval
+  //, fa  : B
+  //, ga  : B
+  //, Ha  : ga == fa
+  //} -> B
+   //(%interval)(~{self} B
+  //, fa
+  //, ga
+  //, Ha
+  //)
 
 // I think the above isn't the right translation of the pdf, shouldn't it be
 // something like this?

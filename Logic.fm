@@ -104,8 +104,8 @@ logic.demorgan1 :
   {~P : Type, ~Q : Type
   , case c : Or(Not(P), Not(Q))
   } -> Not(And(P,Q))
-| left  => {pq} case/And pq | both => c.value(left)  : Empty
-| right => {pq} case/And pq | both => c.value(right) : Empty
+| left  => {pq} case/And pq | both => c.value(pq.left)  : Empty
+| right => {pq} case/And pq | both => c.value(pq.right) : Empty
 
 // ~p && ~q -> ~(p || q)
 logic.demorgan2 :
@@ -113,7 +113,7 @@ logic.demorgan2 :
   , case c : And(Not(P), Not(Q))
   } -> Not(Or(P,Q))
 | both => {pq} case/Or pq
-  | left => c.left(value)
-  | right => c.right(value)
+  | left => c.left(pq.value)
+  | right => c.right(pq.value)
   : Empty
 

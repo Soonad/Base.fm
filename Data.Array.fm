@@ -8,7 +8,7 @@ import Base
 
 Array : {n : Nat} -> Type
   case/Nat n
-  | succ => [x : Array(pred), Array(pred)]
+  | succ => [x : Array(n.pred), Array(n.pred)]
   | zero => Word
   : Type
 

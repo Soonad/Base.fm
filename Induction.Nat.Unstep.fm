@@ -2,41 +2,48 @@ import Induction.Nat
 import Data.Bool
 import Relation.Equality
 
+// Fusible predecessor of an Ind
 unstep : {n : Ind} -> Ind
   new(~Ind) {~P, S}
   dup S = S
+
   let motive = {n} {b : Bool} ->
     (%b)(~{b}Type, P(unstep(n)), P(unstep(step(n))))
+
   let case_s = {~n, h, b}
-    (case/Bool b
-    | true  => {x} x
-    | false => S(~(unstep(step(n))))
-    : {h : P(unstep(step(n)))} ->
-      (case/Bool self
+    case/Bool b
+    move h(false) : P(unstep(step(n))) as x
+    | true  => x
+    | false => S(~(unstep(step(n))), x)
+    : case/Bool b
       | true  => P(unstep(step(n)))
       | false => P(step(unstep(step(n))))
-      : Type))(h(false))
+      : Type
+
   dup F = (%n)(~motive, #case_s)
+
   # {Z}
+
   let case_z = {b}
-    (case/Bool b
-    | true  => {z} z
-    | false => {z} z
-    : {n : P(base)} ->
-      case/Bool self
+    case/Bool b
+    move Z : P(base)
+    | true  => Z
+    | false => Z
+    : case/Bool b
       | true  => P(unstep(base))
       | false => P(unstep(step(base)))
-      : Type)(Z)
+      : Type
+
   F(case_z, true)
 
 unstep_step_is_id : {i : Ind} -> !unstep(step(i)) == i
   let motive = {i} unstep(step(i)) == i
-  let case_s = # {~n, h} cong(~Ind, ~Ind, ~unstep(step(n)), ~n, ~step, ~h)
+  let case_s = # {~n, h} cong(~step, ~h)
   dup F = (%i)(~motive, case_s)
   # F(refl(~base))
 
 cong_unstep : {~a : Ind, ~b : Ind, ~e : step(a) == step(b)} -> a == b
-  let r0 = cong(~Ind, ~Ind, ~step(a), ~step(b), ~unstep, ~e)
+  let r0 = cong(~unstep, ~e)
   let r1 = r0 :: rewrite x in x == unstep(step(b)) with <unstep_step_is_id(a)>
   let r2 = r1 :: rewrite y in a == y with <unstep_step_is_id(b)>
   r2

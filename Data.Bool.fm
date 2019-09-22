@@ -55,7 +55,7 @@ not-f : {b : Bool} -> Bool
     case/Bool b
     | true  => false
     | false => true
-    : P(not-f(self))
+    : P(not-f(b))
 
 // If-then-else
 bool_if : {b : Bool, ~P : Type, T : P, F : P} -> P
@@ -77,7 +77,7 @@ different_elem : {a : Bool} -> [b : Bool ~ {:a == b} -> Empty]
   case/Bool a
   | true  => [false ~ true_isnt_false]
   | false => [true ~ {e : false == true} => true_isnt_false(sym(~e))]
-  : [b : Bool ~ {:self == b} -> Empty]
+  : [b : Bool ~ {:a == b} -> Empty]
 
 demorgan_0 :
   { case a : Bool

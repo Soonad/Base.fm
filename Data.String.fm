@@ -32,8 +32,8 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
 #string_to_chars*N : !{str : String} -> List(Char)
   case/List str
   | cons =>
-    cpy word = head
-    let chrs = string_to_chars(tail)
+    cpy word = str.head
+    let chrs = string_to_chars(str.tail)
     let chrs = cons_char((word .>> 24) .& 0xFF, chrs)
     let chrs = cons_char((word .>> 16) .& 0xFF, chrs)
     let chrs = cons_char((word .>>  8) .& 0xFF, chrs)
@@ -79,8 +79,8 @@ halt:
           if i .= 1: {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => cons(~Word, k(x), h(0, {k} => k))
           else:       {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => h(i - 1, {y} => k(x + (y .<< 8))))(h, x)
       else: {h : {i : Word, k : Word -> Word} -> List(Char)} => h)(h)
-    cpy c = head
-    let h = to_codepoints_aux(tail)
+    cpy c = str.head
+    let h = to_codepoints_aux(str.tail)
     loop_aux((c .>> 0) .& 0xFF, loop_aux((c .>> 8) .& 0xFF, loop_aux((c .>> 16) .& 0xFF, loop_aux((c .>> 24) .& 0xFF, h))), i)
   | nil => {i, k} => nil(~Char)
   : {i : Word, k : Word -> Word} -> List(Char)

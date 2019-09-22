@@ -5,12 +5,13 @@ Excluded_Middle : Type
 
 // ~(~p) -> p
 double_negation_elimination :
-  { ~P  : Type, em : Excluded_Middle
+  { ~P  : Type
+  , em  : Excluded_Middle
   , nnp : Not(Not(P))
   } -> P
-  case/Or em(~P)
-  | left => value
-  | right => absurd(nnp(value), ~P)
+  case/Or em(~P) as x
+  | left => x.value
+  | right => absurd(nnp(x.value), ~P)
   : P
 
 // p |- ~(~(p))
@@ -25,7 +26,7 @@ logic.demorgan1_elimination :
   { ~P : Type
   , ~Q : Type
   , em : !Excluded_Middle
-  , c : !Not(And(P,Q))
+  , c  : !Not(And(P,Q))
   } -> !Or(Not(P), Not(Q))
   dup em = em
   dup c = c
@@ -34,7 +35,7 @@ logic.demorgan1_elimination :
 logic.demorgan1_elimination.go :
   { ~P : Type
   , ~Q : Type
-  , c : Not(And(P,Q))
+  , c  : Not(And(P,Q))
   , case mp : Or(P, Not(P))
   , case mq : Or(Q, Not(Q))
   } -> Or(Not(P), Not(Q))
@@ -57,7 +58,7 @@ logic.demorgan2_elimination :
 logic.demorgan2_elimination.go :
   { ~P : Type
   , ~Q : Type
-  , c : Not(Or(P,Q))
+  , c  : Not(Or(P,Q))
   , case mp : Or(P, Not(P))
   , case mq : Or(Q, Not(Q))
   } -> And(Not(P), Not(Q))
@@ -65,4 +66,3 @@ logic.demorgan2_elimination.go :
 | left right => absurd(c(left(~P,~Q, mp.value)), ~(And(Not(P),Not(Q))))
 | right left => absurd(c(right(~P,~Q, mq.value)), ~(And(Not(P),Not(Q))))
 | right right => both(~Not(P), ~Not(Q), mp.value, mq.value)
-

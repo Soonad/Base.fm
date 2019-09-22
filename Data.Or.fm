@@ -7,7 +7,11 @@ T Or {A : Type, B: Type}
 | left  { value : A }
 | right { value : B }
 
-Or.commutation : {~A : Type, ~B : Type , case c : Or(A,B) } -> Or(B,A)
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
+Or.commutation : {~A : Type, ~B : Type , case c : Or(A,B)} -> Or(B,A)
 | left  => right(~B,~A, c.value)
 | right => left(~B,~A, c.value)
 
@@ -17,58 +21,42 @@ Or.tautology_left : {~A : Type, a : A} -> Or(A,A)
 Or.tautology_right : {~A : Type, a : A} -> Or(A,A)
   right(~A,~A, a)
 
-Or.association1 :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  , case c : Or(A,Or(B,C))
-  } -> Or(Or(A,B), C)
-| left => left(~Or(A,B), ~C, left(~A,~B,c.value))
-| right => case/Or c.value
-  | left => left(~Or(A,B), ~C, right(~A,~B, value))
-  | right => right(~Or(A,B), ~C, value)
+Or.association1 : {~A : Type, ~B : Type, ~C : Type, case c : Or(A,Or(B,C))} -> Or(Or(A,B), C)
+| left =>
+  left(~Or(A,B), ~C, left(~A,~B,c.value))
+| right =>
+  case/Or c.value as k
+  | left  => left(~Or(A,B), ~C, right(~A,~B, k.value))
+  | right => right(~Or(A,B), ~C, k.value)
   : Or(Or(A,B),C)
 
-Or.association2 :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  , case c : Or(Or(A,B), C)
-  } -> Or(A,Or(B,C))
-| left => case/Or c.value
-  | left  => left(~A, ~Or(B,C), value)
-  | right => right(~A, ~Or(B,C), left(~B,~C, value))
+Or.association2 : {~A : Type, ~B : Type, ~C : Type, case c : Or(Or(A,B), C)} -> Or(A,Or(B,C))
+| left =>
+  case/Or c.value as k
+  | left  => left(~A, ~Or(B,C), k.value)
+  | right => right(~A, ~Or(B,C), left(~B,~C, k.value))
   : Or(A,Or(B,C))
 | right => right(~A, ~Or(B,C), right(~B,~C, c.value))
 
 // (p || q) || r <-> p || (q || r)
-Or.association :
-  { ~A : Type
-  , ~B : Type
-  , ~C : Type
-  } -> Iff(Or(A,Or(B,C)), Or(Or(A,B), C))
-  both(
-      ~(Or(A,Or(B,C)) -> Or(Or(A,B), C))
-    , ~(Or(Or(A,B), C) -> Or(A,Or(B,C)))
-    , {c} Or.association1(~A,~B,~C,c)
-    , {c} Or.association2(~A,~B,~C,c)
-    )
+Or.association : {~A : Type, ~B : Type, ~C : Type} -> Iff(Or(A,Or(B,C)), Or(Or(A,B), C))
+  let Lft = Or(A,Or(B,C)) -> Or(Or(A,B), C)
+  let Rgt = Or(Or(A,B), C) -> Or(A,Or(B,C))
+  let lft = {c} Or.association1(~A,~B,~C,c)
+  let rgt = {c} Or.association2(~A,~B,~C,c)
+  both(~Lft, ~Rgt, lft, rgt)
 
 // (p || q) && (p || r) -> p || (q && r)
-Or.distribution1 :
-  { ~P : Type
-  , ~Q : Type
-  , ~R : Type
-  , case c : And(Or(P,Q), Or(P,R))
-  } -> Or(P,And(Q,R))
-  | both =>
-    case/Or c.left
-    | left => left(~P,~And(Q,R), value)
-    | right => case/Or c.right
-      | left => left(~P,~And(Q,R), value)
-      | right => right(~P,~And(Q,R), both(~Q,~R,value^,value))
-      : Or(P,And(Q,R))
-    : Or(P,And(Q,R))
+//Or.distribution1 : {~P : Type, ~Q : Type, ~R : Type, case c : And(Or(P,Q), Or(P,R))} -> Or(P,And(Q,R))
+  //| both =>
+    //case/Or c.left
+    //| left => left(~P,~And(Q,R), value)
+    //| right =>
+      //case/Or c.right
+      //| left => left(~P,~And(Q,R), value)
+      //| right => right(~P,~And(Q,R), both(~Q,~R,value^,value))
+      //: Or(P,And(Q,R))
+    //: Or(P,And(Q,R))
 
 // p || (q && r) -> (p || q) && (p || r)
 //Or.distribution2 :
@@ -91,14 +79,14 @@ Or.distribution1 :
       //)
 
 // (p || q) && (p || r) <-> p || (q && r)
-Or.distribution :
-  { ~P : Type
-  , ~Q : Type
-  , ~R : Type
-  } -> Iff(And(Or(!P,Q), Or(!P,R)), Or(!P,And(Q,R)))
-  both(
-    ~(And(Or(!P,Q), Or(!P,R)) -> Or(!P,And(Q,R)))
-  , ~(Or(!P,And(Q,R)) -> And(Or(!P,Q), Or(!P,R)))
-  , Or.distribution2(~!P,~Q,~R)
-  , Or.distribution1(~P,~Q,~R)
-  )
+//Or.distribution :
+  //{ ~P : Type
+  //, ~Q : Type
+  //, ~R : Type
+  //} -> Iff(And(Or(!P,Q), Or(!P,R)), Or(!P,And(Q,R)))
+  //both(
+    //~(And(Or(!P,Q), Or(!P,R)) -> Or(!P,And(Q,R)))
+  //, ~(Or(!P,And(Q,R)) -> And(Or(!P,Q), Or(!P,R)))
+  //, Or.distribution2(~!P,~Q,~R)
+  //, Or.distribution1(~P,~Q,~R)
+  //)
