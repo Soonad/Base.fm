@@ -120,8 +120,6 @@ halt:
 halt:
   nil(~B)
 
-main zipp-f
-
 // Examples
 
 // From 1.7m to 3.2k rewrites by using `same-f` to build the list

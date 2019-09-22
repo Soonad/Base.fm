@@ -47,46 +47,36 @@ Or.association : {~A : Type, ~B : Type, ~C : Type} -> Iff(Or(A,Or(B,C)), Or(Or(A
   both(~Lft, ~Rgt, lft, rgt)
 
 // (p || q) && (p || r) -> p || (q && r)
-//Or.distribution1 : {~P : Type, ~Q : Type, ~R : Type, case c : And(Or(P,Q), Or(P,R))} -> Or(P,And(Q,R))
-  //| both =>
-    //case/Or c.left
-    //| left => left(~P,~And(Q,R), value)
-    //| right =>
-      //case/Or c.right
-      //| left => left(~P,~And(Q,R), value)
-      //| right => right(~P,~And(Q,R), both(~Q,~R,value^,value))
-      //: Or(P,And(Q,R))
-    //: Or(P,And(Q,R))
+Or.distribution1 : {~P : Type, ~Q : Type, ~R : Type, case c : And(Or(P,Q), Or(P,R))} -> Or(P,And(Q,R))
+| both =>
+  case/Or c.left as x
+  | left =>
+    left(~P,~And(Q,R), x.value)
+  | right =>
+    case/Or c.right as y
+    | left  => left(~P, ~And(Q,R), y.value)
+    | right => right(~P, ~And(Q,R), both(~Q, ~R, x.value, y.value))
+    : Or(P, And(Q, R))
+  : Or(P, And(Q, R))
 
 // p || (q && r) -> (p || q) && (p || r)
-//Or.distribution2 :
-  //{ ~P : Type
-  //, ~Q : Type
-  //, ~R : Type
-  //, case c : Or(!P,And(Q,R))
-  //} -> And(Or(!P,Q), Or(!P,R))
-//| left =>
-  //dup value = c.value
-  //both(~Or(!P,Q), ~Or(!P,R), left(~!P,~Q, #value), left(~!P,~R, #value))
-//| right =>
-  //case/And c.value
-  //| both =>
-      //both(
-        //~Or(!P,Q)
-      //, ~Or(!P,R)
-      //, right^(~!P,~Q,left)
-      //, right^(~!P,~R,right)
-      //)
+Or.distribution2 : {~P : Type, ~Q : Type, ~R : Type, case c : Or(!P,And(Q,R))} -> And(Or(!P,Q), Or(!P,R))
+| left => dup value = c.value
+    both(~Or(!P,Q), ~Or(!P,R), left(~!P,~Q, #value), left(~!P,~R, #value))
+| right =>
+  case/And c.value as x
+  | both =>
+    let Lft = Or(!P,Q)
+    let Rgt = Or(!P,R)
+    let lft = right(~!P, ~Q, x.left)
+    let rgt = right(~!P, ~R, x.right)
+    both(~Lft, ~Rgt, lft, rgt)
+  : And(Or(!P,Q), Or(!P,R))
 
 // (p || q) && (p || r) <-> p || (q && r)
-//Or.distribution :
-  //{ ~P : Type
-  //, ~Q : Type
-  //, ~R : Type
-  //} -> Iff(And(Or(!P,Q), Or(!P,R)), Or(!P,And(Q,R)))
-  //both(
-    //~(And(Or(!P,Q), Or(!P,R)) -> Or(!P,And(Q,R)))
-  //, ~(Or(!P,And(Q,R)) -> And(Or(!P,Q), Or(!P,R)))
-  //, Or.distribution2(~!P,~Q,~R)
-  //, Or.distribution1(~P,~Q,~R)
-  //)
+Or.distribution : {~P : Type, ~Q : Type, ~R : Type} -> Iff(And(Or(!P,Q), Or(!P,R)), Or(!P,And(Q,R)))
+  let Lft = And(Or(!P,Q), Or(!P,R)) -> Or(!P,And(Q,R))
+  let Rgt = Or(!P,And(Q,R)) -> And(Or(!P,Q), Or(!P,R))
+  let lft = Or.distribution1(~!P,~Q,~R)
+  let rgt = Or.distribution2(~P,~Q,~R)
+  both(~Lft, ~Rgt, lft, rgt)

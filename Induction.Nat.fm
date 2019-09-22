@@ -1,3 +1,5 @@
+import Relation.Equality
+
 // The inductive hypothesis on nats. Erases to Church.
 Ind : Type
   $ self
@@ -55,3 +57,12 @@ plus : {a : Ind, b : Ind} -> Ind
   dup A = (%a)(~{a} => P(plus(a, b)), #{~n, h} => S(~plus(n, b), h))
   dup B = (%b)(~{b} => P(plus(base, b)), #{~n, h} => S(~plus(base, n), h))
   # {z} => A(B(z))
+
+#make_equal_inds*N : ![L : Ind, M : Ind ~ : L == M, N == L]
+  get [n0, n1 ~ e1, e2] = make_equal_inds
+  [ step(n0)
+  , step(n1)
+  ~ cong(~step, ~e1)
+  , cong(~step, ~e2)
+  ]
+halt: [base, base ~ refl(~base), refl(~base)]
