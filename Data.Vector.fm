@@ -12,7 +12,7 @@ T Vector {A : Type} (len : Nat)
 // :: Simple functions ::
 // ::::::::::::::::::::::
 
-// A type-safe "head" that returns the first element of a non-empt* vector
+// A type-safe "head" that returns the first element of a non-empty vector
 // - On the `vcons` case, return the vector's head
 // - On the `vnil` case, prove it is unreachable, since `xs.len > 0`
 vhead : {~T : Type, ~n : Nat, xs : Vector(T, succ(n))} -> T
