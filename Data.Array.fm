@@ -1,86 +1,77 @@
-import Base
+import Data.Nat
 
-// TODO: 
-// - abstract builder to avoid code duplication
-// - array updater
-// - instead of Word, use Copiable
-// - clean up and finish API
-
-Array : {n : Nat} -> Type
+Array : {A : Type, n : Nat} -> Type
   case/Nat n
-  | succ => [x : Array(n.pred), Array(n.pred)]
-  | zero => Word
+  | succ => [x : Array(A, n.pred), Array(A, n.pred)]
+  | zero => A
   : Type
 
-// ::::::::::::
-// :: Getter ::
-// ::::::::::::
+// :::::::::::
+// :: Query ::
+// :::::::::::
 
-ArgetBuilder : {n : Nat} -> Type
-  { ~A : Type,
-    E  : {fn : Array(n) -> Word} -> A
-  } -> A
+QueryBuilder : {A : Type, n : Nat} -> Type
+  {~K : Type, edit : {fn : Array(A, n) -> [:A, Array(A, n)]} -> K} -> K
 
-arget_builder.zero : ArgetBuilder(zero)
-  {~A, E} E({a} a)
+query_builder.zero : {~A : Type, query : A -> [:A, A]} -> QueryBuilder(A, zero)
+  {~K, edit} edit(query)
 
-arget_builder.succ : {~n : Nat, side : Word, gb : ArgetBuilder(n)} -> ArgetBuilder(succ(n))
-  {~A, E}
-    let type = {fn : Array(succ(n))} -> Word
-    let func = {fn, a}
-      get [a, b] = a
-      fn(if side: b else: a)
-    E(gb(~type, func))
-  
-#arget_builder*N : !{path : Word} -> [idx : Word, ArgetBuilder(<nat(N)>)]
-  get [idx, arb] = arget_builder(path)
+query_builder.succ : {~A : Type, ~n : Nat, side : Word, build : QueryBuilder(A, n)} -> QueryBuilder(A, succ(n))
+  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))], {fn, arr}
+    let swap   = {a : Array(A, n), b : Array(A, n)} [b, a]
+    let keep   = {a : Array(A, n), b : Array(A, n)} [a, b]
+    get [a, b] = arr
+    get [a, b] = (if side: swap else: keep)(a,b)
+    get [w, a] = fn(a)
+    get [a, b] = (if side: swap else: keep)(a,b)
+    [w, [a, b]]))
+
+#query_builder*N : !{~A : Type, path : Word, query : A -> [:A, A]} -> [idx : Word, QueryBuilder(A, <nat(N)>)]
+  get [idx, arb] = query_builder(~A, path, query)
   cpy idx = idx
-  log([idx, (path .>> idx) .& 1])
-  [idx + 1, arget_builder.succ(~<nat(N)>, (path .>> idx) .& 1, arb)]
-halt: [0, arget_builder.zero]
+  [idx + 1, query_builder.succ(~A, ~<nat(N)>, (path .>> idx) .& 1, arb)]
+halt: [0, query_builder.zero(~A, query)]
 
-arget.test
-  dup arget = arget_builder*4
-  dup arget = #{x : Word} snd(arget(x))(~Array(0n4) -> Word, {x}x)
-  # let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
-    arget(4, arr) + arget(8, arr)
+#query : {N : Ind} -> !{~A : Type, path : Word, query : A -> [:A, A], array : Array(A, <nat(N)>)} -> [arr : Array(A, <nat(N)>), A]
+  get [a, b] = snd(<query_builder(N)>(~A, path, query))(~Array(A, <nat(N)>) -> [x : A, Array(A, <nat(N)>)], {x}x, array)
+  [b, a]
 
-// ::::::::::::
-// :: Reader ::
-// ::::::::::::
+#query.test : ![arr : Array(Word, 0n4), Word]
+  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+  let qry = {x} cpy x = x; [x, x + 100] // adds 100 to the element, returns the old value
+  get [arr, a] = <query*4>(~Word,  4, qry, arr)
+  get [arr, b] = <query*4>(~Word,  8, qry, arr)
+  get [arr, c] = <query*4>(~Word, 12, qry, arr)
+  [arr, a + b + c]
 
-ArreadBuilder : {n : Nat} -> Type
-  { ~A : Type,
-    E  : {fn : Array(n) -> [x : Word, Array(n)]} -> A
-  } -> A
+// Sets value at position to `val`, returns old value
+#set : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, val : A, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} [x, val], array)
 
-arread_builder.zero : ArreadBuilder(zero)
-  {~A, E} E({a} cpy a = a; [a, a])
+// Mutates value at position with `fun`, returns old value
+#mut : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, fun : A -> A, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} get [a,b] = <#copy>(x); [a, fun(b)], array)
 
-arread_builder.succ : {~n : Nat, side : Word, gb : ArreadBuilder(n)} -> ArreadBuilder(succ(n))
-  {~A, E}
-    let type = {fn : Array(succ(n))} -> [x : Word, Array(succ(n))]
-    let func = {fn, arr}
-      let swap = {a : Array(n), b : Array(n)} [b, a]
-      let keep = {a : Array(n), b : Array(n)} [a, b]
-      get [a, b] = arr
-      get [a, b] = (if side: swap else: keep)(a,b)
-      get [w, a] = fn(a)
-      get [a, b] = (if side: swap else: keep)(a,b)
-      [w, [a, b]]
-    E(gb(~type, func))
-  
-#arread_builder*N : !{path : Word} -> [idx : Word, ArreadBuilder(<nat(N)>)]
-  get [idx, arb] = arread_builder(path)
-  cpy idx = idx
-  log([idx, (path .>> idx) .& 1])
-  [idx + 1, arread_builder.succ(~<nat(N)>, (path .>> idx) .& 1, arb)]
-halt: [0, arread_builder.zero]
+// Gets the value at position `val`
+#got : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} <#copy>(x), array)
 
-arread.test
-  dup arread = arread_builder*4
-  dup arread = #{x : Word} snd(arread(x)) (~Array(0n4) -> [x : Word, Array(0n4)], {x}x)
-  # let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
-    get [a, arr] = arread(4, arr)
-    get [b, arr] = arread(8, arr)
-    a + b
+#array.test : ![:Word, :Word, :Word, :Word, Word]
+  // Prepares functions
+  let cop = {x : Word} cpy x = x; [x, x]
+  let set = set*4(~Word, #cop)
+  let mut = mut*4(~Word, #cop)
+  let got = got*4(~Word, #cop)
+
+  // Creates array
+  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+
+  // Performs many operations
+  get [arr, a] = <set>(2, 100, arr)    // a = arr[2]; arr[2] = 100
+  get [arr, b] = <mut>(4, +(100), arr) // b = arr[4]; arr[4] = arr[4] + 100
+  get [arr, c] = <got>(2, arr)         // c = arr[2]
+  get [arr, d] = <got>(4, arr)         // d = arr[4]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+
+  // Returns numbers
+  [a, b, c, d, e]
