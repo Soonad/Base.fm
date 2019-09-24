@@ -1,7 +1,4 @@
-// language documentation
 import Docs
-
-// base libs
 import Base@0
 
 main : Output

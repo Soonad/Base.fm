@@ -1,11 +1,4 @@
-// Write your first program
 import Docs.HelloWorld
-
-// List of core features
 import Docs.Features
-
-// Overview of the datatype system
 import Docs.Datatypes
-
-// More in-depth explanations
 import Docs.Tutorials
