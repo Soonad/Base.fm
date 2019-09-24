@@ -1,0 +1,3 @@
+// Formality also has Self Types, which allow it us to implement inductive datatypes with λ-encodings:
+
+// This primitive is explained in more details on the paper linked above. While Self Types are extremelly useful and powerful, they should be considered an advanced feature that most users won’t need to use directly. Formality includes a large set of syntax-sugars that allow users to define and use datatypes with a familiar notation, similar to other traditional functional languages.
