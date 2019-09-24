@@ -1,0 +1,24 @@
+import Base@0 
+
+// Functions with different return types
+// -------------------------------------
+
+// We could write a function that returns different types based on its input:
+
+diff_return.example_0 : {case b : Bool} -> case/Bool b | true => Word | false => String : Type
+| true  => 42
+| false => "hello"
+
+diff_return.example_0_test : Word
+  diff_return.example_0(true) + diff_return.example_0(true)
+
+// Note this is not the same as returning Either, which is done in Haskell when we want to return different types, needing an extra pattern-match every time you call the function. Here, that’s not necessary, because foo really returns different types based on its input. Thanks to dependent types, Formality can statically determine if you’re doing the right thing, so, replacing foo(true) by foo(false) would be a type error.
+
+
+
+
+
+
+
+
+

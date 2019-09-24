@@ -1,0 +1,21 @@
+import Base@0
+
+// Dependent motives
+// -----------------
+
+// In Formality, the type returned by a case expression can depend on the matched value. For example, we can do this:
+
+motives.example_0 : Word
+  case/Bool true as x
+  | true  => 42
+  | false => "hello"
+  : case/Bool x
+    | true  => Word
+    | false => String
+    : Type
+
+// While strange-looking, this is prefectly logical and well-typed. The reason this works is that, when checking the type of a case expression, Formality first specializes the motive for every possible branch to determine “what it demands”. In this case, it demands a Word on the true branch, and a String on the false branch. If you satisfy every demand, then it determines the type of the whole case expression by specializing the motive using actual matched value. In this case, we matched on true, so it returns Word.
+
+// This has many interesting effects and applications.
+
+
