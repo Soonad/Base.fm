@@ -1,0 +1,25 @@
+import Algebra.Magma@0
+
+T BooleanAlgebra {A : Type}
+| boolean_algebra
+  { meet                 : A -> A -> A
+  , join                 : A -> A -> A
+  , implies              : A -> A -> A
+  , e0                   : A
+  , e1                   : A
+  , meet.commutative     : Commutative(A,meet)
+  , meet.associative     : Associative(A,meet)
+  , meet.identity        : Identity(A,meet,e1)
+  , meet.complement      : Inverse(A,meet,e1,meet.identity)
+  , join.commutative     : Commutative(A,join)
+  , join.associative     : Associative(A,join)
+  , join.identity        : Identity(A,join,e0)
+  , join.complement      : Inverse(A,join,e0,join.identity)
+  , absorption           : Absorption(A,meet,join)
+  , distributive         : Distributive(A,meet,join)
+  , implies.identity     : Identity(A,implies,e1)
+  , meet.antecedent      : {x : A, y : A} -> meet(x,implies(x,y)) == meet(x,y)
+  , meet.consequent      : {x : A, y : A} -> meet(y,implies(x,y)) == y
+  , implies.distributive : Distributive(A,implies,meet)
+  }
+

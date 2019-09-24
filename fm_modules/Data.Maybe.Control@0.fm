@@ -1,0 +1,75 @@
+import Data.Maybe@0
+import Control.Functor@0
+import Control.Monad@0
+
+maybe.functor : Functor(Maybe)
+
+  // A mapping function
+  let map = {~A, ~B, f, x}
+    case/Maybe x
+    | just => just(~B, f(x.value))
+    | none => none(~B)
+    : Maybe(B)
+
+  // Satisfying the identity law
+  let identity = {~A, ma}
+    case/Maybe ma
+    | just => refl(~just(~A,ma.value))
+    | none => refl(~none)
+    : map(~A,~A,id(~A),ma) == ma
+
+  // Satisfying the composition law
+  let composition = {~A, ~B, ~C, g, f, ma}
+    case/Maybe ma
+    | just => refl(~just(~C,(g(f(ma.value)))))
+    | none => refl(~none)
+    : map(~A,~C,{x:A} g(f(x)),ma) == map(~B,~C,g,map(~A,~B,f,ma))
+
+  functor(~Maybe,map,identity,composition)
+
+maybe.monad : Monad(Maybe)
+
+  // A way to wrap values
+  let pure = {~A, x} just(~A,x)
+
+  // A function that, given an unwrapped value, does something and wraps it
+  let bind = {~A, ~B, f, ma}
+    case/Maybe ma
+    | just => f(ma.value)
+    | none => none(~B)
+    : Maybe(B)
+
+  // Satisfying this identity law
+  let identity1 = {~A, ~B, x, f}
+    case/Maybe f(x) as fx
+    | just => refl(~just(~B,fx.value))
+    | none => refl(~none)
+    : fx == fx
+
+  // Satisfying this identity law
+  let identity2 = {~A, m}
+    case/Maybe m
+    | just => refl(~just(~A,m.value))
+    | none => refl(~none)
+    : bind(~A,~A,pure(~A),m) == m
+
+  // Satisfying this associativity law
+  let associative = {~A, ~B, ~C, m, f, g}
+    case/Maybe m
+    | just =>
+      case/Maybe f(m.value) as fx
+      | just =>
+        case/Maybe g(fx.value) as gx
+        | just => refl(~just(~C,gx.value))
+        | none => refl(~none)
+        : gx == gx
+      | none => refl(~none)
+      : bind(~B,~C,g,fx) == bind(~B,~C,g,fx)
+    | none => refl(~none)
+    : let b1 = bind(~B, ~C)
+      let b2 = bind(~A, ~B)
+      let b3 = bind(~A, ~C)
+      let b4 = bind(~B, ~C)
+      b1(g,b2(f,m)) == b3({x} b4(g,f(x)),m)
+
+  monad(~Maybe,pure,bind,identity1,identity2,associative)

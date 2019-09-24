@@ -1,0 +1,55 @@
+import Data.Function@0
+
+// A functor consists of...
+T Contravariant {F : Type -> Type}
+| contravariant
+
+  // A contravariant mapping function
+  { contramap :
+    { ~A : Type
+    , ~B : Type
+    , f  : A -> B
+    , x  : F(B)
+    } -> F(A)
+
+  // Satisfying the identity law
+  , identity :
+    {~A  : Type
+    , fa : F(A)
+    } -> contramap(~A, ~A, id(~A),fa) == fa
+
+  // Satisfying the composition law
+  , composition :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type
+    , g  : B -> C
+    , f  : A -> B
+    , fc : F(C)
+    } -> let con1 = contramap(~A, ~C)
+         let con2 = contramap(~A, ~B)
+         let con3 = contramap(~B, ~C)
+        con1({x} g(f(x)), fc) == con2(f, con3(g, fc))
+  }
+
+// A generic map for functors
+contramap :
+  { ~F : Type -> Type
+  , case con : Contravariant(F)
+  , ~A : Type
+  , ~B : Type
+  ,  f : A -> B
+  } -> F(B) -> F(A)
+| contravariant => con.contramap(~A, ~B, f)
+
+//// We can modify all elements of a functor to a fixed element `x`
+contramap_const :
+  { ~F : Type -> Type
+  , case con : Contravariant(F)
+  , ~A : Type
+  , ~B : Type
+  , x : B
+  } -> F(B) -> F(A)
+| contravariant => con.contramap(~A, ~B, const(~B, ~A, x))
+
+

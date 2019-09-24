@@ -1,0 +1,87 @@
+import Data.Nat@0
+
+Array : {A : Type, n : Nat} -> Type
+  case/Nat n
+  | succ => [x : Array(A, n.pred), Array(A, n.pred)]
+  | zero => A
+  : Type
+
+// :::::::::::
+// :: Query ::
+// :::::::::::
+
+QueryBuilder : {A : Type, n : Nat} -> Type
+  {~K : Type, edit : {fn : Array(A, n) -> [:A, Array(A, n)]} -> K} -> K
+
+query_builder.zero : {~A : Type, query : A -> [:A, A]} -> QueryBuilder(A, zero)
+  {~K, edit} edit(query)
+
+query_builder.succ : {~A : Type, ~n : Nat, side : Word, build : QueryBuilder(A, n)} -> QueryBuilder(A, succ(n))
+  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))],
+    {fn, arr} (if side
+      then: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
+        get [a, b] = arr
+        get [w, b] = fn(b)
+        [w, [a, b]]
+      else: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
+        get [a, b] = arr
+        get [w, a] = fn(a)
+        [w, [a, b]]
+      )(arr, fn)))
+
+#query_builder*N : !{~A : Type, path : Word, query : A -> [:A, A]} -> [path : Word, QueryBuilder(A, <nat(N)>)]
+  get [path_rest, builder] = query_builder(~A, path, query)
+  cpy path_rest            = path_rest
+  [path_rest .>> 1, query_builder.succ(~A, ~<nat(N)>, path_rest .& 1, builder)]
+halt: [path, query_builder.zero(~A, query)]
+
+#query : {N : Ind} -> !{~A : Type, path : Word, query : A -> [:A, A], array : Array(A, <nat(N)>)} -> [arr : Array(A, <nat(N)>), A]
+  get [a, b] = snd(<query_builder(N)>(~A, path, query))(~Array(A, <nat(N)>) -> [x : A, Array(A, <nat(N)>)], {x}x, array)
+  [b, a]
+
+#query.test : ![arr : Array(Word, 0n4), Word]
+  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+  let qry = {x} cpy x = x; [x, x + 100] // adds 100 to the element, returns the old value
+  get [arr, a] = <query*4>(~Word,  4, qry, arr)
+  get [arr, b] = <query*4>(~Word,  8, qry, arr)
+  get [arr, c] = <query*4>(~Word, 12, qry, arr)
+  [arr, a + b + c]
+
+// Sets value at position to `val`, returns old value
+#set : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, val : A, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} [x, val], array)
+
+// Mutates value at position with `fun`, returns old value
+#mut : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, fun : A -> A, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} get [a,b] = <#copy>(x); [a, fun(b)], array)
+
+// Gets the value at position `val`
+#got : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Word, array : Array(A, <nat(N)>)} -> [:Array(A, <nat(N)>), A]
+  <query(N)>(~A, path, {x} <#copy>(x), array)
+
+#array.test : ![:Word, :Word, :Word, :Word, Word]
+  // Prepares functions
+  let cop = {x : Word} cpy x = x; [x, x]
+  let set = set*8(~Word, #cop)
+  let mut = mut*8(~Word, #cop)
+  let got = got*8(~Word, #cop)
+
+  // Creates array
+  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+
+  // Performs many operations
+  get [arr, a] = <set>(2, 100, arr)    // a = arr[2]; arr[2] = 100
+  get [arr, b] = <mut>(4, +(100), arr) // b = arr[4]; arr[4] = arr[4] + 100
+  get [arr, c] = <got>(2, arr)         // c = arr[2]
+  get [arr, d] = <got>(4, arr)         // d = arr[4]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+
+  // Returns numbers
+  [a, b, c, d, e]

@@ -1,0 +1,15 @@
+import Algebra.Magma@0
+
+T Quasigroup {A:Type}
+| quasigroup
+  { f           : A -> A -> A
+  , latinSquare : LatinSquare(A,f)
+  }
+
+T LoopQuasigroup {A : Type}
+| loop_quasigroup
+  { f           : A -> A -> A
+  , e           : A
+  , identity    : Identity(A,f,e)
+  , latinSquare : LatinSquare(A,f)
+  }

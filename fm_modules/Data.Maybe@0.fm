@@ -1,0 +1,3 @@
+T Maybe {A : Type}
+| just {value : A}
+| none

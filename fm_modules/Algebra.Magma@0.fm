@@ -1,0 +1,110 @@
+import Data.And@0
+
+// A Magma is a type with a total binary operation between terms of that type
+T Magma {A : Type}
+| magma { f : A -> A -> A }
+
+// Properties of binary operations
+// ===============================
+
+Associative : {A : Type, f : A -> A -> A} -> Type
+   {x : A, y : A, z : A} -> f(f(x,y),z) == f(x,f(y,z))
+
+PowerAssociative : {A : Type, f : A -> A -> A} -> Type;
+  {x : A} -> f(f(x,x),x) == f(x,f(x,x))
+
+LeftAlternative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(f(x,x),y) == f(x,f(x,y))
+
+RightAlternative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(y,f(x,x)) == f(f(y,x),x)
+
+Alternative : {A : Type, f : A -> A -> A} -> Type
+  And(LeftAlternative(A,f), RightAlternative(A,f))
+
+Flexible : {A : Type, f : A -> A -> A} -> Type
+  {x : A,y : A} -> f(f(x,y),x) == f(x,f(y,x))
+
+Commutative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(x,y) == f(y,x)
+
+Medial : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, u : A, z : A} -> f(f(x,y), f(u,z)) == f(f(x,u),f(y,z))
+
+LeftSemimedial : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, z : A} -> f(f(x,x), f(y,z)) == f(f(x,y),f(x,z))
+
+RightSemimedial : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, z : A} -> f(f(x,x), f(y,z)) == f(f(x,y),f(x,z))
+
+Semimedial : {A : Type, f : A -> A -> A} -> Type
+  And(LeftSemimedial(A,f),RightSemimedial(A,f))
+
+Idempotent : {A : Type, f : A -> A -> A} -> Type; {x : A} -> f(x,x) == x
+
+Unipotent : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> f(x,x) == f(y,y)
+
+Zeropotent : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A} -> And(f(f(x,x),y) == f(x,x), f(y,f(x,x)) == f(x,x))
+
+Null : {A : Type, f : A -> A -> A} -> Type;
+  {x : A, y : A, u : A, v : A} -> And(f(x,y) == x,f(u,v) == v)
+
+LeftCancellative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, z : A, : f(x,y) == f(x,z)} -> y == z
+
+RightCancellative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, z : A, : f(y,x) == f(z,x)} -> y == z
+
+Cancellative : {A : Type, f : A -> A -> A} -> Type;
+  And(LeftCancellative(A,f),RightCancellative(A,f))
+
+LatinSquare : {A : Type, f : A -> A -> A} -> Type
+  {a : A, b : A} -> [x : A, [y : A, And(f(a,x) == b, f(y,a) == b)]]
+
+
+// Properties of elements in relation to binary operations
+//=======================================================
+
+LeftZero : {A : Type, f : A -> A -> A, e : A} -> Type
+  {y:A} -> f(y,e) == e
+
+RightZero : {A : Type, f : A -> A -> A, e : A} -> Type
+  {y : A} -> f(e,y) == e
+
+Zero : {A : Type, f : A -> A -> A, e : A} -> Type
+  And(LeftZero(A,f,e),RightZero(A,f,e))
+
+LeftIdentity : {A : Type, f : A -> A -> A, e : A} -> Type
+ {y : A} -> f(y,e) == y
+
+RightIdentity : {A : Type, f : A -> A -> A, e : A} -> Type
+  {y : A} -> f(e,y) == y
+
+Identity : {A : Type, f : A -> A -> A, e : A} -> Type
+  And(LeftIdentity(A,f,e), RightIdentity(A,f,e))
+
+LeftInverse : {A : Type, f : A -> A -> A, e : A, p : Identity(A,f,e)} -> Type
+  {y : A} -> [x : A, f(x,y) == e]
+
+RightInverse : {A : Type, f : A -> A -> A, e : A, p : Identity(A,f,e)} -> Type
+  {y : A} -> [x : A, f(y,x) == e]
+
+Inverse : {A : Type, f : A -> A -> A, e : A, p : Identity(A,f,e)} -> Type
+  And(LeftInverse(A,f,e,p),RightInverse(A,f,e,p))
+
+// Properties of 2 binary operations
+// =================================
+
+LeftDistributive : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
+  {x : A, y : A, z : A} -> f(x, g(y,z)) == g(f(x,y),f(x,z))
+
+RightDistributive : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
+  {x : A, y : A, z : A} -> f(g(y,z), x) == g(f(y,x),f(z,x))
+
+Distributive : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
+  And(LeftDistributive(A,f,g), RightDistributive(A,f,g))
+
+Absorption : {A : Type, f : A -> A -> A, g : A -> A -> A} -> Type
+  {x : A, y : A} -> And(g(x, f(x, y)) == x, f(x, g(x,y)) == x)

@@ -1,0 +1,18 @@
+// Group-like
+import Algebra.Group@0
+import Algebra.Magma@0
+import Algebra.Monoid@0
+import Algebra.Quasigroup@0
+import Algebra.Semigroup@0
+
+// Ring-like
+import Algebra.Quasiring@0
+import Algebra.Nearring@0
+import Algebra.Semiring@0
+import Algebra.Ring@0
+import Algebra.Field@0
+
+//Lattice-like
+import Algebra.Lattice@0
+import Algebra.Heyting@0
+import Algebra.Boolean@0

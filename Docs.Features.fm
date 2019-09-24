@@ -3,3 +3,6 @@ import Docs.Features.Word
 import Docs.Features.IfThenElse
 import Docs.Features.Pair
 import Docs.Features.Functions
+import Docs.Features.Boxes
+import Docs.Features.Equality
+

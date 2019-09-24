@@ -1,0 +1,16 @@
+import Algebra.Magma@0
+
+T Semiring {A : Type}
+| semiring
+  { add              : A -> A -> A
+  , mul              : A -> A -> A
+  , e0               : A
+  , e1               : A
+  , add.associative  : Associative(A,add)
+  , add.identity     : Identity(A,add,e0)
+  , add.commutative  : Commutative(A,add)
+  , mul.associative  : Associative(A,mul)
+  , mul.identity     : Identity(A,mul,e1)
+  , zero             : Zero(A,mul,e0)
+  , distributive     : Distributive(A,mul,add)
+  }

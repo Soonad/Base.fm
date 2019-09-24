@@ -1,0 +1,32 @@
+import Algebra.Magma@0
+
+T Ring {A : Type}
+| ring
+  { add              : A -> A -> A
+  , mul              : A -> A -> A
+  , e0               : A
+  , e1               : A
+  , add.associative  : Associative(A,add)
+  , add.identity     : Identity(A,add,e0)
+  , add.commutative  : Commutative(A,add)
+  , add.inverse      : Inverse(A,add,e0,add.identity)
+  , mul.associative  : Associative(A,mul)
+  , mul.identity     : Identity(A,mul,e1)
+  , zero             : Zero(A,mul,e0)
+  , distributive     : Distributive(A,mul,add)
+  }
+
+T NonUnitalRing {A : Type}
+| nonunital_ring
+  { add              : A -> A -> A
+  , mul              : A -> A -> A
+  , e0               : A
+  , e1               : A
+  , add.associative  : Associative(A,add)
+  , add.identity     : Identity(A,add,e0)
+  , add.commutative  : Commutative(A,add)
+  , add.inverse      : Inverse(A,add,e0,add.identity)
+  , mul.associative  : Associative(A,mul)
+  , zero             : Zero(A,mul,e0)
+  , distributive     : Distributive(A,mul,add)
+  }

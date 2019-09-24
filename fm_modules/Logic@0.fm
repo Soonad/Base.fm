@@ -1,0 +1,119 @@
+import Data.Empty@0
+import Data.Or@0
+import Data.And@0
+
+// (p -> q) && p |- q
+modus_ponens : {~P : Type, ~Q : Type, implies : P -> Q, p : P} -> Q
+  implies(p)
+
+// ((p -> q) && ~q) |- ~p
+modus_tollens : { P : Type, Q : Type, implies : P -> Q, nb : Not(Q) } -> Not(P)
+  {x} nb(implies(x))
+
+// (p -> q) && (q -> r) |- (p -> r)
+hypothetical_syllogism :
+  {~P : Type, ~Q : Type, ~R : Type
+  , f : P -> Q
+  , g : Q -> R
+  , x : P
+  } -> R
+  g(f(x))
+
+// Modus tollendo ponens: ((p || q) && ~p) |- q
+disjunctive_syllogism :
+  { ~P : Type, ~Q : Type
+  , case c : Or(P,Q)
+  , nP : Not(P)
+  } -> Q
+| left  => absurd(nP(c.value), ~Q)
+| right => c.value
+
+// (p -> q) && (r -> s) && (p || r) |- (q || s)
+constructive_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(P,R)
+  } -> Or(Q,S)
+| left  => left(~Q, ~S, f(c.value))
+| right => right(~Q, ~S, g(c.value))
+
+// (p -> q) && (r -> s) && (~q || ~s) |- (~p || ~r)
+destructive_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(Not(Q),Not(S))
+  } -> Or(Not(P),Not(R))
+| left  =>  left(~Not(P), ~Not(R), {p} c.value(f(p)))
+| right => right(~Not(P), ~Not(R), {r} c.value(g(r)))
+
+// (p -> q) && (r -> s) && (p || ~s) |- (q || ~r)
+bidirectional_dilemma :
+  {~P : Type, ~Q : Type, ~R : Type, ~S : Type
+  , f : P -> Q
+  , g : R -> S
+  , case c : Or(P,Not(S))
+  } -> Or(Q,Not(R))
+| left  =>  left(~Q, ~Not(R), f(c.value))
+| right => right(~Q, ~Not(R), {r} c.value(g(r)))
+
+// (p && q) |- p
+simplification : {~P : Type, ~Q : Type , case c : And(P,Q)} -> P
+| both => c.left
+
+// p,q |- (p && q)
+conjunction : {~P : Type, ~Q : Type, p : P , q : Q} -> And(P,Q)
+  both(~P,~Q,p,q)
+
+// p |- (p || q)
+logic.addition : {~P : Type, ~Q : Type, p : P} -> Or(P,Q)
+  left(~P,~Q,p)
+
+// (p -> q) && (p -> r) |- (p -> (q && r))
+logic.composition :
+  {~P : Type, ~Q : Type, ~R : Type
+  , f : !(P -> Q)
+  , g : !(P -> R)
+  , p : !P
+  } -> And(!Q,!R)
+  dup p = p
+  dup f = f
+  dup g = g
+  both(~!Q,~!R,#f(p),#g(p))
+
+// (p -> q) |- (~q -> ~p)
+logic.transposition :
+  { ~P : Type, ~Q : Type
+  , f : P -> Q
+  } -> Not(Q) -> Not(P)
+  {nq, p} nq(f(p))
+
+// p -> ~(~p)
+double_negation :
+  { ~P : Type
+  , p : P
+  } -> Not(Not(P))
+  {np} np(p)
+
+NonContradiction : {A : Type, x : A, nx : Not(A)} -> Empty
+  nx(x)
+
+// ~p || ~q -> ~(p && q)
+logic.demorgan1 :
+  {~P : Type, ~Q : Type
+  , case c : Or(Not(P), Not(Q))
+  } -> Not(And(P,Q))
+| left  => {pq} case/And pq | both => c.value(pq.left)  : Empty
+| right => {pq} case/And pq | both => c.value(pq.right) : Empty
+
+// ~p && ~q -> ~(p || q)
+logic.demorgan2 :
+  {~P : Type, ~Q : Type
+  , case c : And(Not(P), Not(Q))
+  } -> Not(Or(P,Q))
+| both => {pq} case/Or pq
+  | left => c.left(pq.value)
+  | right => c.right(pq.value)
+  : Empty
+

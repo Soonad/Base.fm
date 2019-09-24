@@ -1,0 +1,68 @@
+import Relation.Equality@0
+
+// The inductive hypothesis on nats. Erases to Church.
+Ind : Type
+  $ self
+  {~P     : {r : Ind} -> Type} ->
+  {step   : ! {~r : Ind, i : P(r)} -> P(step(r))} ->
+  ! {base : P(base)} ->
+    P(self)
+
+step : {r : Ind} -> Ind
+  new(~Ind){~P, step}
+  dup step = step
+  dup func = (%r)(~P, #step)
+  # {base}
+    step(~r, func(base))
+
+base : Ind
+  new(~Ind){~P, step}
+  dup step = step
+  # {base}
+    base
+
+// Since `Ind` is just the type of the inductive hypothesis wrapped on self,
+// then induction on `Ind` is just identity.
+ind :
+  {n     : Ind
+  , ~P   : {n : Ind} -> Type
+  , step : ! {~n : Ind, i : P(n)} -> P(step(n))
+  , stop : ! P(base)
+  } -> ! P(n)
+  dup step = step
+  dup stop = stop
+  dup loop = (%n)(~P, #step)
+  # loop(stop)
+
+// Induction without indices is just recursion.
+rec : {r : Ind, ~T : Type, step : !{x : T} -> T, base : !T} -> !T
+  dup step = step
+  dup base = base
+  dup loop = (%r)(~{r} => T, #{~n} => step)
+  # loop(base)
+
+// Doubles the number of steps of an `ind`.
+twice : {n : Ind} -> Ind
+  new(~Ind) {~P, STEP}
+  dup STEP = STEP
+  let moti = {n} P(twice(n))
+  let STEP = {~n, i} => STEP(~step(twice(n)), STEP(~twice(n), i))
+  dup loop = (%n)(~moti, #STEP)
+  # {base} loop(base)
+
+// Adds two Inds.
+plus : {a : Ind, b : Ind} -> Ind
+  new(~Ind) {~P, S}
+  dup S = S
+  dup A = (%a)(~{a} => P(plus(a, b)), #{~n, h} => S(~plus(n, b), h))
+  dup B = (%b)(~{b} => P(plus(base, b)), #{~n, h} => S(~plus(base, n), h))
+  # {z} => A(B(z))
+
+#make_equal_inds*N : ![L : Ind, M : Ind ~ : L == M, N == L]
+  get [n0, n1 ~ e1, e2] = make_equal_inds
+  [ step(n0)
+  , step(n1)
+  ~ cong(~step, ~e1)
+  , cong(~step, ~e2)
+  ]
+halt: [base, base ~ refl(~base), refl(~base)]

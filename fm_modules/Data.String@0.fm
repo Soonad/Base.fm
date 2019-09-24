@@ -1,0 +1,91 @@
+import Induction.Nat@0
+import Data.List@0
+
+Char : Type
+  Word
+
+String : Type
+  List(Char)
+
+Output : Type
+  [tag : Word, String]
+
+print : {str : String} -> Output
+  [0x53484f57, str]
+
+#string.example : !Output
+  let str = "Hello, world!"
+  let str = <string_to_chars*256>(str)
+  let str = <reverse*256>(~Char, str)
+  let str = <chars_to_string*256>(str)
+  print(str)
+
+cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
+  cpy chr = chr
+  let fun =
+    if chr .> 0:
+      {chrs : List(Char)} cons(~Char, chr, chrs)
+    else:
+      {chrs : List(Char)} chrs
+  fun(chrs)
+
+#string_to_chars*N : !{str : String} -> List(Char)
+  case/List str
+  | cons =>
+    cpy word = str.head
+    let chrs = string_to_chars(str.tail)
+    let chrs = cons_char((word .>> 24) .& 0xFF, chrs)
+    let chrs = cons_char((word .>> 16) .& 0xFF, chrs)
+    let chrs = cons_char((word .>>  8) .& 0xFF, chrs)
+    let chrs = cons_char( word         .& 0xFF, chrs)
+    chrs
+  | nil => 
+    nil(~Word)
+  : List(Char)
+halt:
+  nil(~Word)
+
+#chars_to_string.go*N : !{case chrs : List(Char), word : Word} -> String
+| cons =>
+  cpy word = (word .>> 8) .| (chrs.head .<< 24)
+  let done = (word .& 0xFF) .> 0
+  let cons = if done: cons(~Word, word) else: {str : String} => str
+  let word = if done: 0 else: word
+  cons(chars_to_string.go(chrs.tail, word))
+| nil =>
+  cons(~Word, word, nil(~Word))
+halt:
+  nil(~Word)
+
+#chars_to_string : {N : Ind} -> dup f = chars_to_string.go*N; !{chrs : List(Char)} -> String
+  f(chrs, 0)
+
+#to_codepoints_aux*N: !{str : String} -> Word -> (Word -> Word) -> List(Char)
+  case/List str
+  | cons => {i}
+    let loop_aux = {x : Word, h : {i : Word, k : Word -> Word} -> List(Char)} =>
+      cpy x = x
+      (if x .> 0:
+        {h : {i : Word, k : Word -> Word} -> List(Char), i : Word} =>
+        cpy i = i
+        (if i .= 0:
+          if                     x .< 0x80 : {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => cons(~Word, x, h(0, {k} => k))
+          else: if (x .> 0xc1) * (x .< 0xe0): {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => h(1, {y} => x + (y .<< 8))
+          else: if (x .> 0xdf) * (x .< 0xf0): {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => h(2, {y} => x + (y .<< 8))
+          else: if (x .> 0xef) * (x .< 0xf5): {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => h(3, {y} => x + (y .<< 8))
+          else:                             {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => cons(~Word, 0xbdbfef, h(0, {k} => k))
+          // Replacement Character: "�"
+        else:
+          if i .= 1: {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => cons(~Word, k(x), h(0, {k} => k))
+          else:       {h : {i : Word, k : Word -> Word} -> List(Char), x : Word, k : Word -> Word} => h(i - 1, {y} => k(x + (y .<< 8))))(h, x)
+      else: {h : {i : Word, k : Word -> Word} -> List(Char)} => h)(h)
+    cpy c = str.head
+    let h = to_codepoints_aux(str.tail)
+    loop_aux((c .>> 0) .& 0xFF, loop_aux((c .>> 8) .& 0xFF, loop_aux((c .>> 16) .& 0xFF, loop_aux((c .>> 24) .& 0xFF, h))), i)
+  | nil => {i, k} => nil(~Char)
+  : {i : Word, k : Word -> Word} -> List(Char)
+halt: {i, k} => nil(~Char)
+
+to_codepoints: {N : Ind} -> !{str : String} -> List(Char)
+  dup f = to_codepoints_aux*N
+  # {str} => f(str, 0, {k} => k)

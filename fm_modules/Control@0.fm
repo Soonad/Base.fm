@@ -1,0 +1,12 @@
+import Control.Applicative@0
+import Control.Functor@0
+import Control.Contravariant@0
+import Control.Bifunctor@0
+import Control.Profunctor@0
+import Control.Monad@0
+import Control.Comonad@0
+
+// The Control module namespace describes abstractions over the category FORM
+// consisting of objects `Type` and morphisms `Type -> Type`. In other words,
+// Control exports useful notions and patterns from the Category namespace
+// concretized to the specific category inhabited by the Formality language.

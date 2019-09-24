@@ -1,0 +1,59 @@
+import Data.Function@0 as F
+
+T Applicative {M : Type -> Type}
+| applicative
+
+  // A way to wrap values
+  { pure :
+    { ~A : Type
+    , x  : A
+    } -> M(A)
+
+  // A way to apply wrapped functions to wrapped values
+  , apply :
+    { ~A : Type
+    , ~B : Type
+    , mf : M(A -> B)
+    , ma : M(A)
+    } -> M(B)
+
+  // wrapped identity is the same as unwrapped identity
+  , identity :
+    { ~A : Type
+    , ma : M(A)
+    } -> apply(~A, ~A, pure(~(A -> A), F/id(~A)), ma) == ma
+
+  // wrapped function composition is the same as unwrapped composition
+  , composition :
+    { ~A : Type
+    , ~B : Type
+    , ~C : Type
+    , u  : M(B -> C)
+    , v  : M(A -> B)
+    , w  : M(A)
+    } -> let cmp = pure(~((B -> C) -> (A -> B) -> A -> C), F/compose(~A,~B,~C))
+         let a1  = apply(~A, ~C)
+         let a2  = apply(~(A -> B), ~(A -> C))
+         let a3  = apply(~(B -> C), ~((A -> B) -> A -> C))
+         let a4  = apply(~B, ~C)
+         let a5  = apply(~A, ~B)
+
+         a1(a2(a3(cmp, u),v),w) == a4(u, a5(v, w))
+
+  // applying a wrapped function to a wrapped value is the same unwrapped
+  // function application
+  , homomorphism :
+    { ~A : Type
+    , ~B : Type
+    , f  : A -> B
+    , x  : A
+    } -> apply(~A, ~B, pure(~(A -> B), f), pure(~A, x)) == pure(~B, f(x))
+
+  // wrapped piping or flipped application behaves the same as unwrapped piping
+  , interchange :
+    { ~A : Type
+    , ~B : Type
+    , f : M(A -> B)
+    , x : A
+    } -> apply(~A, ~B, f, pure(~A, x)) == apply(~(A -> B), ~B, pure(~((A -> B) -> B), F/pipe(~A,~B,x)), f)
+  }
