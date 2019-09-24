@@ -25,14 +25,14 @@ Or.association1 : {~A : Type, ~B : Type, ~C : Type, case c : Or(A,Or(B,C))} -> O
 | left =>
   left(~Or(A,B), ~C, left(~A,~B,c.value))
 | right =>
-  case/Or c.value as k
+  case/Or k = c.value
   | left  => left(~Or(A,B), ~C, right(~A,~B, k.value))
   | right => right(~Or(A,B), ~C, k.value)
   : Or(Or(A,B),C)
 
 Or.association2 : {~A : Type, ~B : Type, ~C : Type, case c : Or(Or(A,B), C)} -> Or(A,Or(B,C))
 | left =>
-  case/Or c.value as k
+  case/Or k = c.value
   | left  => left(~A, ~Or(B,C), k.value)
   | right => right(~A, ~Or(B,C), left(~B,~C, k.value))
   : Or(A,Or(B,C))
@@ -49,11 +49,11 @@ Or.association : {~A : Type, ~B : Type, ~C : Type} -> Iff(Or(A,Or(B,C)), Or(Or(A
 // (p || q) && (p || r) -> p || (q && r)
 Or.distribution1 : {~P : Type, ~Q : Type, ~R : Type, case c : And(Or(P,Q), Or(P,R))} -> Or(P,And(Q,R))
 | both =>
-  case/Or c.left as x
+  case/Or x = c.left
   | left =>
     left(~P,~And(Q,R), x.value)
   | right =>
-    case/Or c.right as y
+    case/Or y = c.right
     | left  => left(~P, ~And(Q,R), y.value)
     | right => right(~P, ~And(Q,R), both(~Q, ~R, x.value, y.value))
     : Or(P, And(Q, R))
@@ -64,7 +64,7 @@ Or.distribution2 : {~P : Type, ~Q : Type, ~R : Type, case c : Or(!P,And(Q,R))} -
 | left => dup value = c.value
     both(~Or(!P,Q), ~Or(!P,R), left(~!P,~Q, #value), left(~!P,~R, #value))
 | right =>
-  case/And c.value as x
+  case/And x = c.value
   | both =>
     let Lft = Or(!P,Q)
     let Rgt = Or(!P,R)

@@ -107,8 +107,8 @@ halt:
 #zipp-f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   new(~List(B)){~P, consf, nilf}
   case/List func
-  move consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
-  move nilf  : P(nil(~B))
+  + move consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
+  + move nilf  : P(nil(~B))
   | cons =>
     case/List list
     | cons => consf(func.head(list.head), zipp-f(~A, ~B, func.tail, list.tail))
