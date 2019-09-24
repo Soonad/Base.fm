@@ -17,20 +17,23 @@ query_builder.zero : {~A : Type, query : A -> [:A, A]} -> QueryBuilder(A, zero)
   {~K, edit} edit(query)
 
 query_builder.succ : {~A : Type, ~n : Nat, side : Word, build : QueryBuilder(A, n)} -> QueryBuilder(A, succ(n))
-  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))], {fn, arr}
-    let swap   = {a : Array(A, n), b : Array(A, n)} [b, a]
-    let keep   = {a : Array(A, n), b : Array(A, n)} [a, b]
-    get [a, b] = arr
-    get [a, b] = (if side: swap else: keep)(a,b)
-    get [w, a] = fn(a)
-    get [a, b] = (if side: swap else: keep)(a,b)
-    [w, [a, b]]))
+  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))],
+    {fn, arr} (if side
+      then: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
+        get [a, b] = arr
+        get [w, b] = fn(b)
+        [w, [a, b]]
+      else: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
+        get [a, b] = arr
+        get [w, a] = fn(a)
+        [w, [a, b]]
+      )(arr, fn)))
 
-#query_builder*N : !{~A : Type, path : Word, query : A -> [:A, A]} -> [idx : Word, QueryBuilder(A, <nat(N)>)]
-  get [idx, arb] = query_builder(~A, path, query)
-  cpy idx = idx
-  [idx + 1, query_builder.succ(~A, ~<nat(N)>, (path .>> idx) .& 1, arb)]
-halt: [0, query_builder.zero(~A, query)]
+#query_builder*N : !{~A : Type, path : Word, query : A -> [:A, A]} -> [path : Word, QueryBuilder(A, <nat(N)>)]
+  get [path_rest, builder] = query_builder(~A, path, query)
+  cpy path_rest            = path_rest
+  [path_rest .>> 1, query_builder.succ(~A, ~<nat(N)>, path_rest .& 1, builder)]
+halt: [path, query_builder.zero(~A, query)]
 
 #query : {N : Ind} -> !{~A : Type, path : Word, query : A -> [:A, A], array : Array(A, <nat(N)>)} -> [arr : Array(A, <nat(N)>), A]
   get [a, b] = snd(<query_builder(N)>(~A, path, query))(~Array(A, <nat(N)>) -> [x : A, Array(A, <nat(N)>)], {x}x, array)
