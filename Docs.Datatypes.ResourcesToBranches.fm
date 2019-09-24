@@ -15,7 +15,7 @@ branches.example_0a : {a : Bool, b : Bool} -> Bool
 
 branches.example_0b : {a : Bool, b : Bool} -> Bool
   case/Bool a
-  move b : Bool
+  + move b : Bool
   | true  => b
   | false => not(b)
   : Bool
