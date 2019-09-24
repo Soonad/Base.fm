@@ -1,0 +1,18 @@
+import Base@0
+
+// If expressions allows branching with a `Word` condition.
+
+// Usage is straightforward:
+if_then_else.example_0 : Output
+  let age = 30
+  if age .< 18:
+    print("boring teenager")
+  else:
+    print("respect your elders!")
+
+// You can also use `then:`
+if_then_else.example_1 : Output
+  let age = 30
+  if age .< 18
+  then: print("boring teenager")
+  else: print("respect your elders!")

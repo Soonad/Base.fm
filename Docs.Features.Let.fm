@@ -1,0 +1,15 @@
+import Base@0
+
+// Let expressions allow you to give local names to terms:
+let.example_0 : Output
+  let hello = "Hello, world!"
+  print(hello)
+
+// They can be infinitely nested:
+let.example_1 : Output
+  let output =
+    let hello = "Hello, world!"
+    print(hello)
+  output
+
+// Let has no computational effect. It performs a parse-time substitution.

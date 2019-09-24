@@ -62,18 +62,25 @@ halt: [path, query_builder.zero(~A, query)]
 #array.test : ![:Word, :Word, :Word, :Word, Word]
   // Prepares functions
   let cop = {x : Word} cpy x = x; [x, x]
-  let set = set*4(~Word, #cop)
-  let mut = mut*4(~Word, #cop)
-  let got = got*4(~Word, #cop)
+  let set = set*8(~Word, #cop)
+  let mut = mut*8(~Word, #cop)
+  let got = got*8(~Word, #cop)
 
   // Creates array
   let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
 
   // Performs many operations
   get [arr, a] = <set>(2, 100, arr)    // a = arr[2]; arr[2] = 100
   get [arr, b] = <mut>(4, +(100), arr) // b = arr[4]; arr[4] = arr[4] + 100
   get [arr, c] = <got>(2, arr)         // c = arr[2]
   get [arr, d] = <got>(4, arr)         // d = arr[4]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
+  get [arr, e] = <got>(6, arr)         // e = arr[6]
   get [arr, e] = <got>(6, arr)         // e = arr[6]
 
   // Returns numbers
