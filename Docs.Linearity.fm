@@ -1,8 +1,7 @@
 import Base@0
 // ## Linearity
 
-// Formality's approach to termination is what makes it different from other proof languages like Agda, Idris and Coq. Instead of having native datatypes, structural recursion and so on, we go deeper and change the underlying logic of the system from intuitionist to elementary affine. This is responsible for all the claimed benefits of Formality: optimal reductions, no garbage-collection, massive parallelism, elegant inductive types and so on. But it comes with a huge tradeoff: our lambdas are affine, i.e., bound variables can't be used more than once. This limits what we can do in multiple ways. For example, we can't write a function that `and`s a `Bool` with itself:
-
+// Formality's approach to termination is what makes it different from other proof languages like Agda, Idris and Coq. Instead of having native datatypes, structural recursion and so on, we go deeper and change the underlying logic of the system from intuitionist to elementary affine. This is responsible for all the claimed benefits of Formality: optimal reductions, no garbage-collection, massive parallelism, elegant inductive types and so on. But it comes with a huge tradeoff: our lambdas are affine, i.e., bound variables can't be used more than once. This limits what we can do in multiple ways. For example, we can't write a function that `and`s a `Bool` with itself:s
 
 linearity.example_0 : {x : Bool} -> Bool
   and(x, x)

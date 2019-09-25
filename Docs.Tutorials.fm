@@ -6,3 +6,11 @@ import Docs.Recursion.StructuralRecursion
 import Docs.Linearity
 import Docs.Linearity.ReuseVariable
 import Docs.Linearity.CasedArguments
+import Docs.Linearity.ExplicitCopy
+import Docs.Linearity.UseBoxes
+
+import Docs.Boxes 
+import Docs.Boxes.StratificationCondition
+import Docs.Boxes.Application
+
+import Docs.TheoremProving.SimpleProofs
