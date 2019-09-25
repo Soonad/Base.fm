@@ -32,16 +32,16 @@ polymorphism.example_1 : [:Pair(Bool, Bool), Pair(Bool, Bool)]
   [a, b]
 
 // By combining polymorphism with recursive types, we can create the popular
-// List type:
+// List type (already defined on the base libs above):
 
-T List {T : Type}
-| cons {head : T, tail : List(T)}
-| nil
+// T List {T : Type}
+// | cons {head : T, tail : List(T)}
+// | nil
 
-// {- Returns all but the first element -}
-tail : {~T : Type, case list : List(T)} -> List(T)
-| cons => list.tail
-| nil  => nil(~T)
+// Returns all but the first element
+// tail : {~T : Type, case list : List(T)} -> List(T)
+// | cons => list.tail
+// | nil  => nil(~T)
 
 polymorphism.example_2a : List(Word)
   tail(~Word, cons(~Word, 1, cons(~Word, 2, cons(~Word, 3, nil(~Word)))))
