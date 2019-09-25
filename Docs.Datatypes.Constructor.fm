@@ -18,7 +18,10 @@ constructor.example_0_test : Output
 
   print(constructor.example_0(john))
 
-// As you can see, fields can be accessed inside case expressions and case arguments. Notice that p.name is not a field accessor, but just a single variable: the . is part of its name. When Formality doesn’t know the name of the matched value, you must must explicitly name it using the as keyword:
+// As you can see, fields can be accessed inside case expressions and case
+// arguments. Notice that p.name is not a field accessor, but just a single
+// variable: the . is part of its name. When Formality doesn’t know the name of
+// the matched value, you must must explicitly name it using the as keyword:
 
 constructor.example_1 : {p : Person} -> String
   case/Person person(26, "John") as john

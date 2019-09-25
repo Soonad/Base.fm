@@ -1,11 +1,13 @@
-// Write your first program
+// Welcome to Formality documentation!
+
+// How to write your first program:
 import Docs.HelloWorld
 
-// List of core features
+// List of core features:
 import Docs.Features
 
-// Overview of the datatype system
+// Everything about datatypes:
 import Docs.Datatypes
 
-// More in-depth explanations
+// In-depth tutorials:
 import Docs.Tutorials

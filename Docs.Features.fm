@@ -1,12 +1,14 @@
+// Formality-Lang can be seen as a pack of syntax sugars on top of a small core
+// language. Here, we'll explain all the features of that core language.
+
 import Docs.Features.Let
 import Docs.Features.Word
 import Docs.Features.IfThenElse
 import Docs.Features.Pair
-import Docs.Features.Functions
-import Docs.Features.Boxes
+import Docs.Features.Lambda
+import Docs.Features.Box
 import Docs.Features.Equality
-import Docs.Features.SelfTypes
-import Docs.Features.Annotations
+import Docs.Features.Self
+import Docs.Features.Annotation
 import Docs.Features.Holes
 import Docs.Features.Logs
-

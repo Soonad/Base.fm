@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Let expressions allow you to give local names to terms:
 let.example_0 : Output

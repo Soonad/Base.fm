@@ -19,7 +19,12 @@ enumerations.example_0a : {suit : Suit} -> Output
 enumerations.example_0_test : Output
   enumerations.example_0a(spades)
 
-// The program above creates a datatype, Suit, with 4 possible values. In Formality, we call those values constructors. It then pattern-matches a suit and outputs a different sentence depending on it. Notice that the case expression requires you to annotate the returned type: that’s called the motive, and is very useful when theorem proving. You can omit it by using a case argument instead:
+// The program above creates a datatype, Suit, with 4 possible values. In
+// Formality, we call those values constructors. It then pattern-matches a suit
+// and outputs a different sentence depending on it. Notice that the case
+// expression requires you to annotate the returned type: that’s called the
+// motive, and is very useful when theorem proving. You can omit it by using a
+// case argument instead:
 
 enumerations.example_0b : {case suit : Suit} -> Output
 | clubs    => print("First rule: you do not talk about Fight Club.")
@@ -27,7 +32,8 @@ enumerations.example_0b : {case suit : Suit} -> Output
 | hearts   => print("You always had mine.")
 | spades   => print("The only card I need is the Ace of Spades! \m/")
 
-// Differently from case expressions, case arguments are shorter and simpler, but are less flexible.
+// Differently from case expressions, case arguments are shorter and simpler,
+// but are less flexible.
 
 
 
