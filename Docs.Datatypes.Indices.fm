@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Indices
 // -------
@@ -59,9 +59,10 @@ T SortedList {A : Type} (xs : List(Word))
   add  : Word,
   head : Word,
   tail : List(Word),
-  prof : SortedList(cons(~Word, head, tail))
+  prof : SortedList(Word, cons(~Word, head, tail))
 } (cons(~Word, head + add, cons(~Word, head, tail)))
-| snil (nil(~Word))
+| snil
+  (nil(~Word))
 
 // Here, SortedList(xs) would mean that xs is a list of Words with elements in
 // descending order, such as [7, 5, 5, 3, 1]. In order words, a function that
@@ -69,3 +70,40 @@ T SortedList {A : Type} (xs : List(Word))
 // indeed, sorted. And so on. Indexed datatypes, in a way, give us a powerful
 // language of specifications which we can use to statically reason about our
 // datatypes and algorithms.
+
+// For a more complex example of indices, here is a Vector, which is like a
+// List, except that its type stores its own length:
+
+// {- From Data.Vector -}
+// {- A vector is a list with a statically known length -}
+T Vector {A : Type} (len : Nat)
+| vcons {~len : Nat, head : A, tail : Vector(A, len)} (succ(len))
+| vnil                                                (zero)
+
+// Every time we call vcons, the len index on the type of the vector increases
+// by one, allowing us to track its length statically:
+
+vector.example_0 : Vector(String, 0n3)
+  vcons(~String, ~0n2, "ichi",
+  vcons(~String, ~0n1, "ni",
+  vcons(~String, ~0n0, "san",
+  vnil(~String))))
+
+// This has many applications. For example, we can create a type-safe vhead
+// that returns the first element of a non-empty vector:
+
+// {- From Data.Vector -}
+// {- A type-safe "head" that returns the first element of a non-empty vector -}
+// {- - On the `vcons` case, return the vector's head -}
+// {- - On the `vnil` case, prove it is unreachable, since `xs.len > 0` -}
+vhead : {~T : Type, ~n : Nat, xs : Vector(T, succ(n))} -> T
+  case/Vector xs
+  + note e : xs.len is succ(n)
+  | vcons => xs.head
+  | vnil  => absurd(zero_isnt_succ(~n, ~e), ~T) 
+  : T
+
+// Notice that constructor indices are accessible on the left side of an
+// equality note. That gives us an e : zero == succ(n) (since zero is the
+// length of vnil, and succ(n) is the length of xs). Since 0 != 1, this branch
+// is unreachable, so we can fill it with an absurd.

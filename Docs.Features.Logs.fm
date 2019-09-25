@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Another handy feature is log(x). When running a program, it will print the
 // normal form of x, similarly to haskell’s console.log and haskell’s print,

@@ -1,13 +1,7 @@
-// Formality includes a powerful datatype system. A new datatype can be defined
-// with the T syntax, which is similar to Haskell’s data, and creates global
-// definitions for its type and constructors. To pattern-match against a value
-// of a datatype, you must use case/T.
-
 import Docs.Datatypes.Enumerations
-import Docs.Datatypes.Constructor
+import Docs.Datatypes.Fields
 import Docs.Datatypes.ResourcesToBranches
 import Docs.Datatypes.DependentMotives
 import Docs.Datatypes.RecursiveFields
 import Docs.Datatypes.Polymorphism
 import Docs.Datatypes.Indices
-import Docs.Datatypes.Vectors

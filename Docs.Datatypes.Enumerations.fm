@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Enumerations can be defined and used as follows:
 
@@ -34,6 +34,3 @@ enumerations.example_0b : {case suit : Suit} -> Output
 
 // Differently from case expressions, case arguments are shorter and simpler,
 // but are less flexible.
-
-
-

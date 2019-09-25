@@ -25,16 +25,16 @@ main : N_Words(4)
 // Suppose that you wanted to create a pair of identical words:
 
 self.SameWords : Type
-  $self [:Word, :Word ~ fst(self) == fst(snd(self))]
+  $self [:Word, :Word, fst(self) == fst(snd(self))]
 
 self.same_words_0 : self.SameWords 
-  new(~self.SameWords) [0, 0 ~ refl(~0)]
+  new(~self.SameWords) [0, 0, refl(~0)]
 
 self.same_words_1 : self.SameWords 
-  new(~self.SameWords) [1, 1 ~ refl(~1)]
+  new(~self.SameWords) [1, 1, refl(~1)]
 
 self.same_words_2 : self.SameWords 
-  new(~self.SameWords) [2, 2 ~ refl(~2)]
+  new(~self.SameWords) [2, 2, refl(~2)]
 
 // Notice how the `self.SameWords` type has access to values of its terms. So,
 // when we instantiate `self.same_words_0`, the `self` variable on the type is
@@ -43,16 +43,16 @@ self.same_words_2 : self.SameWords
 // this effect could be achieved with dependent pairs:
 
 self.SameWordsB : Type
-  [x : Word, y : Word ~ x == y]
+  [x : Word, y : Word, x == y]
 
 self.same_words_b_0 : self.SameWordsB
-  [0, 0 ~ refl(~0)]
+  [0, 0, refl(~0)]
 
 self.same_words_b_1 : self.SameWordsB
-  [1, 1 ~ refl(~1)]
+  [1, 1, refl(~1)]
 
 self.same_words_b_2 : self.SameWordsB
-  [2, 2 ~ refl(~2)]
+  [2, 2, refl(~2)]
 
 // But what is interesting is that Self Types are more expressive than
 // dependent pairs. We could, for example, make an "insanely dependent" pair
@@ -60,13 +60,13 @@ self.same_words_b_2 : self.SameWordsB
 
 self.Insane : Type
   $self
-  [: [a : Word ~ (a * 2) == fst(snd(self))],
-     [b : Word ~ b == fst(fst(self)) + 1]]
+  [: [a : Word, (a * 2) == fst(snd(self))],
+     [b : Word, b == fst(fst(self)) + 1]]
   
 self.insane : self.Insane
   new(~self.Insane)
-  [[1 ~ refl(~2)],
-   [2 ~ refl(~2)]]
+  [[1, refl(~2)],
+   [2, refl(~2)]]
 
 // This define the type of pairs [a,b] such that `a * 2 = b` and `b = a + 2`.
 // Notice the mutual reference. The only possible way to make it is with `a =

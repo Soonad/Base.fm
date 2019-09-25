@@ -52,8 +52,8 @@ functions.example_4_test : Word
 // than once. For example, the program below isn’t allowed, because b is used
 // twice:
 
-functions.example_5 : {b : Bool} -> [:Bool, Bool]
-  [b, b]
+// functions.example_5 : {b : Bool} -> [:Bool, Bool]
+//   [b, b]
 
 // While this sounds limiting, there are many ways to deal with it, as will be
 // explained later, and it is extremelly important for both logical consistency

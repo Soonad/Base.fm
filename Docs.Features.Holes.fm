@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Formality also features holes, which are very useful for development and
 // debugging. A hole can be used to fill a part of your program that you don’t

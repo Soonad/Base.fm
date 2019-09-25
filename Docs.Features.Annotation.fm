@@ -10,20 +10,14 @@ annotations.example_0 : Word
 
 // They're also important for dependent pairs:
 
-annotations.example_1 : Word
+annotations.example_1
   [1, 2]
 
-annotations.example_2 : Word
-  [1, 2] :: [x : Word, if x: Word else: Bool]
+annotations.example_2
+  [1, 2] :: [x : Word, (if x: Word else: Bool)]
 
 // The pairs above have different types, despite having the same value.
+// Explicit annotations are inline, different from top-level annotations:
 
-// Remember that explicit annotations are different from lambda annotations:
-
-annotations.example_3 : {x : Word, y : Word} -> Word
-  ({x : Word, y : Word} x + y)(40, 2)
-
-// And from top-level annotations:
-
-annotations.example_4 : [x : Word, if x: Word else: Bool]
+annotations.example_3 : [x : Word, (if x: Word else: Bool)]
   [1, 2]

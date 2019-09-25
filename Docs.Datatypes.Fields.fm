@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Construtor with Fields
 // ----------------------
@@ -15,7 +15,6 @@ constructor.example_0 : {p : Person} -> String
 
 constructor.example_0_test : Output
   let john = person(26, "John")
-
   print(constructor.example_0(john))
 
 // As you can see, fields can be accessed inside case expressions and case
@@ -23,10 +22,7 @@ constructor.example_0_test : Output
 // variable: the . is part of its name. When Formality doesn’t know the name of
 // the matched value, you must must explicitly name it using the as keyword:
 
-constructor.example_1 : {p : Person} -> String
+constructor.example_1 : {p : Person} -> Word
   case/Person person(26, "John") as john
-| person => john.age
-: Word
-
-
-
+  | person => john.age
+  : Word

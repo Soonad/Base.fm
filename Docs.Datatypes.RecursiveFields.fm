@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Recursive Fields
 // ----------------
@@ -25,12 +25,12 @@ T Loop
 // While recursion is very liberal on types, the same isn’t true for programs.
 // You can’t write recursive functions directly, such as:
 
-rec_fields.example_0a : {case n : Nat} -> Nat
-| succ => succ(succ(rec_fields.example_0a(n)))
-| zero => zero
+// rec_fields.example_0a : {case n : Nat} -> Nat
+// | succ => succ(succ(rec_fields.example_0a(n)))
+// | zero => zero
 
-rec_fields.example_0a_test : Nat
-  rec_fields.example_0a(0n2)
+// rec_fields.example_0a_test : Nat
+//   rec_fields.example_0a(0n2)
 
 // This makes dealing with recursive datatypes more complex than usual, since
 // you must use a boxed definition:

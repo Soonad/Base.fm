@@ -1,15 +1,15 @@
-import Base@0
+import Base
 
 // Moving resources to branches
 // ----------------------------
 
 // Since Formality functions are affine, you can’t use an argument more than once. So, for example, the function below isn’t allowed:
 
-branches.example_0a : {a : Bool, b : Bool} -> Bool
-  case/Bool a
-  | true  => b
-  | false => not(b)
-  : Bool
+// branches.example_0a : {a : Bool, b : Bool} -> Bool
+//   case/Bool a
+//   | true  => b
+//   | false => not(b)
+//   : Bool
 
 // In this case in particular, you used b in two different branches, so you shouldn’t need to copy it. You can fix it with the move keyword:
 
@@ -35,10 +35,3 @@ branches.example_0d : {case a : Bool, b : Bool} -> Bool
 | false => not(b)
 
 // As you can see, the version using case arguments is the shortest.
-
-
-
-
-
-
-
