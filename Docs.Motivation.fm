@@ -53,3 +53,5 @@
 // from other assistants, but found techniques to emulate Coq’s structural
 // recursion, to perform large eliminations, and even an hypothetical encoding
 // of higher inductive types; and we’ve barely began exploring the system.
+
+import Base

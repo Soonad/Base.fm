@@ -27,3 +27,5 @@
 // terminal. If you see Formality’s command-line options, then it has been
 // successfully installed in your system. If you have any problem during this
 // process, please open an issue on https://github.com/moonad/formality!
+
+import Base
