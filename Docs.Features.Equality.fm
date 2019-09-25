@@ -1,0 +1,81 @@
+import Base
+
+// Formality includes untyped equality primitives, the same one seen in Cedille
+// (https://github.com/cedille/cedille)
+
+// syntax	                       | description
+// ----------------------------- | ------------------------------------------------
+// a == b                        | A type asserting that a is equal to b
+// refl(~x)                      | A proof that x == x
+// sym(~e)                       | Given e : a == b, proves b == a
+// cong(~f, ~e)                  | For any f, given e : a == b, proves f(a) == f(b)
+// t :: rewrite x in P(x) with e | Given e : a == b and t : P(a), proves P(b)
+
+// Here, a == b is a type specifying that a is equal to b. It is not a proof,
+// it is merely “a question”. To prove it, you must construct a term x of type
+// a == b. The only way to do it directly is with refl(~t), which proves that a
+// term is equal to itself. That is, for any t, proves t == t. So, for example:
+
+equality.example_0 : 1 == 1
+  refl(~1)
+
+// That means refl(~1) is a proof that 1 == 1. As you can see, we can have
+// values inside types: that’s perfectly normal in Formality.
+
+// Equalities are useful to, among other things, restrict the domain of a
+// function. For example:
+
+equality.example_1 : {x : Word, y : Word, ~e : (x + y) == 10} -> Word
+  x * y
+
+equality.example_1_test : Word
+  equality.example_1(3, 7, ~refl(~10))
+
+// This “small multiplication” function can only be called if its first two
+// arguments add to 10. This is enforced by the presence of the third argument,
+// e, which is erased (due to the ~). In other words, differently than a
+// classic “assert”, this restriction is checked statically and has no runtime
+// costs. As an exercise, try changing the arguments of mul_small on the
+// program above and see what happens.
+
+// Equality can be used and manipuled with 3 primitives. The sym primitive just
+// flips the sides of an equality. The cong primitive just appends a function
+// to both sides. The rewrite primitive allows us to substitute equal terms in
+// arbitrary types. It consists of a term to be casted (t), a variable (x), a
+// template (P(x)) and an equality proof (e), and performs the following
+// operation:
+
+// Step 1: assert that `e`'s type is an equality.
+// Step 2: replace the template's variable by the left-side of the equality.
+// Step 3: assert that the type of `a` matches the type above.
+// Step 4: replace the template's variable by the right-side of the equality.
+// Step 5: cast `t` to the type above.
+
+// For example, suppose that we had a function that received a x : Word and a y
+// : Word that added to 9, and we wanted to call small_mul with them. We could
+// try this:
+
+equality.example_2 : {x : Word, y : Word, ~e : (x + y) == 10} -> Word
+  equality.example_1(x + y, 1, ~e)
+
+// Try to obtain its type and you will see that is not effective. That’s
+// because e is a proof that x + y == 9, not that (x + y) + 1 == 10. But since
+// 9 is smaller than 10, we should be able to call equality.example_1 on x + y.
+// With rewrite, we can do that as follows:
+
+equality.example_3 : {x : Word, y : Word, ~xy_is_9 : (x + y) == 9} -> Word
+  // The term to be casted.
+  let t = refl(~10)
+
+  // The rewrite equality.
+  let e = sym(~xy_is_9)
+
+  // Step 1: asserted `e`'s type is an equality (`9 == x + y`).
+  // Step 2: replacing `k` on the template by `9`, we get `(9 + 1) == 10`.
+  // Step 3: asserted that `t : 10 == 10` matches the type above (by reduction).
+  // Step 4: replacing `k` on the template by `x + y`, we get `((x + y) + 1) == 10`.
+  // Step 5: `t` is casted to the type above.
+  let t = t :: rewrite k in (k + 1) == 10 with e
+
+  // Since `T : ((x + y) + 1) == 10`, we can call `equality.example_1` with `(x + y)` and `1`.
+  equality.example_1(x + y, 1, ~t)

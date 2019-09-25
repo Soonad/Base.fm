@@ -2,6 +2,14 @@ import Base
 
 // Native pairs store two elements of possibly different types.
 
+// syntax             | description
+// ------------------ | -------------------------------------
+// [x : A, B(x)]	    | The type of a pair
+// [a, b]	            | Creates a pair with elements a and b
+// fst(p)	            | Extracts the first element of a pair
+// snd(p)	            | Extracts the second element of a pair
+// get [a, b] = p ...	| Extracts both elements of a pair
+
 // Creating:
 pair.example_0 : [:Word, Word]
   [1, 2]

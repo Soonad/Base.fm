@@ -1,0 +1,55 @@
+// Formality exists to fill a hole in the current market: there aren’t many
+// languages featuring theorem proving that are simple, user-friendly and
+// efficient. To accomplish that goal, we rely on several design philosophies:
+
+// ## An accessible syntax
+
+// Proof languages often have complex syntaxes that make them needlessly
+// inaccessible, as if the subject wasn’t hard enough already. Coq, for
+// example, uses 3 different languages with different rules and an overall
+// heavy syntax. Agda is clean and beautiful, but relies heavily on unicode and
+// agda-mode, making it essentially unusable outside of EMACs, which is
+// arguably a “hardcore” editor. Formality aims to keep a simple, familiar
+// syntax that is much closer to common languages like Python and JavaScript. A
+// regular TypeScript developer should, for example, be able to read our
+// Functor formalization without extensive training. While we may not be quite
+// there, we’re making fast progress towards that goal.
+
+// ## Fast and portable “by design”
+
+// Some languages are inherently slow, by design. JavaScript, for example, is
+// slower than C: all things equal, its mandatory garbage collector will be an
+// unavoidable disadvantage. Formality is meant to be as fast as theoretically
+// possible. For example, it has affine lambdas, allowing it to be
+// garbage-collection-free. It has a strongly confluent interaction-net
+// runtime, allowing it to be evaluated in massively parallel architectures. It
+// doesn’t require bruijn bookkeeping, making it the fastest “closure chunker”
+// around. It is lazy, it has a clear cost model for blockchains, it has a
+// minuscle (448 LOC) runtime that can easily be ported to multiple platforms.
+// Right now, Formality’s compiler isn’t as mature as the ones found in
+// decades-old languages, but it has endless room for improvements, since the
+// language is fast “by design”.
+
+// ## An optimal high-order evaluator
+
+// Formality’s substitution algorithm is asymptotically faster than Haskell’s,
+// Clojure’s, JavaScript’s and other closure implementations. This makes it
+// extremely fast at evaluating high-order programs, combining a Haskell-like
+// high-level feel with a Rust-like low-level performance curve. For example,
+// Haskell’s stream fusion, a hard-coded, important optimization, happens
+// naturally, at runtime, on Formality. This also allow us to explore new ways
+// to develop algorithms, such as this “impossibly efficient” exp-mod
+// implementation implementation. Who knows if this may lead to new
+// breakthroughs in complexity theory?
+
+// ## An elegant underlying Type Theory
+
+// Formality’s unique approach to termination is conjectured to allow it to
+// have elegant, powerful type-level features that would be otherwise
+// impossible without causing logical inconsistencies. For example, instead of
+// built-in datatypes, we rely on Self Types, which allow us to implement
+// inductive families with native lambdas. As history tells, having elegant
+// foundations often pays back. We’ve not only managed to port several proofs
+// from other assistants, but found techniques to emulate Coq’s structural
+// recursion, to perform large eliminations, and even an hypothetical encoding
+// of higher inductive types; and we’ve barely began exploring the system.

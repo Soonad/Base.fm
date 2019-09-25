@@ -1,0 +1,29 @@
+// You can also explictly annotate the type of a term.
+
+// syntax       |	description
+// term :: Type	| Annotates term with type Type
+
+// This is useful when the type-checker can’t infer the type of an expression.
+
+annotations.example_0 : Word
+  (({x, y} x + y) :: Word -> Word -> Word)(40, 2)
+
+// They're also important for dependent pairs:
+
+annotations.example_1 : Word
+  [1, 2]
+
+annotations.example_2 : Word
+  [1, 2] :: [x : Word, if x: Word else: Bool]
+
+// The pairs above have different types, despite having the same value.
+
+// Remember that explicit annotations are different from lambda annotations:
+
+annotations.example_3 : {x : Word, y : Word} -> Word
+  ({x : Word, y : Word} x + y)(40, 2)
+
+// And from top-level annotations:
+
+annotations.example_4 : [x : Word, if x: Word else: Bool]
+  [1, 2]
