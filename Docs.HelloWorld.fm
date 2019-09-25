@@ -1,5 +1,5 @@
 // This imports our base libraries.
-import Base@0
+import Base
 
 // This is the “Hello, World!”:
 hello_world : Output

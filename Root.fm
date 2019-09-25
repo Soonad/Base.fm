@@ -1,5 +1,5 @@
 import Docs
-import Base@0
+import Base
 
 main : Output
   print("Welcome to Formality!")

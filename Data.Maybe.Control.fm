@@ -41,7 +41,7 @@ maybe.monad : Monad(Maybe)
 
   // Satisfying this identity law
   let identity1 = {~A, ~B, x, f}
-    case/Maybe fx = f(x)
+    case/Maybe f(x) as fx
     | just => refl(~just(~B,fx.value))
     | none => refl(~none)
     : fx == fx
@@ -57,9 +57,9 @@ maybe.monad : Monad(Maybe)
   let associative = {~A, ~B, ~C, m, f, g}
     case/Maybe m
     | just =>
-      case/Maybe fx = f(m.value)
+      case/Maybe f(m.value) as fx
       | just =>
-        case/Maybe gx = g(fx.value)
+        case/Maybe g(fx.value) as gx
         | just => refl(~just(~C,gx.value))
         | none => refl(~none)
         : gx == gx

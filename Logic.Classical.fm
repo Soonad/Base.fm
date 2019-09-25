@@ -9,7 +9,7 @@ double_negation_elimination :
   , em  : Excluded_Middle
   , nnp : Not(Not(P))
   } -> P
-  case/Or x = em(~P)
+  case/Or em(~P) as x
   | left => x.value
   | right => absurd(nnp(x.value), ~P)
   : P

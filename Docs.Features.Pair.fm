@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // Native pairs store two elements of possibly different types.
 

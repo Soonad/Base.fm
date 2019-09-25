@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // If expressions allows branching with a `Word` condition.
 

@@ -31,12 +31,12 @@ And.association : {~A : Type, ~B : Type, ~C : Type} -> Iff(And(A,And(B,C)), And(
 
 And.association1 : {~A : Type, ~B : Type, ~C : Type, case x : And(A,And(B,C))} -> And(And(A,B), C)
 | both =>
-  case/And xr = x.right
+  case/And x.right as xr
   | both => both(~And(A,B), ~C, both(~A,~B, x.left, xr.left), xr.right)
   : And(And(A,B),C)
 
 And.association2 : {~A : Type, ~B : Type, ~C : Type, case x : And(And(A,B), C)} -> And(A,And(B,C))
 | both =>
-  case/And xl = x.left
+  case/And x.left as xl
   | both => both(~A, ~And(B,C), xl.left, both(~B,~C, xl.right, x.right))
   : And(A,And(B,C))
