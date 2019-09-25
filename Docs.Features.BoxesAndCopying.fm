@@ -1,0 +1,4 @@
+// Formality includes primives for performing explicit, deep copies of terms, as long as they’re “boxed”.
+
+// Since this increases the power of the language considerably, in order not to cause logical inconsistencies, and to still allow for an efficient runtime, boxes are limited by the “stratification condition”. It enforces that the number of #s surrounding a term must never change during reduction. As such, boxes aren’t very useful for copying data, but are essential to implement control structures like loops and recursion. This all will be explained in more details later on.
+

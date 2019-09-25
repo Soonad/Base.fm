@@ -2,3 +2,11 @@ import Docs.Features.Let
 import Docs.Features.Word
 import Docs.Features.IfThenElse
 import Docs.Features.Pair
+import Docs.Features.Functions
+import Docs.Features.Boxes
+import Docs.Features.Equality
+import Docs.Features.SelfTypes
+import Docs.Features.Annotations
+import Docs.Features.Holes
+import Docs.Features.Logs
+

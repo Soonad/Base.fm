@@ -1,0 +1,5 @@
+// You can also explictly annotate the type of a term. This is useful when the bidirectional type-checker can’t infer the type of an expression.
+
+annotations.example_0 : Word
+  (({x, y} x + y) :: Word -> Word -> Word)(40, 2)
+
