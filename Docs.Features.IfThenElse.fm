@@ -2,9 +2,9 @@ import Base
 
 // If expressions allows branching with a `Word` condition.
 
-// syntax           |	description
+// syntax           | description
 // ---------------- | -----------------------------------------------
-// if n: a else: b	| If n .= 0, evaluates to b, else, evaluates to a
+// if n: a else: b  | If n .= 0, evaluates to b, else, evaluates to a
 
 // Usage is straightforward:
 if_then_else.example_0 : Output

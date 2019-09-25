@@ -3,7 +3,7 @@ import Base
 // Formality includes untyped equality primitives, the same one seen in Cedille
 // (https://github.com/cedille/cedille)
 
-// syntax	                       | description
+// syntax                        | description
 // ----------------------------- | ------------------------------------------------
 // a == b                        | A type asserting that a is equal to b
 // refl(~x)                      | A proof that x == x

@@ -1,11 +1,11 @@
 // Formality includes primives for performing explicit, deep copies of terms,
 // as long as they’re “boxed”.
 
-// syntax	      | description
+// syntax       | description
 // ------------ | ------------------------
-// #t	          | Puts term t inside a box
-// !T	          | The type of a boxed term
-// dup x = t; u	| Unboxes t and copies it as x inside u
+// #t           | Puts term t inside a box
+// !T           | The type of a boxed term
+// dup x = t; u | Unboxes t and copies it as x inside u
 
 // Creating a boxed Word:
 box.example_0 : !Word

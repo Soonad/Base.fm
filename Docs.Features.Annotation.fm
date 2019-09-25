@@ -1,7 +1,7 @@
 // You can also explictly annotate the type of a term.
 
-// syntax       |	description
-// term :: Type	| Annotates term with type Type
+// syntax       | description
+// term :: Type | Annotates term with type Type
 
 // This is useful when the type-checker can’t infer the type of an expression.
 

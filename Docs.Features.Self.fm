@@ -1,11 +1,11 @@
 // Formality also has Self Types, which allow the type of a term to access its
 // own value:
 
-// syntax	       | description
+// syntax        | description
 // ------------- | -----------------------------------------------------------
 // $self T(self) | T is a type that can access its own value
-// new(~T) t	   | Constructs an instance of a T with value t
-// (%t)	         | Consumes a self-type t, giving its type access to its value
+// new(~T) t     | Constructs an instance of a T with value t
+// (%t)          | Consumes a self-type t, giving its type access to its value
 
 // Note that Self Types are not the same as recursive types. Recursive types
 // allow the type to access *itself*. For example:
