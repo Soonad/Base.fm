@@ -18,7 +18,7 @@ N_Words : {n : Word} -> Type
 
 // The type above allows you to create a list of N words:
 
-main : N_Words(4)
+self.example_0 : N_Words(4)
   [0, 1, 2, 3]
 
 // Self Types allow a type to access *its own value*. This has many uses.
