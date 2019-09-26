@@ -1,7 +1,6 @@
 import Base
 
-// Indices
-// -------
+// # Indices
 
 // Indices are like polymorphic variables, except that, rather than constant
 // types, they are computed values that can depend on each constructor’s
@@ -11,10 +10,10 @@ import Base
 T IsEven (x : Word)
 | make_even {half : Word} (half * 2)
 
-// This datatype has one index, x, of type Word. Its constructor, is_even, has
-// one field, half : Word. When you write make_even(3), the number 3 is
+// This datatype has one index, `x`, of type `Word`. Its constructor, `is_even`, has
+// one field, `half : Word`. When you write `make_even(3)`, the number `3` is
 // multiplied by two and moved to the type-level, resulting in a value of type
-// IsEven(6). So, for example:
+// `IsEven(6)`. So, for example:
 
 even_0 : IsEven(0)
   make_even(0)
@@ -28,10 +27,10 @@ even_4 : IsEven(4)
 even_6 : IsEven(6)
   make_even(3)
 
-// Notice that it is impossible to create a value with type IsEven(3), because
-// that would require a half : Word such that half * 2 == 3, and there is no
+// Notice that it is impossible to create a value with type `IsEven(3)`, because
+// that would require a `half : Word` such that `half * 2 == 3`, and there is no
 // such number. Because of that, indexed datatypes have many applications. For
-// example, suppose that you want to write a div2 function that divides a
+// example, suppose that you want to write a `indice.example_0` function that divides a
 // number by two, but you don’t want it to be called with odd numbers. You
 // could do this:
 
@@ -42,17 +41,17 @@ indice.example_0_test : Word
   indice.example_0(10, ~make_even(5))
 
 // Here, the second argument “proves” that the first is even, making it
-// impossible to call div2 with an odd input. Since x_is_even is erased from
+// impossible to call `indice.example_0` with an odd input. Since `x_is_even` is erased from
 // the runtime, this gives us a static, zero-cost guarantee. Alternatively, we
-// could have used ~x_is_even : [k : Word ~ x == k * 2], but indexed datatypes
+// could have used `~x_is_even : [k : Word ~ x == k * 2]`, but indexed datatypes
 // are more handy in general. For example, you could easily write one for 3
 // consecutive numbers:
 
 T Consecutive (a : Word, b : Word, c : Word)
 | consecutive {init : Word} (init, init + 1, init + 2)
 
-// So, for example, Consecutive(a, b, c) means a, b, c are 3 consecutive
-// numbers such as 7, 8, 9. You could also write a type for sorted lists:
+// So, for example, `Consecutive(a, b, c)` means `a`, `b`, `c` are 3 consecutive
+// numbers such as `7`, `8`, `9`. You could also write a type for sorted lists:
 
 T SortedList {A : Type} (xs : List(Word))
 | scons {
@@ -64,15 +63,15 @@ T SortedList {A : Type} (xs : List(Word))
 | snil
   (nil(~Word))
 
-// Here, SortedList(xs) would mean that xs is a list of Words with elements in
+// Here, `SortedList(xs)` would mean that xs is a list of Words with elements in
 // descending order, such as [7, 5, 5, 3, 1]. In order words, a function that
-// returned [xs : List(Word) ~ SortedList(xs)] could only be written if xs was,
+// returned `[xs : List(Word) ~ SortedList(xs)]` could only be written if `xs` was,
 // indeed, sorted. And so on. Indexed datatypes, in a way, give us a powerful
 // language of specifications which we can use to statically reason about our
 // datatypes and algorithms.
 
 // For a more complex example of indices, here is a Vector, which is like a
-// List, except that its type stores its own length:
+// `List`, except that its type stores its own length:
 
 // {- From Data.Vector -}
 // {- A vector is a list with a statically known length -}
@@ -80,7 +79,7 @@ T Vector {A : Type} (len : Nat)
 | vcons {~len : Nat, head : A, tail : Vector(A, len)} (succ(len))
 | vnil                                                (zero)
 
-// Every time we call vcons, the len index on the type of the vector increases
+// Every time we call `vcons`, the len index on the type of the vector increases
 // by one, allowing us to track its length statically:
 
 vector.example_0 : Vector(String, 0n3)
@@ -89,7 +88,7 @@ vector.example_0 : Vector(String, 0n3)
   vcons(~String, ~0n0, "san",
   vnil(~String))))
 
-// This has many applications. For example, we can create a type-safe vhead
+// This has many applications. For example, we can create a type-safe `vhead`
 // that returns the first element of a non-empty vector:
 
 // {- From Data.Vector -}
@@ -104,6 +103,6 @@ vhead : {~T : Type, ~n : Nat, xs : Vector(T, succ(n))} -> T
   : T
 
 // Notice that constructor indices are accessible on the left side of an
-// equality note. That gives us an e : zero == succ(n) (since zero is the
-// length of vnil, and succ(n) is the length of xs). Since 0 != 1, this branch
+// equality note. That gives us an `e : zero == succ(n)` (since zero is the
+// length of vnil, and `succ(n)` is the length of `xs`). Since `0 != 1`, this branch
 // is unreachable, so we can fill it with an absurd.

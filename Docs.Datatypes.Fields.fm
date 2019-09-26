@@ -1,7 +1,6 @@
 import Base
 
-// Construtor with Fields
-// ----------------------
+// ### Construtor with Fields
 
 // Datatype constructors can have fields, allowing them to store values:
 
