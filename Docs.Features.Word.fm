@@ -1,4 +1,6 @@
-// Words are unsigned integers of 32 bits:
+// ### Word
+
+// `Word`s are unsigned integers of 32 bits:
 word.example_0 : Word
   1900
 
@@ -45,7 +47,7 @@ word.example_4 : Word
   100 * 3
 
 // There is no operator precedence: parenthesis are always placed on the right.
-// That means 3 * 10 + 1 is parsed as 3 * (10 + 1). If you want the
+// That means `3 * 10 + 1` is parsed as `3 * (10 + 1)`. If you want the
 // multiplication to occur first, you must be explicit:
 word.example_5 : Word
   (3 * 10) + 1

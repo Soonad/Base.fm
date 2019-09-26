@@ -1,11 +1,13 @@
+// ### Self Types
+
 // Formality also has Self Types, which allow the type of a term to access its
 // own value:
 
-// syntax        | description
-// ------------- | -----------------------------------------------------------
-// $self T(self) | T is a type that can access its own value
-// new(~T) t     | Constructs an instance of a T with value t
-// (%t)          | Consumes a self-type t, giving its type access to its value
+// syntax          | description
+// --------------- | -----------------------------------------------------------
+// `$self T(self)` | `T` is a type that can access its own value
+// `new(~T) t`     | Constructs an instance of a `T` with value `t`
+// `(%t)`          | Consumes a self-type `t`, giving its type access to its value
 
 // Note that Self Types are not the same as recursive types. Recursive types
 // allow the type to access *itself*. For example:
@@ -16,7 +18,7 @@ N_Words : {n : Word} -> Type
   else:
     [:Word, N_Words(n - 1)]
 
-// The type above allows you to create a list of N words:
+// The type above allows you to create a list of `N` words:
 
 main : N_Words(4)
   [0, 1, 2, 3]
