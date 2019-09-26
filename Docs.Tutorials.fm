@@ -14,3 +14,4 @@ import Docs.Boxes.StratificationCondition
 import Docs.Boxes.Application
 
 import Docs.TheoremProving.SimpleProofs
+import Docs.TheoremProving.InductiveProofs
