@@ -1,0 +1,63 @@
+import Base@0
+// ## Applications
+
+// ### Copying "static" data
+
+// In general of this, boxes aren't very useful for copying data. That's because information can only flow from lower to higher levels. So, for example, if some piece of data is generated on level `2`, you can copy it on level `3`, but you can't use it again on level `2`. Generally, your program's logic should stay on the highest level, with the lower levels being used to copy static data and generate bounded-depth recursive functions. In fact, Formality's syntax sugars and standard libraries are designed to be used with two levels only: the level `0`, where recursive functions are created and static data is duplicated, and the level 1, where everything is used. So, for example, the `Data.List/map` function on `Base` uses level `0` to make multiple copies of `f`, which are used on level `1`:
+
+#app.example_0*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+| cons => cons(~B, f(list.head), app.example_0(list.tail))
+| nil  => nil(~B)
+halt: nil(~B)
+
+// ### Implementing loops/recursion
+
+// While Formality has a built-in syntax for recursion, it can be insightful to understand how it is implemented under the hoods. Mind the following program:
+
+app.example_1 : {~T : Type, f : !{x : T} -> T, x : !T} -> !T
+  dup f = f
+  dup x = x
+  # f(f(f(f(f(f(f(f(f(f(x))))))))))
+
+app.example_1_test : !Word
+  app.example_1(~Word, #{x} x + 2, #0)
+
+
+// Here, we define a function, `app.example_1`, which takes a function, `f`, creates 10 copies of it, and applies to an argument, `x`. As the result, we're able to repeat the `+ 2` operation 10 times, adding `20` to `0`. This same technique can be used to implement bounded recursion. For example, here:
+
+
+app.example_2 : !{n : Word} -> Word
+  let call = {rec, i}
+    cpy i = i
+    if i .= 0:
+      1
+    else:
+      (i * rec(i - 1))
+  let halt = {i}
+    0
+  app.example_1(~{x : Word} -> Word, #call, #halt)
+
+app.example_3a : !Word
+  dup fact = app.example_2
+  # fact(6)
+
+// We "emulate" a recursive function by using `app.example_1` to "build" the recursion tree of "fact" up to 10 layers deep. As such, it only works for inputs up to 10; after that, it hits the "halt" case and returns 0. The good thing about this way of doing recursion is that we're not limited to recurse on structurally smaller arguments. The bad thing is that it is a little bit verbose, requiring an explicit bound, and a halting case for when the function "runs out of gas". Moreover, since we used `app.example_1` to make the function, it comes inside a box, on `level 1`. In other words, it is impossible to use it on `level 0`! Instead, we must use the `level 0` to unbox it (with a `dup`), and then use it on `level 1`. As usual, you could simplify it with a boxed definition:
+
+#app.example_3b : !Word
+  <app.example_2>(6)
+
+// Formality's recursion syntax builds a similar program, except: 
+
+// 1. Instead of a hard-coded max call limit, it is configurable `*N`.
+// 2. Instead of simple repetition, it uses `Nat` induction, allowing you to use the call count, `N`, in types.
+
+// So, for example, when you write:
+
+#app.example4*N : ! {i : Word} -> Word
+  if i .= 0:
+    1
+  else:
+    i * fact(i - 1)
+halt: 0
+
+// It gives you a `app.example4 : {N : Ind} -> !{n : Word} -> Word`, instead of a `app.example4 : !{n : Word} -> Word`. You can call it inside a boxed definition with `<app.example4*MAX_CALLS>(x)`.

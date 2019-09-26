@@ -1,0 +1,20 @@
+import Base@0
+
+// ### Use case'd arguments
+
+// While the trick above is powerful, it increases code complexity. Fortunatelly, if you use `case`'d arguments instead of `case/T` expressions, Formality will automatically do it for you. For example, this works:
+
+// Negates `b` if `a` is true
+cased.example_0 : {case a : Bool, b : Bool} -> Bool
+| true  => not(b)
+| false => b
+
+cased.example_0_test : Bool
+  cased.example_0(true, true)
+
+// And is much less verbose than the solution above. In practice, this features allows you to use a variable once per branch of the function, instead of once per function.
+
+
+
+
+

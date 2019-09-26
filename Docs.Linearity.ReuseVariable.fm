@@ -1,0 +1,30 @@
+import Base@0
+
+// ### Reuse the variable on multiple branches
+
+// If the "duplicated" variable is used in different branches, as in:
+
+// Negates `b` if `a` is true
+reuse_var.example_0a : {a : Bool, b : Bool} -> Bool
+  case/Bool a
+  | true  => not(b)
+  | false => b
+  : Bool
+
+reuse_var.example_0a_test : Bool
+  reuse_var.example_0a(true, true)
+
+
+// Then, we can avoid copying `b` with a clever trick: return a lambda on each branch. Like this:
+
+// Negates `b` if `a` is true
+reuse_var.example_0b : {a : Bool, b : Bool} -> Bool
+  (case/Bool a
+  | true  => {b} not(b)
+  | false => {b} b
+  : Bool -> Bool)(b)
+
+reuse_var.example_0b_test : Bool
+  reuse_var.example_0b(true, true)
+
+// Notice that instead of using `b` directly, the `case/Bool` expression returns, in each case, a different lambda, which is then applied to a single `b`. This prevents using it more than once, and is allowed. This technique is extremelly important for Formality development. 
