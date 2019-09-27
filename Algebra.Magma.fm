@@ -8,8 +8,8 @@ T Magma {A : Type}
 // Properties of binary operations
 // ===============================
 
-Associative : {A : Type, case s : Setoid(A), f : A -> A -> A} -> Type
-| s => {x : A, y : A, z : A} -> s.eq(f(f(x,y),z),f(x,f(y,z)))
+Associative : {A : Type, f : A -> A -> A} -> Type
+  {x : A, y : A, z : A} -> f(f(x,y),z) == f(x,f(y,z))
 
 PowerAssociative : {A : Type, f : A -> A -> A} -> Type;
   {x : A} -> f(f(x,x),x) == f(x,f(x,x))

@@ -82,7 +82,6 @@ endo.right_identity :
        FunEq(A,A,cmp(id(~A),f), f)
   {a} refl(~f(a))
 
-
 // This typechecks?
 //endo.associative.go :
 //  {~A : Type
