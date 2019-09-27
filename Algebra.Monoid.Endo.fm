@@ -1,0 +1,122 @@
+import Relation.Binary
+import Relation.Equality
+import Data.Function
+
+Associative : {A : Type, s : Setoid(A), f : A -> A -> A} -> Type
+  case/Setoid s
+  | setoid => {x : A, y : A, z : A} -> s.eq(f(f(x,y),z),f(x,f(y,z)))
+  : Type
+
+LeftIdentity : {A : Type, case s : Setoid(A), f : A -> A -> A, e : A} -> Type
+| setoid => {y : A^} -> s.eq(f(y,e),y)
+
+RightIdentity : {A : Type, case s : Setoid(A), f : A -> A -> A, e : A} -> Type
+| setoid => {y : A^} -> s.eq(y,f(y,e))
+
+Identity : {A : Type, s : Setoid(A), f : A -> A -> A, e : A} -> Type
+  And(LeftIdentity(A,s,f,e), RightIdentity(A,s,f,e))
+
+T Monoid {A : Type}
+| monoid
+  { f           : A -> A -> A
+  , e           : A
+  , s           : Setoid(A)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  }
+
+eq.reflexive : {~A : Type} -> Reflexive(A,Eq(A))
+  {x} refl(~x)
+
+eq.symmetric : {~A : Type} -> Symmetric(A,Eq(A))
+  {x,y,e} sym(~e)
+
+eq.transitive : {~A : Type} -> Transitive(A,Eq(A))
+  {x,y,z,e1,e2} trans(~A,~x,~y,~z,~e1,~e2)
+
+eq.equivalence : {~A : Type} -> Equivalence(A, Eq(A))
+  equivalence(~A, ~Eq(A),eq.reflexive(~A),eq.symmetric(~A),eq.transitive(~A))
+
+setoid.Eq : {~A : Type} -> Setoid(A)
+  setoid(~A,Eq(A),eq.equivalence(~A))
+
+FunEq : {A : Type, B : Type, f : A -> B, g : A -> B} -> Type
+  {x : A} -> f(x) == g(x)
+
+// Typechecks?
+//funeq.reflexive : {~A : Type} -> Reflexive(A,FunEq(A,sldalakfjsaldfkjas))
+//  {f,x} refl(~f(x))
+
+funeq.reflexive : {~A : Type, ~B : Type} -> Reflexive(A -> B,FunEq(A,B))
+  {f,x} refl(~f(x))
+
+funeq.symmetric : {~A : Type, ~B : Type} -> Symmetric(A -> B,FunEq(A,B))
+  {f,g,e,x} sym(~e(x))
+
+funeq.transitive : {~A : Type, ~B : Type} -> Transitive(A -> B,FunEq(A,B))
+  {f,g,h,e1,e2,x} trans(~B,~f(x),~g(x),~h(x),~e1(x),~e2(x))
+
+funeq.equivalence : {~A : Type,~B : Type} -> Equivalence(A -> B,  FunEq(A,B))
+  equivalence(
+    ~(A -> B)
+  , ~FunEq(A,B)
+  , funeq.reflexive(~A,~B)
+  , funeq.symmetric(~A,~B)
+  ,funeq.transitive(~A,~B)
+  )
+
+setoid.FunEq : {~A : Type, ~B : Type} -> Setoid(A -> B)
+  setoid(~(A -> B),FunEq(A,B),funeq.equivalence(~A,~B))
+
+endo.left_identity :
+  {~A : Type
+  , f : A -> A
+  } -> let cmp = compose(~A,~A,~A)
+       FunEq(A,A,f,cmp(f,id(~A)))
+  {a} refl(~f(a))
+
+endo.right_identity :
+  {~A : Type
+  , f : A -> A
+  } -> let cmp = compose(~A,~A,~A)
+       FunEq(A,A,cmp(id(~A),f), f)
+  {a} refl(~f(a))
+
+
+// This typechecks?
+//endo.associative.go :
+//  {~A : Type
+//  , x : A -> A -> A
+//  , y : A -> A -> A
+//  , z : A -> A -> A
+//  , a : A
+//  } -> let cmp = compose(~A,~A,~A)
+//       cmp(cmp(x,y),z)(a) == cmp(x,cmp(y,z))(a)
+//  refl(~x(y(z(a))))
+
+endo.associative.go :
+  {~A : Type
+  , x : A -> A
+  , y : A -> A
+  , z : A -> A
+  } -> let cmp = compose(~A,~A,~A)
+       FunEq(A,A,cmp(cmp(x,y),z), cmp(x,cmp(y,z)))
+  {a} refl(~x(y(z(a))))
+
+//endo.associative : {~A : Type}
+//  -> Associative(A -> A, setoid.FunEq(~A,~A), compose(~A,~A,~A))
+//  case/Setoid setoid.FunEq(~A,~A) as s
+//  + note e : s.eq is FunEq(~A,~A)
+//  | setoid => ?n //endo.associative.go(~A)
+//  : Associative(A -> A, s, compose(~A,~A,~A))
+
+//endo.identity : {~A : Type}
+//  -> Identity(A -> A, setoid.FunEq(~A,~A), compose(~A,~A,~A), id(~A))
+//  ?
+
+//monoid.endo : {~A : Type} -> Monoid(A -> A)
+//  let g = compose(~A,~A,~A)
+//  let e = id(~A)
+//  let s = setoid.FunEq(~A,~A)
+//  let assoc = {x,y,z,a} 
+//  monoid(~(A -> A),g,e,s,assoc,endo.identity(~A))

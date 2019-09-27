@@ -2,7 +2,6 @@ import Data.And
 import Data.Or
 import Data.Empty
 
-
 // Relations : A -> A -> Type
 
 // properties of relations
@@ -16,7 +15,7 @@ Quasireflexive : {A : Type, R : A -> A -> Type} -> Type
   {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
 
 Transitive : {A : Type, R : A -> A -> Type } -> Type
-  {x : A, y : A, z : A, :And(R(x,y), R(y,z))} -> R(x,z)
+  {x : A, y : A, z : A, :R(x,y), :R(y,z)} -> R(x,z)
 
 Symmetric : {A : Type, R : A -> A -> Type} -> Type
   {x : A, y : A, :R(x,y)} -> R(y,x)
@@ -74,8 +73,6 @@ T Poset {A : Type}
 | { eq            : A -> A -> Type
   , partial_order : PartialOrder(A, eq)
   }
-
-
 
 T Equivalence {A : Type, eq : A -> A -> Type}
 | equivalence

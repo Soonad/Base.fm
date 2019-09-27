@@ -1,5 +1,6 @@
 import Algebra.Magma
 import Algebra.Semigroup
+import Data.Function
 
 T Monoid {A : Type}
 | monoid
@@ -30,3 +31,14 @@ T IdempotentMonoid {A : Type}
   , identity    : Identity(A,f,e)
   , idempotent  : Idempotent(A,f)
   }
+
+// Dual monoid
+monoid.dual : {~A : Type, case m : Monoid(A)} -> Monoid(A)
+| monoid =>
+  let g = {x,y} m.f(y,x)
+  let left_id = LeftIdentity(A,m.f,m.e)
+  let right_id = RightIdentity(A,m.f,m.e)
+  let identity = And.commutation(~left_id, ~right_id, m.identity)
+  monoid(~A,g,m.e,{x,y,z} sym(~m.associative(z,y,x)), identity)
+
+
