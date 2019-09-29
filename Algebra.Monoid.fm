@@ -48,4 +48,3 @@ monoid.dual : {~A : Type, ~s : Setoid(A), case m : Monoid(A,s)} -> Monoid(A,s)
 
 
 
-

@@ -1,5 +1,6 @@
 import Relation.Binary
 import Relation.Equality
+import Algebra.Operation
 
 // The identity function
 id : {~A : Type, x:A} -> A
@@ -72,4 +73,17 @@ feq.Equivalence : {~A : Type,~B : Type} -> Equivalence(A -> B,Feq(A,B))
 feq : {~A : Type, ~B : Type} -> Setoid(A -> B)
  setoid(~(A -> B), Feq(A,B), feq.Equivalence(~A,~B))
 
+feq.associative : {~A : Type} -> Associative(A -> A,feq(~A,~A),compose(~A,~A,~A))
+  case/Setoid feq(~A,~A) as f
+  | setoid => {x,y,z} feq.associative.go(~A,x,y,z)
+  : {x : A -> A, y : A -> A, z : A -> A} -> let cmp = compose(~A,~A,~A)
+    case/Setoid feq(~A,~A) as f | setoid => f.R(cmp(cmp(x,y),z),cmp(x,cmp(y,z))) : Type
 
+feq.associative.go : 
+  {~A : Type
+  , x : A -> A
+  , y : A -> A
+  , z : A -> A
+  } -> let cmp = compose(~A, ~A, ~A)
+       Feq(A,A,cmp(cmp(x, y), z),cmp(x,cmp(y,z)))
+  {a} refl(~(x(y(z(a)))))

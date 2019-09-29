@@ -1,5 +1,6 @@
 import Algebra.Magma
 import Algebra.Operation
+import Data.Function
 
 // A Semigroup is an associative Magma
 T Semigroup {A : Type, s : Setoid(A)}
@@ -62,3 +63,9 @@ T IdempotentSemigroup {A : Type, s : Setoid(A)}
   , associative : Associative(A,s,f)
   , idempotent  : Idempotent(A,s,f)
   }
+
+//semigroup.endo : {~A : Type} -> Semigroup(A -> A,feq(~A,~A))
+//  let f = compose(~A,~A,~A)
+//  let associative = {x,y,z,a} refl(~x(y(z(a))))
+//  semigroup(~(A -> A),~feq(~A,~A),f,associative)
+
