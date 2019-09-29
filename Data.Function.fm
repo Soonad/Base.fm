@@ -1,3 +1,6 @@
+import Relation.Binary
+import Relation.Equality
+
 // The identity function
 id : {~A : Type, x:A} -> A
   x
@@ -9,6 +12,22 @@ const : {~A : Type, ~B : Type, x : A, y : B} -> A
 // Function composition
 compose : {~A : Type, ~B : Type, ~C : Type, g : B -> C, f : A -> B, x : A} -> C
   g(f(x))
+
+// dependent composition
+composeD :
+  { ~A : Type
+  , ~B : Type
+  , ~C : B -> Type
+  , g : {b : B} -> C(b)
+  , f : A -> B
+  , x : A
+  } -> C(f(x))
+  g(f(x))
+
+// uncurry 2-ary function
+uncurry2 : {A : Type, B : Type, C : Type, f : A -> B -> C, p : [:A, B]} -> C
+  get [a, b] = p
+  f(a,b)
 
 // Flip the term arguments
 flip : {~A : Type, ~B : Type, ~C : Type, f : A -> B -> C, y : B, x : A} -> C
@@ -30,5 +49,27 @@ boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
 Fun : {A : Type, B : Type} -> Type
   A -> B
 
+Feq : {A : Type, B : Type, f : A -> B, g : A -> B} -> Type
+  {x : A} -> f(x) == g(x)
+
+// We can prove it's an equivalence relation
+
+feq.Reflexive : {~A : Type, ~B : Type} -> Reflexive(A -> B,Feq(A,B))
+  {~f,x} refl(~f(x))
+
+feq.Symmetric : {~A : Type, ~B : Type} -> Symmetric(A -> B,Feq(A,B))
+  {~f,~g,~e,x} sym(~e(x))
+
+feq.Transitive : {~A : Type, ~B : Type} -> Transitive(A -> B,Feq(A,B))
+  {~f,~g,~h,~e1,~e2,x} trans(~B,~f(x),~g(x),~h(x),~e1(x),~e2(x))
+
+feq.Equivalence : {~A : Type,~B : Type} -> Equivalence(A -> B,Feq(A,B))
+  let fr = feq.Reflexive(~A,~B)
+  let fs = feq.Symmetric(~A,~B)
+  let ft = feq.Transitive(~A,~B)
+  equivalence( ~(A -> B) , ~Feq(A,B), fr,fs,ft)
+
+feq : {~A : Type, ~B : Type} -> Setoid(A -> B)
+ setoid(~(A -> B), Feq(A,B), feq.Equivalence(~A,~B))
 
 

@@ -2,88 +2,86 @@ import Data.And
 import Data.Or
 import Data.Empty
 
-// Relations : A -> A -> Type
+Relation : {A : Type} -> Type
+  A -> A -> Type
 
 // properties of relations
-Reflexive : {A : Type, R : A -> A -> Type} -> Type
-  {x : A} -> R(x,x)
+Reflexive : {A : Type, R : Relation(A)} -> Type
+  {~x : A} -> R(x,x)
 
-Coreflexive : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,x)} -> x == y
+Symmetric : {A : Type, R : Relation(A)} -> Type
+  {~x : A, ~y : A, ~e : R(x,y)} -> R(y,x)
 
-Quasireflexive : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
-
-Transitive : {A : Type, R : A -> A -> Type } -> Type
-  {x : A, y : A, z : A, :R(x,y), :R(y,z)} -> R(x,z)
-
-Symmetric : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,y)} -> R(y,x)
-
-AntiSymmetric : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A, :R(x,y), :R(y,x)} -> x == y
-
-Connexity : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A} -> Or(R(x,y), R(y,x))
-
-SemiConnexity : {A : Type, R : A -> A -> Type} -> Type
-  {x : A, y : A, :Not(x == y)} -> Or(R(x,y), R(y,x))
+Transitive : {A : Type, R : Relation(A)} -> Type
+  {~x : A, ~y : A, ~z : A, ~e1 : R(x,y), ~e2 : R(y,z)} -> R(x,z)
 
 // specific relations
-
-T Preorder {A : Type, eq : A -> A -> Type}
-| preorder
-  { reflexive  : Reflexive(A,eq)
-  , transitive : Transitive(A,eq)
-  }
-
-T Proset {A : Type}
-| proset
-  { eq : A -> A -> Type
-  , preorder : Preorder(A, eq)
-  }
-
-T PartialOrder {A : Type, eq : A -> A -> Type}
-| partial_order
-  { reflexive      : Reflexive(A,eq)
-  , antisymmetric  : AntiSymmetric(A,eq)
-  , transitive     : Transitive(A,eq)
-  }
-
-T Poset {A : Type}
-| { eq            : A -> A -> Type
-  , partial_order : PartialOrder(A, eq)
-  }
-
-
-T TotalOrder {A : Type, eq : A -> A -> Type}
-| total_order
-  { antisymmetric  : AntiSymmetric(A,eq)
-  , transitive     : Transitive(A,eq)
-  , connexity      : Connexity(A,eq)
-  }
-
-T Chain {A : Type}
-| chain
-  { eq          : A -> A -> Type
-  , total_order : TotalOrder(A,eq)
-  }
-
-T Poset {A : Type}
-| { eq            : A -> A -> Type
-  , partial_order : PartialOrder(A, eq)
-  }
-
-T Equivalence {A : Type, eq : A -> A -> Type}
+T Equivalence {A : Type, R : Relation(A)}
 | equivalence
-  { reflexive  : Reflexive(A,eq)
-  , symmetric  : Symmetric(A,eq)
-  , transitive : Transitive(A,eq)
+  { reflexive  : Reflexive(A,R)
+  , symmetric  : Symmetric(A,R)
+  , transitive : Transitive(A,R)
   }
 
 T Setoid {A : Type}
 | setoid
-  { eq          : A -> A -> Type
-  , equivalence : Equivalence(A, eq)
+  { R           : Relation(A)
+  , equivalence : Equivalence(A, R)
+  }
+
+Coreflexive : {A : Type, R : Relation(A), s : Setoid(A)} -> Type
+  {x : A, y : A, :R(x,y)} -> case/Setoid s | setoid => s.R(x,y) : Type
+
+Quasireflexive : {A : Type, R : Relation(A)} -> Type
+  {x : A, y : A, :R(x,y)} -> And(R(x,x),R(y,y))
+
+AntiSymmetric : {A : Type, R : Relation(A), s : Setoid(A)} -> Type
+  {x : A, y : A, :R(x,y), :R(y,x)} -> case/Setoid s | setoid => s.R(x,y) : Type
+
+Connexity : {A : Type, R : Relation(A)} -> Type
+  {x : A, y : A} -> Or(R(x,y), R(y,x))
+
+SemiConnexity : {A : Type, R : Relation(A), s : Setoid(A)} -> Type
+  { x : A
+  , y : A
+  , e : case/Setoid s | setoid => Not(s.R(x,y)) : Type
+  } -> Or(R(x,y), R(y,x))
+
+T Preorder {A : Type, R : Relation(A)}
+| preorder
+  { reflexive  : Reflexive(A,R)
+  , transitive : Transitive(A,R)
+  }
+
+T Proset {A : Type}
+| proset
+  { R : Relation(A)
+  , preorder : Preorder(A, R)
+  }
+
+T PartialOrder {A : Type, R : Relation(A), s : Setoid(A)}
+| partial_order
+  { reflexive      : Reflexive(A,R)
+  , antisymmetric  : AntiSymmetric(A,R,s)
+  , transitive     : Transitive(A,R)
+  }
+
+T Poset {A : Type, s : Setoid(A)}
+| poset
+  { R             : Relation(A)
+  , partial_order : PartialOrder(A, R, s)
+  }
+
+T TotalOrder {A : Type, R : Relation(A), s : Setoid(A)}
+| total_order
+  { antisymmetric  : AntiSymmetric(A,R,s)
+  , transitive     : Transitive(A,R)
+  , connexity      : Connexity(A,R)
+  }
+
+T Chain {A : Type, s : Setoid(A)}
+| chain
+  { R           : Relation(A)
+  , total_order : TotalOrder(A,R,s)
   }
 

@@ -1,44 +1,51 @@
-import Algebra.Magma
 import Algebra.Semigroup
 import Data.Function
+import Logic
 
-T Monoid {A : Type}
+T Monoid {A : Type, s : Setoid(A)}
 | monoid
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
   }
 
 // Monoids are Semigroups
-monoid_to_semigroup : {~A : Type, case m : Monoid(A)} -> Semigroup(A)
-| monoid => semigroup(~A, m.f, m.associative)
+monoid_to_semigroup :
+  {~A : Type
+  ,~s : Setoid(A)
+  , case m : Monoid(A,s)
+  } -> Semigroup(A,s)
+| monoid => semigroup(~A,~s,m.f, m.associative)
 
-T AbelianMonoid {A : Type}
+T AbelianMonoid {A : Type, s : Setoid(A)}
 | abelian_monoid
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , commutative : Commutative(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , commutative : Commutative(A,s,f)
   }
 
-T IdempotentMonoid {A : Type}
+T IdempotentMonoid {A : Type, s : Setoid(A)}
 | idempotent_monoid
   { f           : A -> A -> A
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , idempotent  : Idempotent(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , idempotent  : Idempotent(A,s,f)
   }
 
 // Dual monoid
-monoid.dual : {~A : Type, case m : Monoid(A)} -> Monoid(A)
+monoid.dual : {~A : Type, ~s : Setoid(A), case m : Monoid(A,s)} -> Monoid(A,s)
 | monoid =>
   let g = {x,y} m.f(y,x)
-  let left_id = LeftIdentity(A,m.f,m.e)
-  let right_id = RightIdentity(A,m.f,m.e)
+  let left_id = LeftIdentity(A,s,m.f,m.e)
+  let right_id = RightIdentity(A,s,m.f,m.e)
+  let assoc = dual.associative(~A,~s,~m.f,m.associative)
   let identity = And.commutation(~left_id, ~right_id, m.identity)
-  monoid(~A,g,m.e,{x,y,z} sym(~m.associative(z,y,x)), identity)
+  monoid(~A,~s,g,m.e,assoc,identity)
+
+
 
 
