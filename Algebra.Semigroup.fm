@@ -41,12 +41,11 @@ T InverseSemigroup {A : Type, s : Setoid(A)}
 | inverse_semigroup
   { f : Op2(A)
   , associative : Associative(A,s,f)
-  , inversion : 
+  , inversion :
       case/Setoid s | setoid => 
         {x : A} -> [y : A, :s.R(x, f(x,f(y,x))), s.R(y, f(y,f(x,y)))]
       : Type
   }
-
 
 T AbelianSemigroup {A : Type, s : Setoid(A)}
 | abelian_semigroup
@@ -64,8 +63,8 @@ T IdempotentSemigroup {A : Type, s : Setoid(A)}
   , idempotent  : Idempotent(A,s,f)
   }
 
-//semigroup.endo : {~A : Type} -> Semigroup(A -> A,feq(~A,~A))
-//  let f = compose(~A,~A,~A)
-//  let associative = {x,y,z,a} refl(~x(y(z(a))))
-//  semigroup(~(A -> A),~feq(~A,~A),f,associative)
+semigroup.endo : {~A : Type} -> Semigroup(A -> A,feq(A,A))
+  let f = compose(~A,~A,~A)
+  let associative = {x,y,z,a} refl(~x(y(z(a))))
+  semigroup(~(A -> A),~feq(A,A),f,associative)
 

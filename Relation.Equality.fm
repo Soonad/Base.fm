@@ -41,20 +41,23 @@ trans :
   } -> a == c
   ab :: rewrite x in a == x with bc
 
-eq.Reflexive : {~A : Type} -> Reflexive(A,Eq(A))
+eq.Reflexive : {A : Type} -> Reflexive(A,Eq(A))
   {~x} refl(~x)
 
-eq.Symmetric : {~A : Type} -> Symmetric(A,Eq(A))
+eq.Symmetric : {A : Type} -> Symmetric(A,Eq(A))
   {~x,~y,~e} sym(~e)
 
-eq.Transitive : {~A : Type} -> Transitive(A,Eq(A))
+eq.Transitive : {A : Type} -> Transitive(A,Eq(A))
   {~x,~y,~z,~e1,~e2} trans(~A,~x,~y,~z,~e1,~e2)
 
-eq.Equivalence : {~A : Type} -> Equivalence(A, Eq(A))
-  equivalence(~A, ~Eq(A),eq.Reflexive(~A),eq.Symmetric(~A),eq.Transitive(~A))
+eq.Equivalence : {A : Type} -> Equivalence(A, Eq(A))
+  let er = eq.Reflexive(type(A))
+  let es = eq.Symmetric(type(A))
+  let et = eq.Transitive(type(A))
+  equivalence(~A, ~Eq(A),er,es,et)
 
 eq : {~A : Type} -> Setoid(A)
-  setoid(~A,Eq(A),eq.Equivalence(~A))
+  setoid(~A,Eq(A),eq.Equivalence(type(A)))
 
 // Non-builtin propositional equality
 T Path {A : Type, a : A} (b : A)
@@ -76,7 +79,7 @@ Path_to_Eq : {~A : Type, ~a : A, ~b : A, e : Path(A,a,b)} -> a == b
   | reflect => x
   : a == b
 
-path.Reflexive : {~A : Type} -> Reflexive(A,Path(A))
+path.Reflexive : {A : Type} -> Reflexive(A,Path(A))
   {~x} reflect(~A,~x)
 
 path.sym : {~A : Type, ~a : A, ~b : A, ~e : Path(A,a,b)} -> Path(A,b,a)
@@ -85,7 +88,7 @@ path.sym : {~A : Type, ~a : A, ~b : A, ~e : Path(A,a,b)} -> Path(A,b,a)
   | reflect => reflect(~A,~b) :: rewrite t in Path(A,b,t) with sym(~x)
   : Path(A,b,a)
 
-path.Symmetric : {~A : Type} -> Symmetric(A,Path(A))
+path.Symmetric : {A : Type} -> Symmetric(A,Path(A))
   {~x,~y,~e} path.sym(~A,~x,~y,~e)
 
 path.trans :
@@ -96,17 +99,17 @@ path.trans :
   | reflect => e2 :: rewrite t in Path(A,t,c) with sym(~ab)
   : Path(A,a,c)
 
-path.Transitive : {~A : Type} -> Transitive(A,Path(A))
+path.Transitive : {A : Type} -> Transitive(A,Path(A))
   {~x,~y,~z,~e1,~e2} path.trans(~A,~x,~y,~z,~e1,~e2)
 
-path.Equivalence : {~A : Type} -> Equivalence(A,Path(A))
-  let pr = path.Reflexive(~A)
-  let ps = path.Symmetric(~A)
-  let pt = path.Transitive(~A)
+path.Equivalence : {A : Type} -> Equivalence(A,Path(A))
+  let pr = path.Reflexive(type(A))
+  let ps = path.Symmetric(type(A))
+  let pt = path.Transitive(type(A))
   equivalence(~A,~Path(A),pr,ps,pt)
 
 path : {~A : Type} -> Setoid(A)
-  setoid(~A,Path(A),path.Equivalence(~A))
+  setoid(~A,Path(A),path.Equivalence(type(A)))
 
 path.rewrite :
   { ~A : Type

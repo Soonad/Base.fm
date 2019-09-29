@@ -46,5 +46,15 @@ monoid.dual : {~A : Type, ~s : Setoid(A), case m : Monoid(A,s)} -> Monoid(A,s)
   let identity = And.commutation(~left_id, ~right_id, m.identity)
   monoid(~A,~s,g,m.e,assoc,identity)
 
+dual.associative :
+  { ~A : Type
+  , case ~s : Setoid(A)
+  , ~f : Op2(A)
+  , a : Associative(A,s,f)
+  } -> Associative(A,s,{x,y} f(y,x))
+| setoid => case/Equivalence s.equivalence as se
+  | equivalence => {x,y,z} se.symmetric(~(f(f(z,y),x)),~(f(z,f(y,x))),~a(z,y,x))
+  : {x : A, y : A, z : A} -> s.R(f(z,f(y,x)), f(f(z,y),x))
+
 
 

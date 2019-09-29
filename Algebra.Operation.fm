@@ -16,28 +16,6 @@ Associative : {A : Type, s : Setoid(A), f : Op2(A)} -> Type
     {x : A, y : A, z : A} -> s.R(f(f(x,y),z), f(x,f(y,z)))
   : Type
 
-// Error
-//dual.associative :
-//  { ~A : Type
-//  , case s : Setoid(A)
-//  , ~f : Op2(A)
-//  , a : Associative(A,s,f)
-//  } -> Associative(A,s,{x,y} f(y,x))
-//| setoid => case/Equivalence s.equivalence as se
-//  | equivalence => {x,y,z} se.symmetric(~(f(f(z,y),x)),~(f(z,f(y,x))),a(z,y,x))
-//  : Associative(A,s,{x,y} f(y,x))
-
-dual.associative :
-  { ~A : Type
-  , case ~s : Setoid(A)
-  , ~f : Op2(A)
-  , a : Associative(A,s,f)
-  } -> Associative(A,s,{x,y} f(y,x))
-| setoid => case/Equivalence s.equivalence as se
-  | equivalence => {x,y,z} se.symmetric(~(f(f(z,y),x)),~(f(z,f(y,x))),~a(z,y,x))
-  : {x : A, y : A, z : A} -> s.R(f(z,f(y,x)), f(f(z,y),x))
-
-
 PowerAssociative : {A : Type, s : Setoid(A), f : Op2(A)} -> Type
   case/Setoid s | setoid =>
     {x : A} -> s.R(f(f(x,x),x), f(x,f(x,x)))
