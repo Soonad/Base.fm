@@ -12,18 +12,18 @@ endo.associative : {A : Type} -> Associative(Endo(A),feq(A,A),compose(~A,~A,~A))
 
 endo.identity :
   {A : Type
-  } -> Identity(A -> A, feq(A,A), compose(~A,~A,~A), id(~A))
-  let L = LeftIdentity(A -> A, feq(A,A), compose(~A,~A,~A), id(~A))
-  let R = RightIdentity(A -> A, feq(A,A), compose(~A,~A,~A), id(~A))
+  } -> Identity(Endo(A), feq(A,A), compose(~A,~A,~A), id(~A))
+  let L = LeftIdentity(Endo(A), feq(A,A), compose(~A,~A,~A), id(~A))
+  let R = RightIdentity(Endo(A), feq(A,A), compose(~A,~A,~A), id(~A))
   both(~L, ~R, {y,a} refl(~y(a)), {y,a} refl(~y(a)))
 
 // semigroup of endomorphisms
-endo.semigroup : {~A : Type} -> Semigroup(A -> A,feq(A,A))
+endo.semigroup : {~A : Type} -> Semigroup(Endo(A),feq(A,A))
   let A = type(A)
-  semigroup(~(A -> A),~feq(A,A),compose(~A,~A,~A),endo.associative(A))
+  semigroup(~Endo(A),~feq(A,A),compose(~A,~A,~A),endo.associative(A))
 
-endo.monoid : {~A : Type} -> Monoid(A -> A, feq(A,A))
+endo.monoid : {~A : Type} -> Monoid(Endo(A), feq(A,A))
   let A = type(A)
   let f = compose(~A,~A,~A)
   let e = id(~A)
-  monoid(~(A -> A),~feq(A,A),f,e,endo.associative(A),endo.identity(A))
+  monoid(~Endo(A),~feq(A,A),f,e,endo.associative(A),endo.identity(A))
