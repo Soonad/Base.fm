@@ -182,3 +182,4 @@ Absorption : {A : Type, s : Setoid(A), f : Op2(A), g : Op2(A)} -> Type
   case/Setoid s | setoid =>
     {x : A, y : A} -> [:s.R(g(x, f(x, y)),x), s.R(f(x, g(x,y)),x)]
   : Type
+

@@ -1,4 +1,3 @@
-
 // Operations
 import Algebra.Operation
 
@@ -6,17 +5,17 @@ import Algebra.Operation
 import Algebra.Magma
 import Algebra.Semigroup
 import Algebra.Monoid
-//import Algebra.Quasigroup
-//import Algebra.Group
+import Algebra.Quasigroup
+import Algebra.Group
 
 // Ring-like
-//import Algebra.Quasiring
-//import Algebra.Nearring
-//import Algebra.Semiring
-//import Algebra.Ring
-//import Algebra.Field
+import Algebra.Quasiring
+import Algebra.Nearring
+import Algebra.Semiring
+import Algebra.Ring
+import Algebra.Field
 
-//Lattice-like
-//import Algebra.Lattice
-//import Algebra.Heyting
-//import Algebra.Boolean
+// Lattice-like
+import Algebra.Lattice
+import Algebra.Heyting
+import Algebra.Boolean

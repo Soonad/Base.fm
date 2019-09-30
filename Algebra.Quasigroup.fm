@@ -1,15 +1,15 @@
 import Algebra.Magma
 
-T Quasigroup {A:Type}
+T Quasigroup {A : Type, s : Setoid(A)}
 | quasigroup
-  { f           : A -> A -> A
-  , latinSquare : LatinSquare(A,f)
+  { f           : Op2(A)
+  , latinSquare : LatinSquare(A,s,f)
   }
 
-T LoopQuasigroup {A : Type}
+T LoopQuasigroup {A : Type, s : Setoid(A)}
 | loop_quasigroup
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , identity    : Identity(A,f,e)
-  , latinSquare : LatinSquare(A,f)
+  , identity    : Identity(A,s,f,e)
+  , latinSquare : LatinSquare(A,s,f)
   }

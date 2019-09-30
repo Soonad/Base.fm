@@ -1,30 +1,30 @@
-import Algebra.Magma
+import Algebra.Operation
 
-T Group {A : Type}
+T Group {A : Type, s : Setoid(A)}
 | group
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , inverse     : Inverse(A,f,e,identity)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , inverse     : Inverse(A,s,f,e,identity)
   }
 
-T AbelianGroup {A : Type}
+T AbelianGroup {A : Type, s : Setoid(A)}
 | abelian_group
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , inverse     : Inverse(A,f,e,identity)
-  , commutative : Commutative(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , inverse     : Inverse(A,s,f,e,identity)
+  , commutative : Commutative(A,s,f)
   }
 
-T IdempotentGroup {A : Type}
+T IdempotentGroup {A : Type, s : Setoid(A)}
 | idempotent_group
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , inverse     : Inverse(A,f,e,identity)
-  , idempotent  : Idempotent(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , inverse     : Inverse(A,s,f,e,identity)
+  , idempotent  : Idempotent(A,s,f)
   }

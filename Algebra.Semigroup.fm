@@ -10,12 +10,12 @@ T Semigroup {A : Type, s : Setoid(A)}
   }
 
 magma_to_semigroup :
-  {~A           : Type
-  ,~s           : Setoid(A)
-  , case m           : Magma(A,s)
-  , associative : Associative(A,s, case/Magma m | magma => m.f : Op2(A))
+  {~A : Type
+  ,~s : Setoid(A)
+  , case m : Magma(A,s)
+  , associative : case/Magma m | magma => Associative(A,s,m.f) : Type
   } -> Semigroup(A,s)
-| magma => semigroup(~A,~s,m.f, associative)
+| magma => semigroup(~A,~s,m.f,associative)
 
 // All Semigroups are Magmas
 semigroup_to_magma :
@@ -62,9 +62,3 @@ T IdempotentSemigroup {A : Type, s : Setoid(A)}
   , associative : Associative(A,s,f)
   , idempotent  : Idempotent(A,s,f)
   }
-
-semigroup.endo : {~A : Type} -> Semigroup(A -> A,feq(A,A))
-  let f = compose(~A,~A,~A)
-  let associative = {x,y,z,a} refl(~x(y(z(a))))
-  semigroup(~(A -> A),~feq(A,A),f,associative)
-

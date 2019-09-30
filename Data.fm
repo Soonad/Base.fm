@@ -2,6 +2,8 @@ import Data.And
 import Data.Array
 import Data.Bits
 import Data.Bool
+import Data.Dual
+import Data.Endo
 import Data.Empty
 import Data.Function
 import Data.List

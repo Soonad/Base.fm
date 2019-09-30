@@ -1,3 +1,4 @@
+import Algebra.Operation
 import Algebra.Semigroup
 import Data.Function
 import Logic
@@ -9,6 +10,15 @@ T Monoid {A : Type, s : Setoid(A)}
   , associative : Associative(A,s,f)
   , identity    : Identity(A,s,f,e)
   }
+
+semigroup_to_monoid :
+  {~A : Type
+  ,~s : Setoid(A)
+  , case sem : Semigroup(A,s)
+  , ~e : A
+  , identity : case/Semigroup sem | semigroup => Identity(A,s,sem.f,e) : Type
+  } -> Monoid(A,s)
+| semigroup => monoid(~A,~s,sem.f,e,sem.associative,identity)
 
 // Monoids are Semigroups
 monoid_to_semigroup :
@@ -35,26 +45,4 @@ T IdempotentMonoid {A : Type, s : Setoid(A)}
   , identity    : Identity(A,s,f,e)
   , idempotent  : Idempotent(A,s,f)
   }
-
-// Dual monoid
-monoid.dual : {~A : Type, ~s : Setoid(A), case m : Monoid(A,s)} -> Monoid(A,s)
-| monoid =>
-  let g = {x,y} m.f(y,x)
-  let left_id = LeftIdentity(A,s,m.f,m.e)
-  let right_id = RightIdentity(A,s,m.f,m.e)
-  let assoc = dual.associative(~A,~s,~m.f,m.associative)
-  let identity = And.commutation(~left_id, ~right_id, m.identity)
-  monoid(~A,~s,g,m.e,assoc,identity)
-
-dual.associative :
-  { ~A : Type
-  , case ~s : Setoid(A)
-  , ~f : Op2(A)
-  , a : Associative(A,s,f)
-  } -> Associative(A,s,{x,y} f(y,x))
-| setoid => case/Equivalence s.equivalence as se
-  | equivalence => {x,y,z} se.symmetric(~(f(f(z,y),x)),~(f(z,f(y,x))),~a(z,y,x))
-  : {x : A, y : A, z : A} -> s.R(f(z,f(y,x)), f(f(z,y),x))
-
-
 

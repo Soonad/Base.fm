@@ -50,10 +50,9 @@ boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
 Fun : {A : Type, B : Type} -> Type
   A -> B
 
+// Extentional equality for functions
 Feq : {A : Type, B : Type, f : A -> B, g : A -> B} -> Type
   {x : A} -> f(x) == g(x)
-
-// We can prove it's an equivalence relation
 
 feq.Reflexive : {A : Type, B : Type} -> Reflexive(A -> B,Feq(A,B))
   {~f,x} refl(~f(x))
@@ -70,17 +69,7 @@ feq.Equivalence : {A : Type,B : Type} -> Equivalence(A -> B,Feq(A,B))
   let ft = feq.Transitive(type(A),type(B))
   equivalence( ~(A -> B) , ~Feq(A,B), fr,fs,ft)
 
+// Setoid of functions
 feq : {A : Type, B : Type} -> Setoid(A -> B)
  setoid(~(A -> B), Feq(type(A),type(B)), feq.Equivalence(type(A),type(B)))
 
-feq.associative : {~A : Type} -> Associative(A -> A,feq(A,A),compose(~A,~A,~A))
-  {x,y,z} feq.associative.go(~A,x,y,z)
-
-feq.associative.go : 
-  {~A : Type
-  , x : A -> A
-  , y : A -> A
-  , z : A -> A
-  } -> let cmp = compose(~A, ~A, ~A)
-       Feq(A,A,cmp(cmp(x, y), z),cmp(x,cmp(y,z)))
-  {a} refl(~(x(y(z(a)))))
