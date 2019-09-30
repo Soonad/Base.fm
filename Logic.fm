@@ -1,6 +1,7 @@
 import Data.Empty
 import Data.Or
 import Data.And
+import Data.Iff
 
 // (p -> q) && p |- q
 modus_ponens : {~P : Type, ~Q : Type, implies : P -> Q, p : P} -> Q
@@ -116,4 +117,101 @@ logic.demorgan2 :
   | left => c.left(pq.value)
   | right => c.right(pq.value)
   : Empty
+
+// (p && q) <-> (q && p)
+And.commutation : {~A : Type, ~B : Type , case c : And(A,B)} -> And(B,A)
+| both => both(~B,~A,c.right,c.left)
+
+// p -> (p && p)
+And.tautology : {~A : Type, a : !A} -> And(!A,!A)
+  dup a = a
+  both(~!A,~!A, #a, #a)
+
+// (p && q) && r <-> p && (q && r)
+And.association :
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  } -> Iff(And(A,And(B,C)), And(And(A,B), C))
+  let L = And(A,And(B,C))
+  let R = And(And(A,B), C)
+  let l = {c} case/And c
+    | both => case/And c.right as cr
+      | both => both(~And(A,B), ~C, both(~A,~B, c.left, cr.left), cr.right)
+      : R
+    : R
+  let r = {c} case/And c
+    | both => case/And c.left as cl
+      | both => both(~A, ~And(B,C), cl.left, both(~B,~C, cl.right, c.right))
+      : L
+    : L
+  both(~(L -> R),~(R -> L),l,r)
+
+// p || q -> q || p
+Or.commutation : {~A : Type, ~B : Type , case c : Or(A,B)} -> Or(B,A)
+| left  => right(~B,~A, c.value)
+| right => left(~B,~A, c.value)
+
+// p -> p || q
+Or.tautology_left : {~A : Type, ~B : Type, a : A} -> Or(A,B)
+  left(~A,~B, a)
+
+// p -> q || p
+Or.tautology_right : {~A : Type, ~B : Type, a : A} -> Or(B,A)
+  right(~B,~A, a)
+
+// (p || q) || r <-> p || (q || r)
+Or.association : 
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  } -> Iff(Or(A,Or(B,C)), Or(Or(A,B), C))
+  let L = Or(A,Or(B,C))
+  let R = Or(Or(A,B), C)
+  let l = {c} case/Or c
+    | left => left(~Or(A,B), ~C, left(~A,~B,c.value))
+    | right => case/Or c.value as k
+      | left  => left(~Or(A,B), ~C, right(~A,~B, k.value))
+      | right => right(~Or(A,B), ~C, k.value)
+      : R
+    : R
+  let r = {c} case/Or c
+    | left => case/Or c.value as k
+      | left  => left(~A, ~Or(B,C), k.value)
+      | right => right(~A, ~Or(B,C), left(~B,~C, k.value))
+      : L
+    | right => right(~A, ~Or(B,C), right(~B,~C, c.value))
+    : L
+  both(~(L -> R),~(R -> L),l,r)
+
+// (p || q) && (p || r) <-> p || (q && r)
+Or.distribution :
+  { ~A : Type
+  , ~B : Type
+  , ~C : Type
+  } -> Iff(And(Or(!A,B), Or(!A,C)), Or(!A,And(B,C)))
+  let L = And(Or(!A,B), Or(!A,C))
+  let R = Or(!A,And(B,C))
+  let l = {c} case/And c | both =>
+      case/Or c.left as x
+      | left => left(~!A,~And(B,C), x.value)
+      | right => case/Or c.right as y
+        | left  => left(~!A, ~And(B,C), y.value)
+        | right => right(~!A, ~And(B,C), both(~B, ~C, x.value, y.value))
+        : R
+      : R
+    : R
+  let r = {c} case/Or c
+    | left => dup value = c.value
+        both(~Or(!A,B), ~Or(!A,C), left(~!A,~B, #value), left(~!A,~C, #value))
+    | right => case/And c.value as x
+      | both =>
+        let L2 = Or(!A,B)
+        let R2 = Or(!A,C)
+        let l2 = right(~!A, ~B, x.left)
+        let r2 = right(~!A, ~C, x.right)
+        both(~L2,~R2,l2,r2)
+      :  L
+    : L
+  both(~(L -> R),~(R -> L),l,r)
 

@@ -1,5 +1,7 @@
+import Relation.Binary
+
 // The equality type is built-in
-Eq : {~A : Type, ~a : A, ~b : A} -> Type
+Eq : {A : Type, a : A, b : A} -> Type
   a == b
 
 // Symmetry is built-in
@@ -7,27 +9,130 @@ symmetry : {~A : Type, ~a : A, ~b : A, ~e : a == b} -> b == a
   sym(~e)
 
 // Substitution is built-in
-subst : {~A : Type, ~a : A, ~b : A, ~e : a == b, ~P : A -> Type, x : P(a)} -> P(b)
+substitution :
+  { ~A : Type
+  , ~a : A
+  , ~b : A
+  , ~e : a == b
+  , ~P : A -> Type
+  , x : P(a)
+  } -> P(b)
   x :: rewrite x in P(x) with e
 
 // Congruence (`a == b` implies `f(a) == f(b)`)
-cong2 : {~A : Type, ~B : Type, ~a : A, ~b : A, ~f : A -> B, ~e : a == b} -> f(a) == f(b)
+congruence :
+  { ~A : Type
+  , ~B : Type
+  , ~a : A
+  , ~b : A
+  , ~f : A -> B
+  , ~e : a == b
+  } -> f(a) == f(b)
   refl(~f(a)) :: rewrite x in f(a) == f(x) with e
 
 // Transitivity
-trans : {~A : Type, ~a : A, ~b : A, ~c : A, ab : a == b, bc : b == c} -> a == c
+trans :
+  {~A : Type
+  , ~a : A
+  , ~b : A
+  , ~c : A
+  , ~ab : a == b
+  , ~bc : b == c
+  } -> a == c
   ab :: rewrite x in a == x with bc
 
+eq.Reflexive : {A : Type} -> Reflexive(A,Eq(A))
+  {~x} refl(~x)
+
+eq.Symmetric : {A : Type} -> Symmetric(A,Eq(A))
+  {~x,~y,~e} sym(~e)
+
+eq.Transitive : {A : Type} -> Transitive(A,Eq(A))
+  {~x,~y,~z,~e1,~e2} trans(~A,~x,~y,~z,~e1,~e2)
+
+eq.Equivalence : {A : Type} -> Equivalence(A, Eq(A))
+  let er = eq.Reflexive(type(A))
+  let es = eq.Symmetric(type(A))
+  let et = eq.Transitive(type(A))
+  equivalence(~A, ~Eq(A),er,es,et)
+
+eq : {~A : Type} -> Setoid(A)
+  setoid(~A,Eq(A),eq.Equivalence(type(A)))
+
 // Non-builtin propositional equality
-T Equal {A : Type, a : A} (b : A)
+T Path {A : Type, a : A} (b : A)
 | reflect (a)
 
-// Converts eq to EQ
-equal : {~A : Type, ~a : A, ~b : A, ~e : a == b} -> Equal(A, a, b)
+// Converts Eq to Path
+Eq_to_Path : {~A : Type, ~a : A, ~b : A, ~e : a == b} -> Path(A, a, b)
   reflect(~A, ~a) ::
     rewrite x
     in $self
-      { ~P      : {b : A, wit : Equal(A, a, b)} -> Type
+      { ~P      : {b : A, wit : Path(A, a, b)} -> Type
       , reflect : P(a, reflect(~A, ~a))
       } -> P(x, self)
     with e
+
+Path_to_Eq : {~A : Type, ~a : A, ~b : A, e : Path(A,a,b)} -> a == b
+  case/Path e
+  + note x : e.b is b
+  | reflect => x
+  : a == b
+
+path.Reflexive : {A : Type} -> Reflexive(A,Path(A))
+  {~x} reflect(~A,~x)
+
+path.sym : {~A : Type, ~a : A, ~b : A, ~e : Path(A,a,b)} -> Path(A,b,a)
+  case/Path e
+  + note x : e.b is b
+  | reflect => reflect(~A,~b) :: rewrite t in Path(A,b,t) with sym(~x)
+  : Path(A,b,a)
+
+path.Symmetric : {A : Type} -> Symmetric(A,Path(A))
+  {~x,~y,~e} path.sym(~A,~x,~y,~e)
+
+path.trans :
+  {~A : Type, ~a : A, ~b : A, ~c : A, ~e1 : Path(A,a,b), ~e2 : Path(A,b,c)
+  } -> Path(A,a,c)
+  case/Path e1
+  + note ab : e1.b is b
+  | reflect => e2 :: rewrite t in Path(A,t,c) with sym(~ab)
+  : Path(A,a,c)
+
+path.Transitive : {A : Type} -> Transitive(A,Path(A))
+  {~x,~y,~z,~e1,~e2} path.trans(~A,~x,~y,~z,~e1,~e2)
+
+path.Equivalence : {A : Type} -> Equivalence(A,Path(A))
+  let pr = path.Reflexive(type(A))
+  let ps = path.Symmetric(type(A))
+  let pt = path.Transitive(type(A))
+  equivalence(~A,~Path(A),pr,ps,pt)
+
+path : {~A : Type} -> Setoid(A)
+  setoid(~A,Path(A),path.Equivalence(type(A)))
+
+path.rewrite :
+  { ~A : Type
+  , ~a : A
+  , ~b : A
+  , ~e : Path(A,a,b)
+  , ~P : A -> Type
+  , x : P(a)
+  } -> P(b)
+  case/Path e
+  | reflect => x
+  : P(e.b)
+
+path.cong :
+  { ~A : Type
+  , ~B : Type
+  , f : A -> B
+  , a : A
+  , b : A
+  , p : Path(A,a,b)
+  } -> Path(B,f(a),f(b))
+  case/Path p
+  + note e : p.b is b
+  | reflect => 
+    reflect(~B,~f(a)) :: rewrite t in Path(B,f(a),t) with cong(~f,~e)
+  : Path(B,f(a),f(b))

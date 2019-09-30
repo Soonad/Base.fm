@@ -1,32 +1,32 @@
 import Algebra.Magma
 
-T Ring {A : Type}
+T Ring {A : Type, s : Setoid(A)}
 | ring
-  { add              : A -> A -> A
-  , mul              : A -> A -> A
+  { add              : Op2(A)
+  , mul              : Op2(A)
   , e0               : A
   , e1               : A
-  , add.associative  : Associative(A,add)
-  , add.identity     : Identity(A,add,e0)
-  , add.commutative  : Commutative(A,add)
-  , add.inverse      : Inverse(A,add,e0,add.identity)
-  , mul.associative  : Associative(A,mul)
-  , mul.identity     : Identity(A,mul,e1)
-  , zero             : Zero(A,mul,e0)
-  , distributive     : Distributive(A,mul,add)
+  , add.associative  : Associative(A,s,add)
+  , add.identity     : Identity(A,s,add,e0)
+  , add.commutative  : Commutative(A,s,add)
+  , add.inverse      : Inverse(A,s,add,e0,add.identity)
+  , mul.associative  : Associative(A,s,mul)
+  , mul.identity     : Identity(A,s,mul,e1)
+  , zero             : Zero(A,s,mul,e0)
+  , distributive     : Distributive(A,s,mul,add)
   }
 
-T NonUnitalRing {A : Type}
+T NonUnitalRing {A : Type, s : Setoid(A)}
 | nonunital_ring
-  { add              : A -> A -> A
-  , mul              : A -> A -> A
+  { add              : Op2(A)
+  , mul              : Op2(A)
   , e0               : A
   , e1               : A
-  , add.associative  : Associative(A,add)
-  , add.identity     : Identity(A,add,e0)
-  , add.commutative  : Commutative(A,add)
-  , add.inverse      : Inverse(A,add,e0,add.identity)
-  , mul.associative  : Associative(A,mul)
-  , zero             : Zero(A,mul,e0)
-  , distributive     : Distributive(A,mul,add)
+  , add.associative  : Associative(A,s,add)
+  , add.identity     : Identity(A,s,add,e0)
+  , add.commutative  : Commutative(A,s,add)
+  , add.inverse      : Inverse(A,s,add,e0,add.identity)
+  , mul.associative  : Associative(A,s,mul)
+  , zero             : Zero(A,s,mul,e0)
+  , distributive     : Distributive(A,s,mul,add)
   }
