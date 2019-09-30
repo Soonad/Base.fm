@@ -1,7 +1,7 @@
 import Data.Function
 
 // A Comonad consists of...
-T Comonad {W : Type -> Type}
+T Comonad {W : Type -> Type, s : {A : Type} -> Setoid(W(A))}
 
 // A monoid in the opposite category of endofunctors, so simple
 | comonad
@@ -24,17 +24,23 @@ T Comonad {W : Type -> Type}
   , identity1 :
     { ~A : Type
     , ~B : Type
+    , sb : Setoid(B)
     , f : W(A)-> B
     , w : W(A)
-    } -> extract(~B, extend(~A,~B,f,w)) == f(w)
+    } -> case/Setoid sb as s | setoid =>
+           s.R(extract(~B, extend(~A,~B,f,w)), f(w)) 
+         : Type
+
 
   // Satisfying this identity law
   , identity2 :
     { ~A : Type
     , w : W(A)
-    } -> extend(~A, ~A, extract(~A), w) == w
+    } -> case/Setoid s(A) as s | setoid =>
+           s.R(extend(~A, ~A, extract(~A), w), w)
+         : Type
 
-//  // Satisfying this associativity law
+  // Satisfying this associativity law
   , associative :
     { ~A : Type
     , ~B : Type
@@ -45,14 +51,17 @@ T Comonad {W : Type -> Type}
     } -> let ext1 = extend(~B, ~C)
          let ext2 = extend(~A, ~B)
          let ext3 = extend(~A, ~C)
-         let ext4 = extend(~B, ~C)
-         ext1(g, ext2(f, w)) == ext3(f(ext4(g)), w)
+         let ext4 = extend(~A, ~B)
+         case/Setoid s(C) as s | setoid =>
+           s.R( ext1(g, ext2(f, w)), ext3({x} g(ext4(f,x)), w))
+         : Type
   }
 
 // A generic extract for monads
 extract :
   { ~W : Type -> Type
-  , case com : Comonad(W)
+  , ~s : {A : Type} -> Setoid(W(A))
+  , case com : Comonad(W,s)
   , ~A : Type
   , w : W(A)
   } -> A
@@ -61,7 +70,8 @@ extract :
 // A generic extend for monads
 extend :
   { ~W : Type -> Type
-  , case com : Comonad(W)
+  , ~s : {A : Type} -> Setoid(W(A))
+  , case com : Comonad(W,s)
   , ~A : Type
   , ~B : Type
   ,  f : W(A) -> B
@@ -71,7 +81,8 @@ extend :
 // A generic join for monads
 duplicate :
   { ~W : Type -> Type
-  , case com : Comonad(W)
+  , ~s : {A : Type} -> Setoid(W(A))
+  , case com : Comonad(W,s)
   , ~A : Type
   ,  w : W(A)
   } -> W(W(A))

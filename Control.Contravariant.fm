@@ -1,7 +1,7 @@
 import Data.Function
 
 // A functor consists of...
-T Contravariant {F : Type -> Type}
+T Contravariant {F : Type -> Type, s : {A : Type} -> Setoid(F(A))}
 | contravariant
 
   // A contravariant mapping function
@@ -16,7 +16,9 @@ T Contravariant {F : Type -> Type}
   , identity :
     {~A  : Type
     , fa : F(A)
-    } -> contramap(~A, ~A, id(~A),fa) == fa
+    } -> case/Setoid s(A) as s | setoid =>
+           contramap(~A, ~A, id(~A),fa) == fa
+         : Type
 
   // Satisfying the composition law
   , composition :
@@ -29,13 +31,16 @@ T Contravariant {F : Type -> Type}
     } -> let con1 = contramap(~A, ~C)
          let con2 = contramap(~A, ~B)
          let con3 = contramap(~B, ~C)
-        con1({x} g(f(x)), fc) == con2(f, con3(g, fc))
+         case/Setoid s(A) as s | setoid =>
+           s.R(con1({x} g(f(x)), fc), con2(f, con3(g, fc)))
+         : Type
   }
 
 // A generic map for functors
 contramap :
   { ~F : Type -> Type
-  , case con : Contravariant(F)
+  , ~s : {A : Type} -> Setoid(F(A))
+  , case con : Contravariant(F,s)
   , ~A : Type
   , ~B : Type
   ,  f : A -> B
@@ -45,11 +50,12 @@ contramap :
 //// We can modify all elements of a functor to a fixed element `x`
 contramap_const :
   { ~F : Type -> Type
-  , case con : Contravariant(F)
+  , ~s : {A : Type} -> Setoid(F(A))
+  , case con : Contravariant(F,s)
   , ~A : Type
   , ~B : Type
   , x : B
   } -> F(B) -> F(A)
-| contravariant => con.contramap(~A, ~B, const(~B, ~A, x))
+| contravariant => con.contramap(~A, ~B, const(~A, ~B, x))
 
 

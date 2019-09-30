@@ -67,17 +67,16 @@ T Applicative {M : Type -> Type, s : {A : Type} -> Setoid(M(A))}
          : Type
   }
 
-fun.Applicative : {R : Type} -> Applicative(Fun(!R), feq(!R))
-  let pure = {~A,x} const(~!R,~A,x)
-  let apply = {~A,~B,mrf,mra,r}
-    dup r = r
-    mrf(#r,mra(#r))
-  let ident = {~A,mra,r}
-    dup r = r
-    const_id(~!R,~A,#r,mra(#r))
-  applicative(~Fun(!R),~feq(!R),pure,apply,ident,?c,?h,?in)
+fun.Applicative : {~R : Type} -> Applicative(Fun(!R), feq(!R))
+ let pure = {~A,x} const(~!R,~A,x)
+ let apply = {~A,~B,mrf,mra,r} dup r = r mrf(#r,mra(#r))
+ let ident = {~A,mra,r} dup r = r const_id(~!R,~A,#r,mra(#r))
+   applicative(~Fun(!R),~feq(!R),pure,apply,ident,?c,?h,?in)
 
 
 const_id : {~A : Type, ~B : Type, a : A, b : B} -> 
   const(~A, ~(B -> B), id(~B),a)(b) == b
   refl(~b)
+
+unbox_box : {~A : Type, x : !A} -> x == #<x>
+  refl(~x)

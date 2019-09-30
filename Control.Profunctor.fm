@@ -1,6 +1,8 @@
 import Data.Function
 
-T Profunctor {F : Type -> Type -> Type}
+T Profunctor { F : Type -> Type -> Type
+             , s : {A : Type, B : Type} -> Setoid(F(A,B))
+             }
 | profunctor
 
   // A mapping function for both functors
@@ -9,17 +11,19 @@ T Profunctor {F : Type -> Type -> Type}
     , ~B : Type
     , ~C : Type
     , ~D : Type
-    , f  : A -> B
+    , f  : B -> A
     , g  : C -> D
-    , x  : F(B,C)
-    } -> F(A,D)
+    , x  : F(A,C)
+    } -> F(B,D)
 
   // Satisfying the identity law
   , identity :
     {~A  : Type
     ,~C  : Type
     , fac : F(A,C)
-    } -> dimap(~A, ~A, ~C, ~C, id(~A),id(~C),fac) == fac
+    } -> case/Setoid s(A,C) as s | setoid =>
+           s.R(dimap(~A, ~A, ~C, ~C, id(~A),id(~C),fac), fac)
+         : Type
 
   // Satisfying the composition law
   , composition :
@@ -29,45 +33,50 @@ T Profunctor {F : Type -> Type -> Type}
     , ~X : Type
     , ~Y : Type
     , ~Z : Type
-    , g  : B -> C
-    , f  : A -> B
-    , i  : Y -> Z
-    , h  : X -> Y
+    , f  : B -> A
+    , g  : C -> B
+    , h  : Y -> Z
+    , i  : X -> Y
     , fax : F(A,X)
     } -> let di1 = dimap(~A, ~C, ~X, ~Z)
          let di2 = dimap(~B, ~C, ~Y, ~Z)
          let di3 = dimap(~A, ~B, ~X, ~Y)
-         di1({x} f(g(x)), {x} i(h(x)), fax) == di2(g, i, di3(f, h, fax))
+         case/Setoid s(C,Z) as s | setoid =>
+           s.R(di1({x} f(g(x)), {x} h(i(x)), fax), di2(g, h, di3(f, i, fax)))
+         : Type
   }
 
 // A generic dimap for profunctors
 dimap :
   { ~F : Type -> Type -> Type
-  , case pro : Profunctor(F)
+  , ~s : {A : Type, B : Type} -> Setoid(F(A,B))
+  , case pro : Profunctor(F,s)
   , ~A : Type
   , ~B : Type
   , ~C : Type
   , ~D : Type
-  ,  f : A -> B
+  ,  f : B -> A
   ,  g : C -> D
-  } -> F(B,C) -> F(A,D)
+  } -> F(A,C) -> F(B,D)
 | profunctor => pro.dimap(~A, ~B, ~C, ~D, f, g)
 
 // map over the first functor
 lmap :
   { ~F : Type -> Type -> Type
-  , case pro : Profunctor(F)
+  , ~s : {A : Type, B : Type} -> Setoid(F(A,B))
+  , case pro : Profunctor(F,s)
   , ~A : Type
   , ~B : Type
   , ~C : Type
-  ,  f : A -> B
-  } -> F(B,C) -> F(A,C)
+  ,  f : B -> A
+  } -> F(A,C) -> F(B,C)
 | profunctor => pro.dimap(~A, ~B, ~C, ~C, f, id(~C))
 
 // map over the second functor
 rmap :
   { ~F : Type -> Type -> Type
-  , case pro : Profunctor(F)
+  , ~s : {A : Type, B : Type} -> Setoid(F(A,B))
+  , case pro : Profunctor(F,s)
   , ~A : Type
   , ~C : Type
   , ~D : Type

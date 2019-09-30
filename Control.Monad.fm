@@ -1,7 +1,7 @@
 import Data.Function
 
 // A Monad consists of...
-T Monad {M : Type -> Type}
+T Monad {M : Type -> Type, s : {A : Type} -> Setoid(M(A))}
 
 // A monoid in the category of endofunctors why do you even ask
 | monad
@@ -18,10 +18,16 @@ T Monad {M : Type -> Type}
     , ~B : Type
     , x : A
     , f : A -> M(B)
-    } -> bind(~A, ~B, f, pure(~A, x)) == f(x)
+    } -> case/Setoid s(B) as s | setoid =>
+          s.R(bind(~A, ~B, f, pure(~A, x)), f(x))
+         : Type
+
 
   // Satisfying this identity law
-  , identity2 : {~A : Type, m : M(A)} -> bind(~A, ~A, pure(~A), m) == m
+  , identity2 : {~A : Type, m : M(A)} -> 
+      case/Setoid s(A) as s | setoid =>
+        s.R(bind(~A, ~A, pure(~A), m), m)
+      : Type
 
   // Satisfying this associativity law
   , associative :
@@ -35,13 +41,16 @@ T Monad {M : Type -> Type}
          let b2 = bind(~A, ~B)
          let b3 = bind(~A, ~C)
          let b4 = bind(~B, ~C)
-         b1(g, b2(f,m)) == b3({x} b4(g, f(x)), m)
+        case/Setoid s(C) as s | setoid =>
+          s.R(b1(g, b2(f,m)), b3({x} b4(g, f(x)), m))
+        : Type
   }
 
 // A generic pure for monads
 pure :
   { ~M : Type -> Type
-  , case mon : Monad(M)
+  , ~s : {A : Type} -> Setoid(M(A))
+  , case mon : Monad(M,s)
   , ~A : Type
   , x : A
   } -> M(A)
@@ -50,7 +59,8 @@ pure :
 // A generic bind for monads
 bind :
   { ~M : Type -> Type
-  , case mon : Monad(M)
+  , ~s : {A : Type} -> Setoid(M(A))
+  , case mon : Monad(M,s)
   , ~A : Type
   , ~B : Type
   ,  f : A -> M(B)
@@ -60,7 +70,8 @@ bind :
 // A generic join for monads
 join :
   { ~M : Type -> Type
-  , case mon : Monad(M)
+  , ~s : {A : Type} -> Setoid(M(A))
+  , case mon : Monad(M,s)
   , ~A : Type
   ,  mma : M(M(A))
   } -> M(A)

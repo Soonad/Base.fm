@@ -47,7 +47,7 @@ map_const :
   , ~B : Type
   , x : B
   } -> F(A) -> F(B)
-| functor => fun.map(~A, ~B, const(~B, ~A, x))
+| functor => fun.map(~A, ~B, const(~A, ~B, x))
 
 fun.Functor : {R : Type} -> Functor(Fun(R), feq(R))
   let map = {~A,~B,fab,fra} compose(~R,~A,~B,fab,fra)
