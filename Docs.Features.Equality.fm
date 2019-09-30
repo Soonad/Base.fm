@@ -55,7 +55,7 @@ equality.example_1_test : Word
 // : Word that added to 9, and we wanted to call small_mul with them. We could
 // try this:
 
-// equality.example_2 : {x : Word, y : Word, ~e : (x + y) == 10} -> Word
+// equality.example_2 : {x : Word, y : Word, ~e : (x + y) == 9} -> Word
 //  equality.example_1(x + y, 1, ~e)
 
 // But this isn't well-typed. That’s because e is a proof that x + y == 9, not
