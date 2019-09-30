@@ -2,14 +2,17 @@ import Data.Function
 import Data.Unit
 
 // A functor consists of...
-T Functor {F : Type -> Type}
+T Functor {F : Type -> Type, s : {A : Type} -> Setoid(F(A))}
 | functor
 
   // A mapping function
   { map : {~A : Type , ~B : Type , f : A -> B, x : F(A)} -> F(B)
 
   // Satisfying the identity law
-  , identity : {~A : Type , fa : F(A)} -> map(~A, ~A, id(~A),fa) == fa
+  , identity : {~A : Type , fa : F(A)} ->
+      case/Setoid s(A) as s | setoid =>
+        s.R(map(~A, ~A, id(~A),fa),fa)
+      : Type
 
   // Satisfying the composition law
   , composition :
@@ -19,13 +22,16 @@ T Functor {F : Type -> Type}
     , g  : B -> C
     , f  : A -> B
     , fa : F(A)
-    } -> map(~A, ~C, {x} g(f(x)), fa) == map(~B, ~C, g, map(~A, ~B, f, fa))
+    } -> case/Setoid s(C) as s | setoid =>
+           s.R(map(~A, ~C, {x} g(f(x)), fa), map(~B, ~C, g, map(~A, ~B, f, fa)))
+         : Type
   }
 
 // A generic map for functors
 map :
   { ~F : Type -> Type
-  , case fun : Functor(F)
+  , ~s : {A : Type} -> Setoid(F(A))
+  , case fun : Functor(F,s)
   , ~A : Type
   , ~B : Type
   ,  f : A -> B
@@ -35,11 +41,18 @@ map :
 // We can modify all elements of a functor to a fixed element `x`
 map_const :
   { ~F : Type -> Type
-  , case fun : Functor(F)
+  , ~s : {A : Type} -> Setoid(F(A))
+  , case fun : Functor(F,s)
   , ~A : Type
   , ~B : Type
   , x : B
   } -> F(A) -> F(B)
 | functor => fun.map(~A, ~B, const(~B, ~A, x))
+
+fun.Functor : {R : Type} -> Functor(Fun(R), feq(R))
+  let map = {~A,~B,fab,fra} compose(~R,~A,~B,fab,fra)
+  let identity = {~A,fra,r} refl(~fra(r))
+  let composition = {~A,~B,~C,g,f,fa,r} refl(~(g(f(fa(r)))))
+  functor(~Fun(R),~feq(R),map,identity,composition)
 
 

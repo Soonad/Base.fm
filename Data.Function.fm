@@ -7,7 +7,7 @@ id : {~A : Type, x:A} -> A
   x
 
 // The constant function always returns the same value
-const : {~A : Type, ~B : Type, x : A, y : B} -> A
+const : {~A : Type, ~B : Type, x : B, :A} -> B
   x
 
 // Function composition

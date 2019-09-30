@@ -1,6 +1,6 @@
-import Data.Function as F
+import Data.Function
 
-T Applicative {M : Type -> Type}
+T Applicative {M : Type -> Type, s : {A : Type} -> Setoid(M(A))}
 | applicative
 
   // A way to wrap values
@@ -21,7 +21,9 @@ T Applicative {M : Type -> Type}
   , identity :
     { ~A : Type
     , ma : M(A)
-    } -> apply(~A, ~A, pure(~(A -> A), F/id(~A)), ma) == ma
+    } -> case/Setoid s(A) as s | setoid =>
+           s.R(apply(~A, ~A, pure(~(A -> A), id(~A)), ma), ma)
+         : Type
 
   // wrapped function composition is the same as unwrapped composition
   , composition :
@@ -31,14 +33,15 @@ T Applicative {M : Type -> Type}
     , u  : M(B -> C)
     , v  : M(A -> B)
     , w  : M(A)
-    } -> let cmp = pure(~((B -> C) -> (A -> B) -> A -> C), F/compose(~A,~B,~C))
+    } -> let cmp = pure(~((B -> C) -> (A -> B) -> A -> C), compose(~A,~B,~C))
          let a1  = apply(~A, ~C)
          let a2  = apply(~(A -> B), ~(A -> C))
          let a3  = apply(~(B -> C), ~((A -> B) -> A -> C))
          let a4  = apply(~B, ~C)
          let a5  = apply(~A, ~B)
-
-         a1(a2(a3(cmp, u),v),w) == a4(u, a5(v, w))
+         case/Setoid s(C) as s | setoid =>
+           s.R(a1(a2(a3(cmp, u),v),w), a4(u, a5(v, w)))
+         : Type
 
   // applying a wrapped function to a wrapped value is the same unwrapped
   // function application
@@ -47,7 +50,9 @@ T Applicative {M : Type -> Type}
     , ~B : Type
     , f  : A -> B
     , x  : A
-    } -> apply(~A, ~B, pure(~(A -> B), f), pure(~A, x)) == pure(~B, f(x))
+    } -> case/Setoid s(B) as s | setoid =>
+          s.R(apply(~A, ~B, pure(~(A -> B), f), pure(~A, x)), pure(~B, f(x)))
+         : Type
 
   // wrapped piping or flipped application behaves the same as unwrapped piping
   , interchange :
@@ -55,5 +60,24 @@ T Applicative {M : Type -> Type}
     , ~B : Type
     , f : M(A -> B)
     , x : A
-    } -> apply(~A, ~B, f, pure(~A, x)) == apply(~(A -> B), ~B, pure(~((A -> B) -> B), F/pipe(~A,~B,x)), f)
+    } -> case/Setoid s(B) as s | setoid =>
+           s.R( apply(~A, ~B, f, pure(~A, x))
+              , apply(~(A -> B), ~B, pure(~((A -> B) -> B), pipe(~A,~B,x)), f)
+              )
+         : Type
   }
+
+fun.Applicative : {R : Type} -> Applicative(Fun(!R), feq(!R))
+  let pure = {~A,x} const(~!R,~A,x)
+  let apply = {~A,~B,mrf,mra,r}
+    dup r = r
+    mrf(#r,mra(#r))
+  let ident = {~A,mra,r}
+    dup r = r
+    const_id(~!R,~A,#r,mra(#r))
+  applicative(~Fun(!R),~feq(!R),pure,apply,ident,?c,?h,?in)
+
+
+const_id : {~A : Type, ~B : Type, a : A, b : B} -> 
+  const(~A, ~(B -> B), id(~B),a)(b) == b
+  refl(~b)
