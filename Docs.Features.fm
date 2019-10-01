@@ -6,7 +6,7 @@ import Docs.Features.Word
 import Docs.Features.IfThenElse
 import Docs.Features.Pair
 import Docs.Features.Lambda
-import Docs.Features.Box
+// import Docs.Features.BoxesAndCopying
 import Docs.Features.Equality
 import Docs.Features.Self
 import Docs.Features.Annotation

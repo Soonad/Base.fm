@@ -1,16 +1,15 @@
 import Base
 
-// Recursive Fields
-// ----------------
+// # Recursive Fields
 
 // Fields can refer to the datatype being defined:
 
-// T Nat
-// | succ {pred : Nat}
-// | zero
+T Nat
+| succ {pred : Nat}
+| zero
 
-// Since Nat is so common, there is a syntax-sugar for it: 0n3, which expands
-// to succ(succ(succ(zero))). Mutual recursion is allowed:
+// Since `Nat` is so common, there is a syntax-sugar for it: `0n3`, which expands
+// to `succ(succ(succ(zero)))`. Mutual recursion is allowed:
 
 T Foo
 | foo {bar : Foo}

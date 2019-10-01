@@ -1,7 +1,6 @@
 import Base
 
-// Moving resources to branches
-// ----------------------------
+// ### Moving resources to branches
 
 // Since Formality functions are affine, you can’t use an argument more than once. So, for example, the function below isn’t allowed:
 
