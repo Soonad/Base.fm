@@ -35,14 +35,14 @@ no_fin_zero : {fin : Fin(zero)} -> Empty
   fsucc(~<add(N)>(<nat(N)>, n), fin_raise(~n, f))
 halt: f
 
-#fin_inject*N : !{~lim : Nat, fin : Fin(<nat(N)>)} -> Fin(<add*N>(<nat(N)>, lim))
-  case/Fin fin
-  + note e : fin.lim is <nat(step(N))>
-  | fsucc =>
-    let e = cong_pred(fin.lim, <nat(N)>, e)
-    let p = fin.pred :: rewrite x in Fin(x) with e
-    fsucc(~<add(N)>(<nat(N)>, lim), fin_inject(~lim, p))
-  | fzero =>
-    fzero(~<add(N)>(<nat(N)>, lim))
-  : Fin(<add(step(N))>(<nat(step(N))>, lim))
-halt: absurd(no_fin_zero(fin), ~Fin(lim))
+//#fin_inject*N : !{~lim : Nat, fin : Fin(<nat(N)>)} -> Fin(<add*N>(<nat(N)>, lim))
+  //case/Fin fin
+  //+ note e : fin.lim is <nat(step(N))>
+  //| fsucc =>
+    //let e = cong_pred(fin.lim, <nat(N)>, e)
+    //let p = fin.pred :: rewrite x in Fin(x) with e
+    //fsucc(~<add(N)>(<nat(N)>, lim), fin_inject(~lim, p))
+  //| fzero =>
+    //fzero(~<add(N)>(<nat(N)>, lim))
+  //: Fin(<add(step(N))>(<nat(step(N))>, lim))
+//halt: absurd(no_fin_zero(fin), ~Fin(lim))

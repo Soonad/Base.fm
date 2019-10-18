@@ -149,18 +149,18 @@ halt: refl(~succ(m))
   b :: rewrite X in succ(<add(N)>(<nat(N)>, <nat(M)>)) == X with a
 halt: sym(~<add_zero_is_id.aux(M)>)
 
-add_comm :
-  { n : Nat
-  , m : Nat
-  , ~N : IndOf(n)
-  , ~M : IndOf(m)
-  } -> <add*N>(n,m) == <add*M>(m,n)
-  get [N ~ ne] = N
-  get [M ~ me] = M
-  let a = <add_comm.aux(N)>(M, m, me)
-  let b = a :: rewrite x in <add*N>(x, <nat(M)>) == <add*M>(<nat(M)>, x) with ne
-  let c = b :: rewrite x in <add*N>(n, x       ) == <add*M>(x       , n) with me
-  c
+//add_comm :
+  //{ n : Nat
+  //, m : Nat
+  //, ~N : IndOf(n)
+  //, ~M : IndOf(m)
+  //} -> <add*N>(n,m) == <add*M>(m,n)
+  //get [N ~ ne] = N
+  //get [M ~ me] = M
+  //let a = <add_comm.aux(N)>(M, m, me)
+  //let b = a :: rewrite x in <add*N>(x, <nat(M)>) == <add*M>(<nat(M)>, x) with ne
+  //let c = b :: rewrite x in <add*N>(n, x       ) == <add*M>(x       , n) with me
+  //c
 
 // ::::::::::::::
 // :: Examples ::
