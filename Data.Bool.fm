@@ -71,12 +71,12 @@ true_isnt_false : {e : true == false} -> Empty
     with e
 
 false_isnt_true : {e : false == true} -> Empty
-  true_isnt_false(sym(~e))
+  true_isnt_false(sym(e))
 
 different_elem : {a : Bool} -> [b : Bool ~ {:a == b} -> Empty]
   case/Bool a
   | true  => [false ~ true_isnt_false]
-  | false => [true ~ {e : false == true} => true_isnt_false(sym(~e))]
+  | false => [true ~ {e : false == true} => true_isnt_false(sym(e))]
   : [b : Bool ~ {:a == b} -> Empty]
 
 demorgan_0 :

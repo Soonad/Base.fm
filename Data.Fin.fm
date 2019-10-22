@@ -27,8 +27,8 @@ halt: fzero(~lim)
 no_fin_zero : {fin : Fin(zero)} -> Empty
   case/Fin fin
   + note e : fin.lim is zero
-  | fsucc => succ_isnt_zero(~fin.lim, ~e)
-  | fzero => succ_isnt_zero(~fin.lim, ~e)
+  | fsucc => succ_isnt_zero(~fin.lim, e)
+  | fzero => succ_isnt_zero(~fin.lim, e)
   : Empty
 
 #fin_raise*N : !{~n : Nat, f : Fin(n)} -> Fin(<add*N>(<nat(N)>, n))

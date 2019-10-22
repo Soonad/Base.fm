@@ -58,11 +58,11 @@ plus : {a : Ind, b : Ind} -> Ind
   dup B = (%b)(~{b} => P(plus(base, b)), #{~n, h} => S(~plus(base, n), h))
   # {z} => A(B(z))
 
-#make_equal_inds*N : ![L : Ind, M : Ind ~ : L == M, N == L]
-  get [n0, n1 ~ e1, e2] = make_equal_inds
+#make_equal_inds*N : ![L : Ind, M : Ind, x : L == M, N == L]
+  get [n0, n1, e1, e2] = make_equal_inds
   [ step(n0)
   , step(n1)
-  ~ cong(~step, ~e1)
-  , cong(~step, ~e2)
+  , cong(~step, e1)
+  , cong(~step, e2)
   ]
-halt: [base, base ~ refl(~base), refl(~base)]
+halt: [base, base, refl(~base), refl(~base)]

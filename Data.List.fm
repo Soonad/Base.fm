@@ -152,7 +152,7 @@ map-f.example
   } -> <map*n(~B, ~C, f)>(<map*n(~A, ~B, g)>(xs)) == <map*n(~A, ~C, #{x}<f>(<g>(x)))>(xs)
   case/List xs
   | cons => 
-    cong(~{k} cons(~C, <f>(<g>(xs.head)), k), ~map.composition(~A, ~B, ~C, f, g, xs.tail))
+    cong(~{k} cons(~C, <f>(<g>(xs.head)), k), map.composition(~A, ~B, ~C, f, g, xs.tail))
   | nil  => refl(~nil)
   : <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(xs)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(xs)
 halt:
