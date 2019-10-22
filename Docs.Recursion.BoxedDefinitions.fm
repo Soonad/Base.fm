@@ -1,0 +1,29 @@
+// # Recursion
+
+// ## Boxed definitions
+
+// Since bounded recursive functions are so common, Formality has built-in syntax for them, relying on "boxed definitions". To make a boxed definition, prepend `#` to its name. That has two effects. First, the whole definition is lifted to `level 1`. Second, it allows you to use boxed definitions inside `<>`'s: the parser will automatically unbox them for you. For example, instead of this:
+
+boxed.example_0a : !Word
+  #40
+
+boxed.example_1a : !Word
+  #2
+
+boxed.example_2a : !Word
+  dup foo = boxed.example_0a
+  dup bar = boxed.example_1a
+  # foo + bar
+
+// We could write:
+
+boxed.example_0b : !Word
+  #40
+
+boxed.example_1b : !Word
+  #2
+
+#boxed.example_2b : !Word
+  <boxed.example_0b> + <boxed.example_1b>
+
+// Both programs are the same, except the later is shorter.

@@ -1,0 +1,51 @@
+import Base@0
+// ## Structural Recursion
+
+// When it comes to inductive proofs, the need for a halt-case on Formality's recursive function syntax can be limiting to deal with. For example, you can't easily prove that `add(a,b) = add(b,a)`, since that is not actually true when the `add` function hits its call limit! The more traditional structural recursion that other languages feature is more flexible in tha tsense. There are interesting work-arounds this problem, such as writing `add` in a way that consumes both sizes simultaneously. A general solution, though, is still missing from the language, as we're debating the best way to do it.
+
+// We have some great candidates, though. As an example, we could use `Bound`, as detailed on [this commit](https://github.com/moonad/Formality-Base/commit/b777d806c6fa37f2ce306fbe87b3ed267152b90c). It allows us to prove that our arguments are decreasing in size, essentially emulating Coq's structural recursion. This is really cool, as it allows us to avoid writing the (provably unreachable) halt-case! But it still requires a lot of manual boilerplate to do correctly. If you don't want that, we suggest you to avoid writing complex inductive proofs in Formality for now. In a future, we'll probably add syntax sugars for structural recursion (or something equivalent), making those proofs much less cumbersome.
+
+// **Obs: Work in progress**
+
+// Cover things like:
+
+// - Simple recursive functions and boxed definitions
+
+#struc_rec.example_0*N : !{case halt n : Nat} -> Nat
+| succ => succ(succ(struc_rec.example_0(n.pred)))
+| zero => zero
+
+#struc_rec.example_0_test : !Nat
+  <struc_rec.example_0*>(succ(zero))
+
+// - Polymorphic recursive functions with level-0 parameters
+
+#struc_rec.example_1*N : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+| cons => cons(~B, f(list.head), struc_rec.example_1(list.tail))
+| nil  => nil(~B)
+halt: nil(~B)
+
+#struc_rec.example_1_test : !List(Word)
+  <struc_rec.example_1*(~Word, ~Word, #{x} x + 1)>(Word$[1,2,3,4])
+
+// - Indexed recursive functions using `N`
+
+// ```haskell
+// ... vector stuff, fin stuff, etc...
+// ```
+
+// - Structural recursive proofs with Bounds
+
+// ∀ n . n < n+1
+// #struc_rec.example_2*N : !{n : Nat, bound : Bound(n, N)} -> Less(n, succ(n))
+//   (case/Bound bound
+//   | bound_succ => {e}
+//     let r0 = cong_unstep(~i, ~N, ~e)
+//     let r1 = struc_rec.example_2(n, k :: rewrite x in Bound(n, x) with r0)
+//     let r2 = less_succ(~n, ~succ(n), r1)
+//     r2
+//   | bound_zero => {e} less_zero(~zero)
+//   : {e : i == step(N)} -> Less(n, succ(n)))(refl(~step(N)))
+// halt: absurd(absurd_bound(n, bound), ~Less(n, succ(n)))
+
+// etc.

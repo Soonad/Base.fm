@@ -1,32 +1,48 @@
-import Algebra.Magma
+import Algebra.Operation
 import Algebra.Semigroup
+import Data.Function
+import Logic
 
-T Monoid {A : Type}
+T Monoid {A : Type, s : Setoid(A)}
 | monoid
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
   }
+
+semigroup_to_monoid :
+  {~A : Type
+  ,~s : Setoid(A)
+  , case sem : Semigroup(A,s)
+  , ~e : A
+  , identity : case/Semigroup sem | semigroup => Identity(A,s,sem.f,e) : Type
+  } -> Monoid(A,s)
+| semigroup => monoid(~A,~s,sem.f,e,sem.associative,identity)
 
 // Monoids are Semigroups
-monoid_to_semigroup : {~A : Type, case m : Monoid(A)} -> Semigroup(A)
-| monoid => semigroup(~A, m.f, m.associative)
+monoid_to_semigroup :
+  {~A : Type
+  ,~s : Setoid(A)
+  , case m : Monoid(A,s)
+  } -> Semigroup(A,s)
+| monoid => semigroup(~A,~s,m.f, m.associative)
 
-T AbelianMonoid {A : Type}
+T AbelianMonoid {A : Type, s : Setoid(A)}
 | abelian_monoid
-  { f           : A -> A -> A
+  { f           : Op2(A)
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , commutative : Commutative(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , commutative : Commutative(A,s,f)
   }
 
-T IdempotentMonoid {A : Type}
+T IdempotentMonoid {A : Type, s : Setoid(A)}
 | idempotent_monoid
   { f           : A -> A -> A
   , e           : A
-  , associative : Associative(A,f)
-  , identity    : Identity(A,f,e)
-  , idempotent  : Idempotent(A,f)
+  , associative : Associative(A,s,f)
+  , identity    : Identity(A,s,f,e)
+  , idempotent  : Idempotent(A,s,f)
   }
+

@@ -1,6 +1,8 @@
 import Base
 
-// Let expressions allow you to give local names to terms:
+// ### Let
+
+// `let` expressions allow you to give local names to terms:
 let.example_0 : Output
   let hello = "Hello, world!"
   print(hello)
@@ -12,4 +14,4 @@ let.example_1 : Output
     print(hello)
   output
 
-// Let has no computational effect. It performs a parse-time substitution.
+// `let` has no computational effect. It performs a parse-time substitution.

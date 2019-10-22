@@ -4,9 +4,6 @@ import Relation.Equality
 import Relation.Binary
 import Data.And
 
-// The Category namespace articulates the category theoretic interpretation
-// of mathematics and computation. In other words, this namespace represents
-// the "Lambek" in "Curry-Howard-Lambek" correspondence
 
 // A Category of objects A and morphisms M consists of...
 T Category<A : Type, M : A -> A -> Type>
@@ -18,7 +15,7 @@ T Category<A : Type, M : A -> A -> Type>
   // A composition of morphisms
   , compose     : {a : A, b : A, c : A, g : M(b,c), f : M(a,b)} -> M(a,c)
 
-  // Such that omposition of morphisms is associative under equivalence
+  // Such that composition of morphisms is associative under equivalence
   , associative :
     { a : A
     , b : A

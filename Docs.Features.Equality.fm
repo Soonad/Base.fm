@@ -1,25 +1,27 @@
 import Base
 
+// ### Equality
+
 // Formality includes untyped equality primitives, the same one seen in Cedille
 // (https://github.com/cedille/cedille)
 
-// syntax                        | description
-// ----------------------------- | ------------------------------------------------
-// a == b                        | A type asserting that a is equal to b
-// refl(~x)                      | A proof that x == x
-// sym(~e)                       | Given e : a == b, proves b == a
-// cong(~f, ~e)                  | For any f, given e : a == b, proves f(a) == f(b)
-// t :: rewrite x in P(x) with e | Given e : a == b and t : P(a), proves P(b)
+// syntax                          | description
+// ------------------------------- | ------------------------------------------------
+// `a == b`                        | A type asserting that `a` is equal to `b`
+// `refl(~x)`                      | A proof that `x == x`
+// `sym(~e)`                       | Given `e : a == b`, proves `b == a`
+// `cong(~f, ~e)`                  | For any `f`, given `e : a == b`, proves `f(a) == f(b)`
+// `t :: rewrite x in P(x) with e` | Given `e : a == b` and `t : P(a)`, proves `P(b)`
 
-// Here, a == b is a type specifying that a is equal to b. It is not a proof,
-// it is merely “a question”. To prove it, you must construct a term x of type
-// a == b. The only way to do it directly is with refl(~t), which proves that a
-// term is equal to itself. That is, for any t, proves t == t. So, for example:
+// Here, `a == b` is a type specifying that `a` is equal to `b`. It is not a proof,
+// it is merely “a question”. To prove it, you must construct a term `x` of type
+// `a == b`. The only way to do it directly is with `refl(~t)`, which proves that a
+// term is equal to itself. That is, for any `t`, proves `t == t`. So, for example:
 
 equality.example_0 : 1 == 1
   refl(~1)
 
-// That means refl(~1) is a proof that 1 == 1. As you can see, we can have
+// That means `refl(~1)` is a proof that `1 == 1`. As you can see, we can have
 // values inside types: that’s perfectly normal in Formality.
 
 // Equalities are useful to, among other things, restrict the domain of a
@@ -32,17 +34,17 @@ equality.example_1_test : Word
   equality.example_1(3, 7, ~refl(~10))
 
 // This “small multiplication” function can only be called if its first two
-// arguments add to 10. This is enforced by the presence of the third argument,
-// e, which is erased (due to the ~). In other words, differently than a
+// arguments add to `10`. This is enforced by the presence of the third argument,
+// `e`, which is erased (due to the `~`). In other words, differently than a
 // classic “assert”, this restriction is checked statically and has no runtime
-// costs. As an exercise, try changing the arguments of mul_small on the
+// costs. As an exercise, try changing the arguments of `equality.example_1` on the
 // program above and see what happens.
 
-// Equality can be used and manipuled with 3 primitives. The sym primitive just
-// flips the sides of an equality. The cong primitive just appends a function
+// Equality can be used and manipuled with `3` primitives. The `sym` primitive just
+// flips the sides of an equality. The `cong` primitive just appends a function
 // to both sides. The rewrite primitive allows us to substitute equal terms in
-// arbitrary types. It consists of a term to be casted (t), a variable (x), a
-// template (P(x)) and an equality proof (e), and performs the following
+// arbitrary types. It consists of a term to be casted (`t`), a variable (`x`), a
+// template (`P(x)`) and an equality proof (`e`), and performs the following
 // operation:
 
 // Step 1: assert that `e`'s type is an equality.
@@ -51,16 +53,16 @@ equality.example_1_test : Word
 // Step 4: replace the template's variable by the right-side of the equality.
 // Step 5: cast `t` to the type above.
 
-// For example, suppose that we had a function that received a x : Word and a y
-// : Word that added to 9, and we wanted to call small_mul with them. We could
+// For example, suppose that we had a function that received a `x : Word` and a `y
+// : Word` that added to `9`, and we wanted to call equality.example_1 with them. We could
 // try this:
 
-// equality.example_2 : {x : Word, y : Word, ~e : (x + y) == 10} -> Word
+// equality.example_2 : {x : Word, y : Word, ~e : (x + y) == 9} -> Word
 //  equality.example_1(x + y, 1, ~e)
 
-// But this isn't well-typed. That’s because e is a proof that x + y == 9, not
-// that (x + y) + 1 == 10. But since 9 is smaller than 10, we should be able to
-// call equality.example_1 on x + y. With rewrite, we can do that as follows:
+// But this isn't well-typed. That’s because e is a proof that `x + y == 9`, not
+// that `(x + y) + 1 == 10`. But since `9` is smaller than `10`, we should be able to
+// call `equality.example_1` on `x + y`. With rewrite, we can do that as follows:
 
 equality.example_3 : {x : Word, y : Word, ~xy_is_9 : (x + y) == 9} -> Word
   // The term to be casted.

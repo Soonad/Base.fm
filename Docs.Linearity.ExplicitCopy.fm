@@ -1,0 +1,41 @@
+import Base@0
+// ### Make an explicit copy
+
+// For `Word`s in particular, there is a native `cpy` operation that copies it as many times as desired:
+
+exp_copy.example_0a : {x : Word} -> Word
+  cpy x = x
+  x * x
+
+exp_copy.example_0a_test : Word
+  exp_copy.example_0a(7)
+
+// When a `Word` is an argument of a top-level function, then you don't even need to add `cpy`. Formality does it for you. I.e., this works:
+
+exp_copy.example_0b : {x : Word} -> Word
+  x * x
+
+exp_copy.example_0b_test : Word
+  exp_copy.example_0b(7)
+
+// For other types, you can write an auxiliary `copy` function:
+
+// An explicit copying function
+exp_copy.example_1 : {b : Bool} -> [:Bool, Bool]
+  case/Bool b
+  | true  => [true, true]
+  | false => [false, false]
+  : [:Bool, Bool]
+
+exp_copy.example_2 : {b : Bool} -> Bool
+  get [b0, b1] = exp_copy.example_1(b) // performs an explicit copy
+  and(b0, b1)
+
+exp_copy.example_3_test : Bool 
+  exp_copy.example_2(true)
+
+// This is also a very important technique. So, in short, when you need to use a variable more than once, this is what you should do:
+
+// 1. Is it a `Word`? If so, just `cpy` it.
+// 2. Is the usage in different branches? Then manually return lambdas (or use `case`'d arguments).
+// 3. Otherwise, copy the structure with an explicit `copy` function.
