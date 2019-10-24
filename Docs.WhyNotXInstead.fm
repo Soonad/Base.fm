@@ -51,3 +51,6 @@
 // We can't fix potential bugs in other languages and we absolutely require consistency for our applications, so a small stable core is important. Agda doesn't have one, Idris has inconsistency bugs. I think Coq would be fine though.
 
 // (Note about how much we love Agda and Idris and are actually constantly trying to use those instead, and re-evaluating whether it'd be possible.)
+
+ignoreMe : Word 
+  0

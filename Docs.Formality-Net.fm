@@ -269,3 +269,6 @@
 // can be executed in parallel like the one on the strict version. This would allow
 // the algorithm to have many threads walking through the graph at the same time.
 // Again, caution must be taken to avoid conflicts.
+
+ignoreMe : Word 
+  0

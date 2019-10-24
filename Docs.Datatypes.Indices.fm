@@ -99,7 +99,7 @@ vhead : {~T : Type, ~n : Nat, xs : Vector(T, succ(n))} -> T
   case/Vector xs
   + note e : xs.len is succ(n)
   | vcons => xs.head
-  | vnil  => absurd(zero_isnt_succ(~n, ~e), ~T) 
+  | vnil  => absurd(zero_isnt_succ(~n, e), ~T) 
   : T
 
 // Notice that constructor indices are accessible on the left side of an

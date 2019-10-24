@@ -69,7 +69,7 @@ equality.example_3 : {x : Word, y : Word, ~xy_is_9 : (x + y) == 9} -> Word
   let t = refl(~10)
 
   // The rewrite equality.
-  let e = sym(~xy_is_9)
+  let e = sym(xy_is_9)
 
   // Step 1: asserted `e`'s type is an equality (`9 == x + y`).
   // Step 2: replacing `k` on the template by `9`, we get `(9 + 1) == 10`.
