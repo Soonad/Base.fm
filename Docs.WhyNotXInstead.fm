@@ -52,5 +52,5 @@
 
 // (Note about how much we love Agda and Idris and are actually constantly trying to use those instead, and re-evaluating whether it'd be possible.)
 
-ignoreMe : Word 
+ignore_me : Word 
   0

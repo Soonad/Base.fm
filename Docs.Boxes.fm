@@ -10,5 +10,5 @@
 
 // The `dup` primitive is the one responsible for copying and is extremelly important as it performs those copies lazily, in a way that allows optimal sharing of sub-expressions. It is what makes Formality a great closure evaluator. But, in order to use it properly, you must understand how it is limited: the stratification condition.
 
-ignoreMe : Word
+ignore_me : Word
   0

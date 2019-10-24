@@ -1,4 +1,5 @@
-import Base@0
+import Base
+
 // ### Make an explicit copy
 
 // For `Word`s in particular, there is a native `cpy` operation that copies it as many times as desired:

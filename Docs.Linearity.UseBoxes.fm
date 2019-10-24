@@ -1,4 +1,5 @@
-import Base@0
+import Base
+
 // ### Use boxes
 
 // Formality has another primitive for deep-copying values, boxes. When dealing with data, though, you almost never want to use boxes to perform copies, due to the stratification condition, which essentially segregates the language in levels, blocks communication from higher to lower levels. Regardless, they can still be useful sometimes. See, for example, how `map` is defined for lists:

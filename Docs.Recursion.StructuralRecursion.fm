@@ -1,4 +1,5 @@
-import Base@0
+import Base
+
 // ## Structural Recursion
 
 // When it comes to inductive proofs, the need for a halt-case on Formality's recursive function syntax can be limiting to deal with. For example, you can't easily prove that `add(a,b) = add(b,a)`, since that is not actually true when the `add` function hits its call limit! The more traditional structural recursion that other languages feature is more flexible in tha tsense. There are interesting work-arounds this problem, such as writing `add` in a way that consumes both sizes simultaneously. A general solution, though, is still missing from the language, as we're debating the best way to do it.

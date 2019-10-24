@@ -1,4 +1,4 @@
-import Base@0
+import Base
 
 // ### Inductive proofs
 
@@ -127,8 +127,8 @@ T Bits
 // As usual, it could be simplified with case'd arguments:
 
 #main*n : !{case bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
-| b0 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(bits.pred)), ~bits.pred, ~b0, ~main(bits.pred))
-| b1 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(bits.pred)), ~bits.pred, ~b1, ~main(bits.pred))
+| b0 => cong(~b0, main(bits.pred))
+| b1 => cong(~b1, main(bits.pred))
 | be => refl(~be)
 halt: refl(~bits)
 

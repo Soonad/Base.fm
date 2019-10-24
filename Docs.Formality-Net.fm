@@ -270,5 +270,5 @@
 // the algorithm to have many threads walking through the graph at the same time.
 // Again, caution must be taken to avoid conflicts.
 
-ignoreMe : Word 
+ignore_me : Word 
   0

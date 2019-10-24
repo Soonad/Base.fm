@@ -125,12 +125,9 @@ unreach_branch.example_0b : Word
 
 unreach_branch.example_0c
   (case/Bool true as x
-  | true  => {~e} 10
-  | false => {~e} absurd(false_isnt_true(e), ~Word)
-  : {~e : x == true} -> Word)(~refl(~true))
+  | true  => {e} 10
+  | false => {e} absurd(false_isnt_true(e), ~Word)
+  : {e : x == true} -> Word)(refl(~true))
 
 // Notice that the left side of the equality note is allowed to access the
 // matched value (`x`), while the right side is used to build the refl proof.
-
-
-
