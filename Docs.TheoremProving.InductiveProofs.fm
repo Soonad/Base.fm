@@ -16,7 +16,7 @@ T Bits
 
 // Start with the theorem we want to prove:
 
-// #main*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
+// #prof*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
 //   ?
 //   halt: ?
 
@@ -34,20 +34,20 @@ T Bits
 // - With the following context:
 // - n    : Ind
 // - n    : Ind
-// - main : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
+// - prof : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
 // - bits : Bits
 // ```
 
 // Notice that:
 
 // 1. It asks for `P(step(n))` instead of `P(n)`.
-// 2. We have, on context, `main`, which gives us `P(n)`.
+// 2. We have, on context, `prof`, which gives us `P(n)`.
 
 // That's because the body of a recursive function is actually the step case of inductive proof, so all we need to do is, assuming `P(n)`, prove `P(step(n))`!
 
 // Let's match against `bits`, using `self` on the motive:
 
-// #main*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
+// #prof*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
 //   case/Bits bits
 //   | b0 => ?
 //   | b1 => ?
@@ -66,7 +66,7 @@ T Bits
 // - With the following context:
 // - n    : Ind
 // - n    : Ind
-// - main : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
+// - prof : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
 // - bits : Bits
 // - pred : Bits
 // ```
@@ -88,7 +88,7 @@ T Bits
 
 // #induc_proof.example1*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
 //   case/Bits bits
-//   | b0 => cong(~Bits, ~Bits, ~(<bnot(n)>)((<bnot(n)>)(pred)), ~pred, ~b0, ~main(pred))
+//   | b0 => cong(~Bits, ~Bits, ~(<bnot(n)>)((<bnot(n)>)(pred)), ~pred, ~b0, ~prof(pred))
 //   | b1 => ?
 //   | be => ?
 //   : <bnot(step(n))>(<bnot(step(n))>(self)) == self
@@ -107,7 +107,7 @@ T Bits
 // - With the following context:
 // - n    : Ind
 // - n    : Ind
-// - main : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
+// - prof : {bits : Bits} -> bnot(n, bnot(n, bits)) == bits
 // - bits : Bits
 // - pred : Bits
 // ```
@@ -115,10 +115,10 @@ T Bits
 // We can easily complete this proof now:
 
 // ```haskell
-// #main*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
+// #prof*n : !{bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
 //   case/Bits bits
-//   | b0 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(pred)), ~pred, ~b0, ~main(pred))
-//   | b1 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(pred)), ~pred, ~b1, ~main(pred))
+//   | b0 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(pred)), ~pred, ~b0, ~prof(pred))
+//   | b1 => cong(~Bits, ~Bits, ~<bnot(n)>(<bnot(n)>(pred)), ~pred, ~b1, ~prof(pred))
 //   | be => refl(~be)
 //   : <bnot(step(n))>(<bnot(step(n))>(self)) == self
 //   halt: refl(~bits)
@@ -126,13 +126,13 @@ T Bits
 
 // As usual, it could be simplified with case'd arguments:
 
-#main*n : !{case bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
-| b0 => cong(~b0, main(bits.pred))
-| b1 => cong(~b1, main(bits.pred))
+#prof*n : !{case bits : Bits} -> <bnot(n)>(<bnot(n)>(bits)) == bits
+| b0 => cong(~b0, prof(bits.pred))
+| b1 => cong(~b1, prof(bits.pred))
 | be => refl(~be)
 halt: refl(~bits)
 
-// Note that the big difference here, with relation to Agda/Coq proofs, is that, in their cases, since recursive functions are defined by structural recursion, inductive proofs are also defined by recursion on the structure. For example, if we wanted to prove this theorem in Agda, we'd just match the bit-string, prove the base case by reflexivity, and prove the recursive case by calling `main` recursively on `pred`.
+// Note that the big difference here, with relation to Agda/Coq proofs, is that, in their cases, since recursive functions are defined by structural recursion, inductive proofs are also defined by recursion on the structure. For example, if we wanted to prove this theorem in Agda, we'd just match the bit-string, prove the base case by reflexivity, and prove the recursive case by calling `prof` recursively on `pred`.
 
 // In Formality, it **looks** like the proof is the same, but there is a subtle, yet important, difference: under the hoods, we're not actually recursing on the `Bits` structure. Instead, we're folding over `n : Ind`, a datatype capturing the inductive hypothesis on natural numbers. As such, in order to prove that `bnot(n, bnot(n, bits)) == bits` hold for any `n`, we first must prove that it is true for `n == 0`, i.e., when `bits` has a maximum recursion depth of `0` (i.e., is "out-of-gas"), which is true by reflexivity since the function returns `bits` itself. We then prove that assuming this is true for a maximum recursion depth of `n`, then it is also true for `bits(step(n))`. This is the `step` case, which coincides with Agda's proof.
 
