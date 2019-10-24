@@ -53,11 +53,11 @@ app.example_3a : !Word
 
 // So, for example, when you write:
 
-#app.example4*N : ! {i : Word} -> Word
+#app.example_4*N : ! {i : Word} -> Word
   if i .= 0:
     1
   else:
-    i * fact(i - 1)
+    i * app.example_4(i - 1)
 halt: 0
 
-// It gives you a `app.example4 : {N : Ind} -> !{n : Word} -> Word`, instead of a `app.example4 : !{n : Word} -> Word`. You can call it inside a boxed definition with `<app.example4*MAX_CALLS>(x)`.
+// It gives you a `app.example4 : {N : Ind} -> !{i : Word} -> Word`, instead of a `app.example4 : !{i : Word} -> Word`. You can call it inside a boxed definition with `<app.example4*MAX_CALLS>(x)`.
