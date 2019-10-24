@@ -6,16 +6,16 @@ import Data.Function
 Iff : {A : Type, B : Type} -> Type
   And(A -> B, B -> A)
 
-iff.Reflexive : {A : Type} -> Reflexive(Type, Iff)
-  {~A} both(~(A -> A), ~(A -> A), id(~A), id(~A))
+//iff.Reflexive : {A : Type} -> Reflexive(Type, Iff)
+  //{~A} both(~(A -> A), ~(A -> A), id(~A), id(~A))
 
-iff.Symmetric : {A : Type} -> Symmetric(Type,Iff)
-  {~A,~B,~f} case/And f
-    | both => both(~(B -> A),~(A -> B), f.right, f.left)
-    : Iff(B,A)
+//iff.Symmetric : {A : Type} -> Symmetric(Type,Iff)
+  //{~A,~B,~f} case/And f
+    //| both => both(~(B -> A),~(A -> B), f.right, f.left)
+    //: Iff(B,A)
 
-iff.Transitive : Transitive(Type, Iff)
-  {~A,~B,~C,~f,~g} case/And f | both => case/And g | both =>
-    both(~(A -> C), ~(C -> A), {x} g.left(f.left(x)), {x} f.right(g.right(x)))
-      :Iff(A,C)
-    : Iff(A,C)
+//iff.Transitive : Transitive(Type, Iff)
+  //{~A,~B,~C,~f,~g} case/And f | both => case/And g | both =>
+    //both(~(A -> C), ~(C -> A), {x} g.left(f.left(x)), {x} f.right(g.right(x)))
+      //:Iff(A,C)
+    //: Iff(A,C)

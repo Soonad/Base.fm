@@ -11,14 +11,14 @@ T Monoid {A : Type, s : Setoid(A)}
   , identity    : Identity(A,s,f,e)
   }
 
-semigroup_to_monoid :
-  {~A : Type
-  ,~s : Setoid(A)
-  , case sem : Semigroup(A,s)
-  , ~e : A
-  , identity : case/Semigroup sem | semigroup => Identity(A,s,sem.f,e) : Type
-  } -> Monoid(A,s)
-| semigroup => monoid(~A,~s,sem.f,e,sem.associative,identity)
+//semigroup_to_monoid :
+  //{~A : Type
+  //,~s : Setoid(A)
+  //, case sem : Semigroup(A,s)
+  //, ~e : A
+  //, identity : case/Semigroup sem | semigroup => Identity(A,s,sem.f,e) : Type
+  //} -> Monoid(A,s)
+//| semigroup => monoid(~A,~s,sem.f,e,sem.associative,identity)
 
 // Monoids are Semigroups
 monoid_to_semigroup :

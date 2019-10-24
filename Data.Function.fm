@@ -54,22 +54,21 @@ Fun : {A : Type, B : Type} -> Type
 Feq : {A : Type, B : Type, f : A -> B, g : A -> B} -> Type
   {x : A} -> f(x) == g(x)
 
-feq.Reflexive : {A : Type, B : Type} -> Reflexive(A -> B,Feq(A,B))
-  {~f,x} refl(~f(x))
+//feq.Reflexive : {A : Type, B : Type} -> Reflexive(A -> B,Feq(A,B))
+  //{~f,x} refl(~f(x))
 
-feq.Symmetric : {A : Type, B : Type} -> Symmetric(A -> B,Feq(A,B))
-  {~f,~g,~e,x} sym(~e(x))
+//feq.Symmetric : {A : Type, B : Type} -> Symmetric(A -> B,Feq(A,B))
+  //{~f,~g,~e,x} sym(e(x))
 
-feq.Transitive : {A : Type, B : Type} -> Transitive(A -> B,Feq(A,B))
-  {~f,~g,~h,~e1,~e2,x} trans(~B,~f(x),~g(x),~h(x),~e1(x),~e2(x))
+//feq.Transitive : {A : Type, B : Type} -> Transitive(A -> B,Feq(A,B))
+  //{~f,~g,~h,~e1,~e2,x} trans(~B,~f(x),~g(x),~h(x),~e1(x),~e2(x))
 
-feq.Equivalence : {A : Type,B : Type} -> Equivalence(A -> B,Feq(A,B))
-  let fr = feq.Reflexive(type(A),type(B))
-  let fs = feq.Symmetric(type(A),type(B))
-  let ft = feq.Transitive(type(A),type(B))
-  equivalence( ~(A -> B) , ~Feq(A,B), fr,fs,ft)
+//feq.Equivalence : {A : Type,B : Type} -> Equivalence(A -> B,Feq(A,B))
+  //let fr = feq.Reflexive(type(A),type(B))
+  //let fs = feq.Symmetric(type(A),type(B))
+  //let ft = feq.Transitive(type(A),type(B))
+  //equivalence( ~(A -> B) , ~Feq(A,B), fr,fs,ft)
 
 // Setoid of functions
-feq : {A : Type, B : Type} -> Setoid(A -> B)
- setoid(~(A -> B), Feq(type(A),type(B)), feq.Equivalence(type(A),type(B)))
-
+//feq : {A : Type, B : Type} -> Setoid(A -> B)
+ //setoid(~(A -> B), Feq(type(A),type(B)), feq.Equivalence(type(A),type(B)))
