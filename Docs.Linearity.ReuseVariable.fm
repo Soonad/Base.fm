@@ -5,15 +5,14 @@ import Base@0
 // If the "duplicated" variable is used in different branches, as in:
 
 // Negates `b` if `a` is true
-reuse_var.example_0a : {a : Bool, b : Bool} -> Bool
-  case/Bool a
-  | true  => not(b)
-  | false => b
-  : Bool
+// reuse_var.example_0a : {a : Bool, b : Bool} -> Bool
+//   case/Bool a
+//   | true  => not(b)
+//   | false => b
+//   : Bool
 
-reuse_var.example_0a_test : Bool
-  reuse_var.example_0a(true, true)
-
+// reuse_var.example_0a_test : Bool
+//   reuse_var.example_0a(true, true)
 
 // Then, we can avoid copying `b` with a clever trick: return a lambda on each branch. Like this:
 
