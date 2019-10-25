@@ -1,0 +1,26 @@
+T JsNumber
+| js_number { value : Word }
+
+js_add : { case a : JsNumber, case b : JsNumber } -> JsNumber
+| js_number js_number => js_number(a.value +f b.value)
+
+js_sub : { case a : JsNumber, case b : JsNumber } -> JsNumber
+| js_number js_number => js_number(a.value -f b.value)
+
+js_mul : { case a : JsNumber, case b : JsNumber } -> JsNumber
+| js_number js_number => js_number(a.value *f b.value)
+
+js_div : { case a : JsNumber, case b : JsNumber } -> JsNumber
+| js_number js_number => js_number(a.value /f b.value)
+
+js_number_to_float : {case a : JsNumber} -> Word
+| js_number => a.value
+
+js_number_to_uint : {case a : JsNumber} -> Word
+| js_number => .u(a.value)
+
+js_number_from_float : Word -> JsNumber
+  js_number
+
+js_number_from_uint : {a : Word} -> JsNumber
+  js_number(.f(a))

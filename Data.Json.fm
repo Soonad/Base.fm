@@ -1,0 +1,10 @@
+import Data.JsNumber
+import Data.String
+import Data.List
+
+T Json
+| null
+| number {value: JsNumber}
+| string {value: String}
+| list {value : List(Json)}
+| object {value : List([:String, Json])}
