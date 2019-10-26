@@ -1,0 +1,11 @@
+// A value (proof) of type `And(A,B)` contains *both*:
+// - a value (proof) of the first type, `A`, *and*...
+// - a value (proof) of the second type, `B`
+T And {A : Type, B : Type}
+| both {left : A, right : B}
+
+and_fst : {~A, ~B, case and : And(A, B)} -> A
+| both => and.left
+
+and_snd : {~A, ~B, case and : And(A, B)} -> B
+| both => and.right

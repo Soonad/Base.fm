@@ -1,0 +1,8 @@
+difference: {a : Word, b : Word} -> Word
+  if a .>. b:
+    a .-. b
+  else:
+    b .-. a
+
+sqrt: {n : Word} -> Word
+  .u.(.f.(n) .^^. 0.5)

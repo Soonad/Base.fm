@@ -1,8 +1,0 @@
-import Algebra.Operation
-
-// A Magma is a type with a total binary operation between terms of that type
-T Magma {A : Type, s : Setoid(A)}
-| magma { f : Op2(A) }
-
-
-
