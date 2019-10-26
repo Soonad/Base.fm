@@ -1,0 +1,27 @@
+// Non-builtin propositional equality
+T Equal {A : Type, a : -A} (b : -A)
+| refl (a)
+
+// Substitution
+rewrite : {~A : Type, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(+a)} -> P(+b)
+  case/Equal e
+  | refl => x
+  : P(+e.b)
+
+// Symmetry
+sym : {~A : Type, ~a : -A, ~b : -A, e : Equal(A, a, b)} -> Equal(A, b, a)
+  case/Equal e
+  | refl => refl(~A :: Type, ~%+a)
+  : Equal(A, e.b, a)
+
+// Congruence
+cong : {~A : Type, ~B : Type, ~a : -A, ~b : -A, f : (-A) -> (-B), e : Equal(A, a, b)} -> Equal(B, f(a), f(b))
+  case/Equal e
+  | refl => refl(~B :: Type, ~%+f(a))
+  : Equal(B, f(a), f(e.b))
+
+// Transitivity
+trans : {~A : Type, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c)} -> Equal(A, a, c)
+  case/Equal bc
+  | refl => ab
+  : Equal(A, a, bc.b)

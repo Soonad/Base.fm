@@ -2,7 +2,7 @@ import Induction.Nat
 import Data.Unit
 import Data.Empty
 import Data.And
-import Relation.Equality
+import Data.Equal
 
 T Nat
 | succ {pred : Nat}
@@ -29,15 +29,15 @@ pred : {case n : Nat} -> Nat
 
 // Converts a native Word to a Nat
 #word_to_nat*N : !{x : Word} -> Nat
-  if x .= 0:
+  if x .==. 0:
     zero
   else:
-    succ(word_to_nat(x - 1))
+    succ(word_to_nat(x .-. 1))
 halt: zero
 
 // Converts a Nat to a native Word
 #nat_to_word*N : !{case n : Nat} -> Word
-| succ => 1 + nat_to_word(n.pred)
+| succ => 1 .+. nat_to_word(n.pred)
 | zero => 0
 halt: 0
 
@@ -50,21 +50,10 @@ halt: 0
   [zero, zero]
 halt: [zero, zero]
 
-// Returns two copies of the same Nat
-#make_equal_nats*N : ![a : Nat, b : Nat, e0 : a == <nat(N)>, b == <nat(N)>]
-  get [a, b, a.equal, b.equal] = make_equal_nats
-  let ap = cong(~succ, a.equal)
-  let bp = cong(~succ, b.equal)
-  let p0 = succ(a) == <nat(step(N))>
-  let p1 = succ(b) == <nat(step(N))>
-  [succ(a), succ(b), ap, bp]
-halt: let zb = zero == <nat(base)>
-  [zero, zero, refl(~zero) , refl(~zero)]
-
 // Multiplication by a static `n`. This requires a small amount of gas (`N`
 // must be >= `m`), but `n` must be static w.r.t `m`.
 #muln*N : {n : !Nat} -> !{case m : Nat} -> Nat
-| succ => <#<(add*)>(n)>(muln(m.pred))
+| succ => ($#($add*)(n))(muln(m.pred))
 | zero => zero
 halt: zero
 
@@ -81,99 +70,121 @@ halt: zero
 // Multiplication. This allows `n` and `m` to be dynamic relative to
 // each-other, but requires more gas (`N` must be >= `n * m`).
 #mul : {N : Ind} -> ! {n : Nat, m : Nat} -> Nat
-  <mul.go*N>(zero, n, m)
+  ($mul.go*N)(zero, n, m)
 
 // Converts a Ind to a Nat
 nat : {i : Ind} -> !Nat
-  dup add_i = (%i)(~{i}Nat, #{~i}succ)
+  dup add_i = (use(i))(~{i}Nat, #{~i}succ)
   # add_i(zero)
 
 // Increments a Nat with an Ind
 add_ind : {i : Ind} -> !{n : Nat} -> Nat
-  dup add_i = (%i)(~{i}Nat, #{~i}succ)
+  dup add_i = (use(i))(~{i}Nat, #{~i}succ)
   # {n} add_i(n)
 
-// ::::::::::::::
-// :: Theorems ::
-// ::::::::::::::
+//// ::::::::::::::
+//// :: Theorems ::
+//// ::::::::::::::
 
-succ_isnt_zero : {~x : Nat, e : succ(x) == zero} -> Empty
-  unit :: rewrite x
-    in case/Nat x
-      | succ => Unit
-      | zero => Empty
-      : Type
-    with e
+// Proof that `1 != 0`
+succ_isnt_zero : {~x : -Nat, e : Equal(Nat, %succ(+x), %zero)} -> Empty
+  rewrite(~Nat, ~%succ(+x), ~%zero, e,
+    ~{x} case/Nat x
+         | succ => Unit
+         | zero => Empty
+         : Type,
+    unit)
 
-zero_isnt_succ : {~x : Nat, e : zero == succ(x)} -> Empty
-  succ_isnt_zero(~x, sym(e))
+// Proof that `0 != 1`
+zero_isnt_succ : {~x : -Nat, e : Equal(Nat, %zero, %succ(x))} -> Empty
+  succ_isnt_zero(~x, sym(~Nat, ~%zero, ~%succ(x), e))
 
-pred_succ : {x : Nat} -> pred(succ(x)) == x
-  refl(~x)
+// An infinite number
+infinity : -Nat
+  %succ(+infinity)
 
-cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
-  cong(~pred, e)
+// Proof that `infinite + 1 == infinite`
+succ_infinity : Equal(Nat, %succ(+infinity), %+infinity)
+  refl(~Nat, ~infinity)
 
-// An Ind that is equal to a Nat
-IndOf : {n : Nat} -> Type
-  [N : Ind ~ <nat(N)> == n]
+// Given a proof that `x + 1 == x`, proves Empty
+bad : {succ_isnt_same : {~x : -Nat, e : Equal(Nat, %succ(+x), %+x)} -> Empty} -> Empty
+  succ_isnt_same(~infinity, succ_infinity)
 
-#make_IndOf*N : ! IndOf(<nat(N)>)
-  get [i ~ e] = make_IndOf
-  [step(i) ~ cong(~succ, e)]
-halt: [base ~ refl(~zero)]
+// Question is: can we prove that `x + 1 == x`?
+succ_isnt_same : {~x : -Nat, e : Equal(Nat, %succ(+x), %+x)} -> Empty
+  ?
 
-#add_zero_is_id.aux*N : ! <add*N>(<nat(N)>, zero) == <nat(N)>
-  let lft = <add(N)>(<nat(N)>, zero)
-  let rgt = <nat(N)>
-  let eql = add_zero_is_id.aux
-  cong(~succ, eql)
-halt: refl(~zero)
+// This would allow us to derive Empty
+main : Empty
+  bad(succ_isnt_same)
 
-#add_succ_is_inc.aux*N :
-  ! { ~m : Nat
-    } -> <add*N>(<nat(N)>, succ(m)) == succ(<add*N>(<nat(N)>, m))
-  let lft = <add*N>(<nat(N)>, succ(m))
-  let rgt = succ(<add*N>(<nat(N)>, m))
-  let eql = add_succ_is_inc.aux(~m)
-  cong(~succ, eql)
-halt: refl(~succ(m))
+//pred_succ : {x : Nat} -> pred(succ(x)) == x
+  //refl(~x)
 
-//#add_comm.aux*N :
-  //! { M : Ind
-    //, m : Nat
-    //, e : <nat(M)> == m
-    //} -> <add*N>(<nat(N)>, <nat(M)>) == <add*M>(<nat(M)>, <nat(N)>)
-  //let a = sym(<add_succ_is_inc.aux(M)>(~<nat(N)>))
-  //let b = cong(~succ, add_comm.aux(M, m, e))
-  //b :: rewrite X in succ(<add(N)>(<nat(N)>, <nat(M)>)) == X with a
-//halt: sym(<add_zero_is_id.aux(M)>)
+//cong_pred : {n : Nat, m : Nat, e : succ(n) == succ(m)} -> n == m
+  //cong(~pred, e)
 
-//add_comm :
-  //{ n : Nat
-  //, m : Nat
-  //, ~N : IndOf(n)
-  //, ~M : IndOf(m)
-  //} -> <add*N>(n,m) == <add*M>(m,n)
-  //get [N ~ ne] = N
-  //get [M ~ me] = M
-  //let a = <add_comm.aux(N)>(M, m, me)
-  //let b = a :: rewrite x in <add*N>(x, <nat(M)>) == <add*M>(<nat(M)>, x) with ne
-  //let c = b :: rewrite x in <add*N>(n, x       ) == <add*M>(x       , n) with me
-  //c
+//// An Ind that is equal to a Nat
+//IndOf : {n : Nat} -> Type
+  //[N : Ind ~ ^(nat(N)) == n]
 
-// ::::::::::::::
-// :: Examples ::
-// ::::::::::::::
+//#make_IndOf*N : ! IndOf(^nat(N))
+  //get [i ~ e] = make_IndOf
+  //[step(i) ~ cong(~succ, e)]
+//halt: [base ~ refl(~zero)]
 
-#add.example : !Nat
-  <add*>(0n3, 0n2)
+//#add_zero_is_id.aux*N : ! $(add*N)($(nat(N)), zero) == $(nat(N))
+  //let lft = (^add(N))((^nat(N)), zero)
+  //let rgt = (^nat(N))
+  //let eql = add_zero_is_id.aux
+  //cong(~succ, eql)
+//halt: refl(~zero)
 
-#double.example : !Nat
-  <double*>(succ(zero))
+//#add_succ_is_inc.aux*N :
+  //! { ~m : Nat
+    //} -> (^add*N)((^nat(N)), succ(m)) == succ((^add*N)((^nat(N)), m))
+  //let lft = (^add*N)((^nat(N)), succ(m))
+  //let rgt = succ((^add*N)((^nat(N)), m))
+  //let eql = add_succ_is_inc.aux(~m)
+  //cong(~succ, eql)
+//halt: refl(~succ(m))
 
-#muln.example : !Word
-  <nat_to_word*>(<muln*(#0n3)>(0n4))
+////#add_comm.aux*N :
+  ////! { M : Ind
+    ////, m : Nat
+    ////, e : (^nat(M)) == m
+    ////} -> (^add*N)((^nat(N)), (^nat(M))) == (^add*M)((^nat(M)), (^nat(N)))
+  ////let a = sym((^add_succ_is_inc.aux(M))(~(^nat(N))))
+  ////let b = cong(~succ, add_comm.aux(M, m, e))
+  ////b :: rewrite X in succ((^add(N))((^nat(N)), (^nat(M)))) == X with a
+////halt: sym((^add_zero_is_id.aux(M)))
 
-#mul.example : !Word
-  <nat_to_word*>(<mul*>(0n3, 0n4))
+////add_comm :
+  ////{ n : Nat
+  ////, m : Nat
+  ////, ~N : IndOf(n)
+  ////, ~M : IndOf(m)
+  ////} -> (^add*N)(n,m) == (^add*M)(m,n)
+  ////get [N ~ ne] = N
+  ////get [M ~ me] = M
+  ////let a = (^add_comm.aux(N))(M, m, me)
+  ////let b = a :: rewrite x in (^add*N)(x, (^nat(M))) == (^add*M)((^nat(M)), x) with ne
+  ////let c = b :: rewrite x in (^add*N)(n, x       ) == (^add*M)(x       , n) with me
+  ////c
+
+//// ::::::::::::::
+//// :: Examples ::
+//// ::::::::::::::
+
+//#add.example : !Nat
+  //(^add*)(0n3, 0n2)
+
+//#double.example : !Nat
+  //(^double*)(succ(zero))
+
+//#muln.example : !Word
+  //(^nat_to_word*)((^muln*(#0n3))(0n4))
+
+//#mul.example : !Word
+  //(^nat_to_word*)((^mul*)(0n3, 0n4))
