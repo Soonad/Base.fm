@@ -2,11 +2,13 @@ import And
 import Array
 import Bits
 import Bool
+import Double
 import Empty
 import Equal
 import Function
 import Ind
 import Ind2
+import JSON
 import List
 import Maybe
 import Nat

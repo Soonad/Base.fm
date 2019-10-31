@@ -1,0 +1,26 @@
+T Double
+| f64 { value : Word }
+
+f64_add : {case a : Double, case b : Double} -> Double
+| f64 f64 => f64(a.value .++. b.value)
+
+f64_sub : {case a : Double, case b : Double} -> Double
+| f64 f64 => f64(a.value .--. b.value)
+
+f64_mul : {case a : Double, case b : Double} -> Double
+| f64 f64 => f64(a.value .**. b.value)
+
+f64_div : {case a : Double, case b : Double} -> Double
+| f64 f64 => f64(a.value .//. b.value)
+
+f64_to_float : {case a : Double} -> Word
+| f64 => a.value
+
+f64_to_uint : {case a : Double} -> Word
+| f64 => .u.(a.value)
+
+f64_from_float : Word -> Double
+ f64 
+
+f64_from_uint : {a : Word} -> Double
+  f64(.f.(a))
