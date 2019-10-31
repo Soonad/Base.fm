@@ -1,0 +1,182 @@
+import Equal
+import Ind
+
+T List {A : Type}
+| cons {head : A, tail : List(A)}
+| nil
+
+// ::::::::::::::::::::::
+// :: Simple functions ::
+// ::::::::::::::::::::::
+
+head : {~T : Type, default : T, case list : List(T)} -> T
+| cons => list.head
+| nil  => default
+
+tail : {~T : Type, case list : List(T)} -> List(T)
+| cons => list.tail
+| nil  => nil(~T)
+
+take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
+| cons => [list.head, list.tail]
+| nil  => [default, nil(~T)]
+
+// :::::::::::::::::::::::::
+// :: Recursive functions ::
+// :::::::::::::::::::::::::
+
+// Returns the same list
+#same*n : !{~A : Type, case halt list : List(A)} -> List(A)
+| cons => cons(~A, list.head, same(~A, list.tail))
+| nil  => nil(~A)
+
+// Allocates a Vec with given length
+#alloc*N : {~A : Type, x : !A} -> !List(A)
+  cons(~A, x, alloc)
+halt: nil(~A)
+
+// Creates a list with `N` ascending words starting from `idx` 
+#range*N : !{init : Word} -> List(Word)
+  cons(~Word, init, range(init .+. 1))
+halt: cons(~Word, init, nil(~Word))
+
+// Sums every word in a list
+#sum*n : !{case list : List(Word)} -> Word
+| cons => list.head .+. sum(list.tail)
+| nil  => 0
+halt: 0
+
+// Applies a function to every element of a list
+#map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+| cons => cons(~B, f(list.head), map(list.tail))
+| nil  => nil(~B)
+halt: nil(~B)
+
+// Concatenates two lists
+#concat*n : !{~T : Type, case halt xs : List(T), ys : List(T)} -> List(T)
+| cons => cons(~T, xs.head, concat(~T, xs.tail, ys))
+| nil  => ys
+
+// Helper for reverse
+#reverse.go*n : !{~T : Type, case halt list : List(T), result : List(T)} -> List(T)
+| cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
+| nil   => result
+
+// Reverses a list
+#reverse : {n : Ind} -> !{~T : Type, list : List(T)} -> List(T)
+  ($reverse.go(n))(~T, list, nil(~T))
+
+#zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
+| cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
+| cons nil  => nil(~B)
+| nil  cons => nil(~B)
+| nil  nil  => nil(~B)
+halt: nil(~B)
+
+// Examples
+
+#same.example : !List(Word)
+  ($same*)(~Word, Word$[1,2,3,4])
+
+#map.example : !List(Word)
+  ($map*(~Word, ~Word, #{x} x .+. 1))(Word$[1,2,3,4])
+
+#reverse.example : !List(Word)
+  ($reverse*)(~Word, Word$[1,2,3,4])
+
+// :::::::::::::::::::::::
+// :: Fusible functions ::
+// :::::::::::::::::::::::
+
+#same_f*n : !{~A : Type, halt list : List(A)} -> List(A)
+  new(~List(A)){~P, cons, nil}
+  case/List list
+  | cons => cons(list.head, same_f(~A, list.tail))
+  | nil  => nil
+  : P(($same_f.step)(~n, same_f, ~A, list))
+
+#map_f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
+  new(~List(B)){~P, cons, nil}
+  case/List list
+  | cons => cons(f(list.head), map_f(list.tail))
+  | nil  => nil
+  : P(($map_f.step(~A, ~B, #f))(~n, map_f, list))
+halt:
+  nil(~B)
+
+#zipp_f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
+  new(~List(B)){~P, consf, nilf}
+  case/List func
+  + consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
+  + nilf  : P(nil(~B))
+  | cons =>
+    case/List list
+    | cons => consf(func.head(list.head), zipp_f(~A, ~B, func.tail, list.tail))
+    | nil  => nilf
+    : P(($zipp_f.step)(~n, zipp_f, ~A, ~B, cons(~(A -> B), func.head, func.tail), list))
+  | nil =>
+    nilf
+  : P(($zipp_f.step)(~n, zipp_f, ~A, ~B, func, list))
+halt:
+  nil(~B)
+
+// Examples
+
+// From 2.7m to 3.8k rewrites by using `same_f` to build the list
+same_f.example
+  let list = Word$[1, 2, 3, 4, 5, 6, 7]
+  dup same   = same*256
+  dup same_f = same_f*256
+  dup list = rec(*10000, ~List(Word), #same_f(~Word), #list)
+  # same(~Word, list)
+
+// From 3.3m rewrites to 229k rewrites using map_f
+map_f.example
+  let list = Word$[1, 2, 3, 4, 5, 6, 7, 8]
+  dup same = same*256
+  dup map  = map_f*256(~Word, ~Word, #{x} x .+. 1)
+  dup list = rec(*10000, ~List(Word), #map, #list)
+  # same(~Word, list)
+
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
+//#map.composition*n :
+  //!{~A : Type
+  //, ~B : Type
+  //, ~C : Type
+  //, f  : !{:B} -> C
+  //, g  : !{:A} -> B
+  //, xs : List(A)
+  //} -> <map*n(~B, ~C, f)>(<map*n(~A, ~B, g)>(xs)) == <map*n(~A, ~C, #{x}<f>(<g>(x)))>(xs)
+  //case/List xs
+  //| cons => 
+    //cong(~{k} cons(~C, <f>(<g>(xs.head)), k), map.composition(~A, ~B, ~C, f, g, xs.tail))
+  //| nil  => refl(~nil)
+  //: <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(xs)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(xs)
+//halt:
+  //refl(~nil)
+
+////!concat.associative*n : 
+////  !{ ~T : Type
+////   , xs : List(T)
+////   , ys : List(T)
+////   , zs : List(T)
+////   } -> <concat*n>(~T,xs,<concat*n>(~T,ys,zs)) ==
+////        <concat*n>(~T,<concat*n>(~T,xs,ys),zs)
+////  case/List xs
+////  | cons =>
+////    cong(
+////        ~List(C)
+////      , ~List(C)
+////      , ~<concat(n, ~T)>(tail, <concat(n, ~T)>(ys, zs))
+////      , ~<concat(n, ~T)>(<concat(n, ~T)>(tail, ys),zs)
+////      , ~{t} cons(~T, head, t)
+////      , ~concat.associative(~T, tail, ys, zs)
+////      )
+////  | nil => refl(~nil)
+////  : <concat(step(n))>(~T,self,concat(step(n),~T,ys,zs)) ==
+////    <concat(step(n))>(~T,concat(step(n), ~T,self,ys), zs)
+////  * refl(~xs)
+

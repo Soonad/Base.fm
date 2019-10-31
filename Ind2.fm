@@ -1,0 +1,60 @@
+import Equal
+import Nat
+
+// The inductive hypothesis on perfect binary trees. Erases to Church.
+Ind2 : Type
+  ${self}
+  { ~P    : {a : Ind2} -> Type
+  , step2 : ! {~k : -Ind2, a : P(+k), b : P(+k)} -> P(step2(+k))
+  , base2 : ! P(base2)
+  } -> ! P(self)
+
+step2 : {k : Ind2} -> Ind2
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  dup kfold = (use(k))(~{x} P(x), #step2, #base2)
+  # step2(~%k, kfold, kfold)
+
+base2 : Ind2
+  new(~Ind2){~P, step2, base2}
+  dup step2 = step2
+  dup base2 = base2
+  # base2
+
+ind2_depth : {i2 : Ind2} -> !Nat
+  (use(i2))(~{x} Nat, #{~i,a,b} succ(a), #zero)
+
+I2.0  : Ind2; base2
+I2.1  : Ind2; step2(I2.0)
+I2.2  : Ind2; step2(I2.1)
+I2.3  : Ind2; step2(I2.2)
+I2.4  : Ind2; step2(I2.3)
+I2.5  : Ind2; step2(I2.4)
+I2.6  : Ind2; step2(I2.5)
+I2.7  : Ind2; step2(I2.6)
+I2.8  : Ind2; step2(I2.7)
+I2.9  : Ind2; step2(I2.8)
+I2.10 : Ind2; step2(I2.9)
+I2.11 : Ind2; step2(I2.10)
+I2.12 : Ind2; step2(I2.11)
+I2.13 : Ind2; step2(I2.12)
+I2.14 : Ind2; step2(I2.13)
+I2.15 : Ind2; step2(I2.14)
+I2.16 : Ind2; step2(I2.15)
+I2.17 : Ind2; step2(I2.16)
+I2.18 : Ind2; step2(I2.17)
+I2.19 : Ind2; step2(I2.18)
+I2.20 : Ind2; step2(I2.19)
+I2.21 : Ind2; step2(I2.20)
+I2.22 : Ind2; step2(I2.21)
+I2.23 : Ind2; step2(I2.22)
+I2.24 : Ind2; step2(I2.23)
+I2.25 : Ind2; step2(I2.24)
+I2.26 : Ind2; step2(I2.25)
+I2.27 : Ind2; step2(I2.26)
+I2.28 : Ind2; step2(I2.27)
+I2.29 : Ind2; step2(I2.28)
+I2.30 : Ind2; step2(I2.29)
+I2.31 : Ind2; step2(I2.30)
+I2.32 : Ind2; step2(I2.31)
