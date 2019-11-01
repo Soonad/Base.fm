@@ -47,7 +47,11 @@ halt: cons(~Word, init, nil(~Word))
 halt: 0
 
 // Applies a function to every element of a list
-#map*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {case list : List(A)} -> List(B)
+#map*n :
+  { ~A : Type
+  , ~B : Type
+  , f : !A -> B
+  } -> ! {case list : List(A)} -> List(B)
 | cons => cons(~B, f(list.head), map(list.tail))
 | nil  => nil(~B)
 halt: nil(~B)
@@ -58,7 +62,11 @@ halt: nil(~B)
 | nil  => ys
 
 // Helper for reverse
-#reverse.go*n : !{~T : Type, case halt list : List(T), result : List(T)} -> List(T)
+#reverse.go*n :
+  !{ ~T : Type
+   , case halt list : List(T)
+   , result : List(T)
+   } -> List(T)
 | cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 
@@ -66,8 +74,13 @@ halt: nil(~B)
 #reverse : {n : Ind} -> !{~T : Type, list : List(T)} -> List(T)
   ($reverse.go(n))(~T, list, nil(~T))
 
-#zipp*n : !{~A : Type, ~B : Type, case func : List(A -> B), case list : List(A)} -> List(B)
-| cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
+#zipp*n :
+  ! { ~A : Type
+    , ~B : Type
+    , case func : List(A -> B)
+    , case list : List(A)
+    } -> List(B)
+| cons cons => cons(~B, func.head(list.head), zipp(__ func.tail, list.tail))
 | cons nil  => nil(~B)
 | nil  cons => nil(~B)
 | nil  nil  => nil(~B)
