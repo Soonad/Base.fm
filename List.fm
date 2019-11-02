@@ -84,6 +84,28 @@ halt: nil(~B)
 #reverse.example : !List(Word)
   ($reverse*)(~Word, Word$[1,2,3,4])
 
+// ::::::::::::::::::::::::
+// :: Fast Concatenation ::
+// ::::::::::::::::::::::::
+
+Concatenator : {A : Type} -> Type
+  {x : List(A)} -> List(A)
+
+concatenate : {~A : Type, xs : Concatenator(A), ys : Concatenator(A)} -> Concatenator(A)
+  {x} xs(ys(x))
+
+#list_to_concatenator*N : ! {~A : Type, xs : List(A)} -> Concatenator(A)
+  {x} case/List xs
+      + x : List(A)
+      | cons => cons(~A, xs.head, list_to_concatenator(~A, xs.tail, x))
+      | nil  => x
+      : List(A)
+halt: {x} x
+
+#concatenator_to_list*N : ! {~A : Type, xs : Concatenator(A)} -> List(A)
+  xs(nil(~A))
+halt: nil(~A)
+
 // :::::::::::::::::::::::
 // :: Fusible functions ::
 // :::::::::::::::::::::::

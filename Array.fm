@@ -11,13 +11,14 @@ Array : {A : Type, n : Nat} -> Type
 // :: Fold ::
 // ::::::::::
 
-fold : {N : Ind2, ~A : Type, op : !(A -> A -> A)} -> ! {arr : Array(A, $ind2_depth(N))} -> A
+fold : {N : Ind2, ~A : Type, ~B : Type, id : !(A -> B), op : !(B -> B -> B)} -> ! {arr : Array(A, $ind2_depth(N))} -> B
   dup op   = op
-  let moti = {n} Array(A, $ind2_depth(n)) -> A
+  dup id   = id
+  let moti = {n} Array(A, $ind2_depth(n)) -> B
   let step = {~n, a, b, arr}
     get [x, y] = arr
     op(a(x), b(y))
-  let base = {n} n
+  let base = {n} id(n)
   dup fold = (use(N))(~moti, #step, #base)
   # {arr} fold(arr)
 
