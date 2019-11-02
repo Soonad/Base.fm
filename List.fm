@@ -63,10 +63,10 @@ halt: nil(~B)
 
 // Helper for reverse
 #reverse.go*n :
-  !{ ~T : Type
-   , case halt list : List(T)
-   , result : List(T)
-   } -> List(T)
+  ! { ~T : Type
+    , case halt list : List(T)
+    , result : List(T)
+    } -> List(T)
 | cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 

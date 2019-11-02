@@ -105,7 +105,7 @@ pred_succ : {~x : -Nat} -> Equal(Nat, pred(succ(x)), x)
 cong_pred :
   { ~n : -Nat
   , ~m : -Nat
-  , e : Equal(Nat, n, m)
+  , e  : Equal(Nat, n, m)
   } -> Equal(Nat, %pred(+n), %pred(+m))
   cong(~Nat, ~Nat, ~n, ~m, ~%pred, e)
 

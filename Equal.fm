@@ -7,16 +7,21 @@ rewrite :
   { ~A : Type
   , ~a : -A
   , ~b : -A
-  , e : Equal(A, a, b)
+  , e  : Equal(A, a, b)
   , ~P : A -> Type
-  , x : P(+a)
+  , x  : P(+a)
   } -> P(+b)
   case/Equal e
   | refl => x
   : P(+e.b)
 
 // Symmetry
-sym : {~A : Type, ~a : -A, ~b : -A, e : Equal(A, a, b)} -> Equal(A, b, a)
+sym :
+  { ~A : Type
+  , ~a : -A
+  , ~b : -A
+  , e : Equal(A, a, b)
+  } -> Equal(A, b, a)
   case/Equal e
   | refl => refl(~A, ~a)
   : Equal(A, e.b, a)
@@ -28,7 +33,7 @@ cong :
   , ~a : -A
   , ~b : -A
   , ~f : -(A -> B)
-  , e : Equal(A, a, b)
+  , e  : Equal(A, a, b)
   } -> Equal(B, %(+f)(+a), %(+f)(+b))
   case/Equal e
   | refl => refl(~B, ~%(+f)(+a))
@@ -36,7 +41,7 @@ cong :
 
 // Transitivity
 trans :
-  {~A : Type
+  {~A  : Type
   , ~a : -A
   , ~b : -A
   , ~c : -A
@@ -46,4 +51,3 @@ trans :
   case/Equal bc
   | refl => ab
   : Equal(A, a, bc.b)
-
