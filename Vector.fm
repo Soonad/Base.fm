@@ -45,12 +45,15 @@ vtake : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> [:T, Vector(T,n)]
 
 //// Returns the same vector
 #vsame*N : !{~A : Type, xs : Vector(A, %$nat(N))} -> Vector(A, %$nat(N))
-  xs
-  //case/Vector xs
-  //+ refl(~Nat, ~%$nat(+N)) as e : Equal(Nat, %pred(+xs.len), %$nat(+N))
-  //| vcons => vcons(~A, ~xs.len, xs.head, xs.tail)
-  //| vnil  => vnil(~A)
-  //: Vector(A, xs.len)
+  case/Vector xs
+  + refl(~Nat, ~%$nat(+N)) as e : Equal(Nat, %pred(+xs.len), %$nat(+N))
+  + refl(~Nat, ~%$nat(+N)) as e2 : Equal(Nat, %pred(+xs.len), %$nat(+N))
+  | vcons => 
+    let tail = rewrite(___ e, ~{x} Vector(A, %x), xs.tail)
+    let tail = rewrite(___ sym(___ e2), ~{x} Vector(A, %x), vsame(~A,tail))
+    vcons(~A, ~xs.len, xs.head, tail)
+  | vnil  => vnil(~A)
+  : Vector(A, xs.len)
 halt: vnil(_)
 
 // Allocates a Vec with given length
