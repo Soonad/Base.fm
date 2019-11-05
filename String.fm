@@ -34,10 +34,10 @@ cons_char : {chr : Char, chrs : List(Char)} -> List(Char)
   | cons =>
     cpy word = str.head
     let chrs = string_to_chars(str.tail)
-    let chrs = cons_char((word .>>. 24) .&. 0xFF, chrs)
-    let chrs = cons_char((word .>>. 16) .&. 0xFF, chrs)
-    let chrs = cons_char((word .>>.  8) .&. 0xFF, chrs)
-    let chrs = cons_char( word          .&. 0xFF, chrs)
+    let chrs = cons_char((word .>>>. 24) .&. 0xFF, chrs)
+    let chrs = cons_char((word .>>>. 16) .&. 0xFF, chrs)
+    let chrs = cons_char((word .>>>.  8) .&. 0xFF, chrs)
+    let chrs = cons_char( word           .&. 0xFF, chrs)
     chrs
   | nil => 
     nil(~Num)
@@ -47,7 +47,7 @@ halt:
 
 #chars_to_string.go*N : !{case chrs : List(Char), word : Num} -> String
 | cons =>
-  cpy word = (word .>>. 8) .|. (chrs.head .<<. 24)
+  cpy word = (word .>>>. 8) .|. (chrs.head .<<. 24)
   let done = (word .&. 0xFF) .>. 0
   let cons = if done: cons(~Num, word) else: {str : String} str
   let word = if done: 0 else: word
@@ -81,7 +81,7 @@ halt:
       else: {h : {i : Num, k : Num -> Num} -> List(Char)} h)(h)
     cpy c = str.head
     let h = to_codepoints_aux(str.tail)
-    loop_aux((c .>>. 0) .&. 0xFF, loop_aux((c .>>. 8) .&. 0xFF, loop_aux((c .>>. 16) .&. 0xFF, loop_aux((c .>>. 24) .&. 0xFF, h))), i)
+    loop_aux((c .>>>. 0) .&. 0xFF, loop_aux((c .>>>. 8) .&. 0xFF, loop_aux((c .>>>. 16) .&. 0xFF, loop_aux((c .>>>. 24) .&. 0xFF, h))), i)
   | nil => {i, k} nil(~Char)
   : {i : Num, k : Num -> Num} -> List(Char)
 halt: {i, k} nil(~Char)

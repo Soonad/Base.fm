@@ -48,7 +48,7 @@ query_builder.succ : {~A : Type, ~n : -Nat, side : Num, build : QueryBuilder(A, 
 #query_builder*N : !{~A : Type, path : Num, query : A -> [:A, A]} -> [path : Num, QueryBuilder(A, ($nat(N)))]
   get [abc, builder] = query_builder(~&A, path, query)
   cpy path_rest      = abc
-  [path_rest .>>. 1, query_builder.succ(~&A, ~%($nat(+N)), path_rest .&. 1, builder)]
+  [path_rest .>>>. 1, query_builder.succ(~&A, ~%($nat(+N)), path_rest .&. 1, builder)]
 halt:
   [path, query_builder.zero(~&A, query)]
 
