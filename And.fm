@@ -4,8 +4,8 @@
 T And {A : Type, B : Type}
 | both {left : A, right : B}
 
-and_fst : {~A, ~B, case and : And(A, B)} -> A
+and_fst : {~A : Type, ~B : Type, case and : And(A, B)} -> A
 | both => and.left
 
-and_snd : {~A, ~B, case and : And(A, B)} -> B
+and_snd : {~A : Type, ~B : Type, case and : And(A, B)} -> B
 | both => and.right

@@ -27,16 +27,16 @@ pred : {case n : Nat} -> Nat
 | succ => succ(succ(double(n.pred)))
 | zero => zero
 
-// Converts a native Word to a Nat
-#word_to_nat*N : !{x : Word} -> Nat
+// Converts a native Num to a Nat
+#word_to_nat*N : !{x : Num} -> Nat
   if x .==. 0:
     zero
   else:
     succ(word_to_nat(x .-. 1))
 halt: zero
 
-// Converts a Nat to a native Word
-#nat_to_word*N : !{case n : Nat} -> Word
+// Converts a Nat to a native Num
+#nat_to_word*N : !{case n : Nat} -> Num
 | succ => 1 .+. nat_to_word(n.pred)
 | zero => 0
 halt: 0
@@ -97,17 +97,17 @@ succ_isnt_zero : {~n : -Nat, e : Equal(Nat, %succ(+n), %zero)} -> Empty
 
 // Proof that `0 != 1`
 zero_isnt_succ : {~n : -Nat, e : Equal(Nat, %zero, %succ(+n))} -> Empty
-  succ_isnt_zero(~n, sym(~Nat, ~%zero, ~%succ(+n), e))
+  succ_isnt_zero(~%+n, sym(~Nat, ~%zero, ~%succ(+n), e))
 
 pred_succ : {~x : -Nat} -> Equal(Nat, pred(succ(x)), x)
-  refl(~Nat, ~x)
+  refl(~Nat, ~%+x)
 
 cong_pred :
   { ~n : -Nat
   , ~m : -Nat
   , e  : Equal(Nat, n, m)
   } -> Equal(Nat, %pred(+n), %pred(+m))
-  cong(~Nat, ~Nat, ~n, ~m, ~%pred, e)
+  cong(~Nat, ~Nat, ~%+n, ~%+m, ~%pred, e)
 
 // An Ind that is equal to a Nat
 //IndOf : {n : Nat} -> Type
@@ -167,8 +167,8 @@ cong_pred :
 #double.example : !Nat
   ($double*)(succ(zero))
 
-#muln.example : !Word
+#muln.example : !Num
   ($nat_to_word*)(($muln*(#0n3))(0n4))
 
-#mul.example : !Word
+#mul.example : !Num
   ($nat_to_word*)(($mul*)(0n3, 0n4))

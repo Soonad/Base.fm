@@ -1,10 +1,9 @@
-import Double
 import List
 import String
 
 T JSON
 | null
-| number {value: Double}
+| number {value: Num}
 | string {value: String}
 | list {value : List(JSON)}
 | object {value : List([:String, JSON])}

@@ -23,7 +23,7 @@ sym :
   , e : Equal(A, a, b)
   } -> Equal(A, b, a)
   case/Equal e
-  | refl => refl(~A, ~a)
+  | refl => refl(~&A, ~%+a)
   : Equal(A, e.b, a)
 
 // Congruence
@@ -36,7 +36,7 @@ cong :
   , e  : Equal(A, a, b)
   } -> Equal(B, %(+f)(+a), %(+f)(+b))
   case/Equal e
-  | refl => refl(~B, ~%(+f)(+a))
+  | refl => refl(~&B, ~%(+f)(+a))
   : Equal(B, %(+f)(+a), %(+f)(+e.b))
 
 // Transitivity

@@ -13,7 +13,7 @@ step2 : {k : Ind2} -> Ind2
   new(~Ind2){~P, step2, base2}
   dup step2 = step2
   dup base2 = base2
-  dup kfold = (use(k))(~{x} P(x), #step2, #base2)
+  dup kfold = (use(k))(~{x} &P(x), #step2, #base2)
   # step2(~%k, kfold, kfold)
 
 base2 : Ind2
