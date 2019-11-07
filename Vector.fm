@@ -41,27 +41,23 @@ vhead : {~T : Type, ~n : -Nat, xs : Vector(T, succ(n))} -> T
   //| vnil  => absurd(succ_isnt_zero(~%+n,sym(___ e)), ~[:T, Vector(T,%+n)])
   //: [:T, Vector(T,%+n)]
 
-////// :::::::::::::::::::::::::
-////// :: Recursive Functions ::
-////// :::::::::::::::::::::::::
+// :::::::::::::::::::::::::
+// :: Recursive Functions ::
+// :::::::::::::::::::::::::
 
-////// Returns the same vector
-//#vsame*N : !{~A : Type, xs : Vector(A, %$nat(N))} -> Vector(A, %$nat(N))
-  //case/Vector xs
-  //+ refl(~Nat, ~%$nat(+N)) as e : Equal(Nat, %pred(+xs.len), %$nat(+N))
-  //+ refl(~Nat, ~%$nat(+N)) as e2 : Equal(Nat, %pred(+xs.len), %$nat(+N))
-  //| vcons => 
-    //let tail = rewrite(___ e, ~{x} Vector(A, %x), xs.tail)
-    //let tail = rewrite(___ sym(___ e2), ~{x} Vector(A, %x), vsame(~A,tail))
-    //vcons(~A, ~xs.len, xs.head, tail)
-  //| vnil  => vnil(~A)
-  //: Vector(A, xs.len)
-//halt: vnil(_)
+// Returns the same vector
+#vsame*N : !{~A : Type, xs : Vector(A, $nat(N))} -> Vector(A, $nat(N))
+  case/Vector xs
+  + vsame : {~A : Type, xs : Vector(A, pred(xs.len))} -> Vector(A, pred(xs.len))
+  | vcons => vcons(~A, ~xs.len, xs.head, vsame(~A, xs.tail))
+  | vnil  => vnil(~A)
+  : Vector(A, xs.len)
+halt: vnil(~A)
 
 // Allocates a Vec with given length
-//#valloc*N : {~A : Type, x : !A} -> !Vector(A, $nat(N))
-  //vcons(~A, ~$nat(+N), x, valloc)
-//halt: vnil(~A)
+#valloc*N : {~A : Type, x : !A} -> !Vector(A, $nat(N))
+  vcons(~A, ~$nat(N), x, valloc)
+halt: vnil(~A)
 
 //valloc : {~A : Type, n : Nat} -> Vector(Unit, n)
   //case/Nat n
