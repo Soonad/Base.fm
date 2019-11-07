@@ -87,8 +87,8 @@ add_ind : {i : Ind} -> !{n : Nat} -> Nat
 //// ::::::::::::::
 
 // Proof that `1 != 0`
-succ_isnt_zero : {~n : -Nat, e : Equal(Nat, %succ(+n), %zero)} -> Empty
-  rewrite(~Nat, ~%succ(+n), ~%zero, e,
+succ_isnt_zero : {~n : -Nat, e : Equal(Nat, succ(n), zero)} -> Empty
+  rewrite(~Nat, ~succ(n), ~zero, e,
     ~{n} (case/Nat n
          | succ => Unit
          | zero => Empty
@@ -96,18 +96,18 @@ succ_isnt_zero : {~n : -Nat, e : Equal(Nat, %succ(+n), %zero)} -> Empty
     unit)
 
 // Proof that `0 != 1`
-zero_isnt_succ : {~n : -Nat, e : Equal(Nat, %zero, %succ(+n))} -> Empty
-  succ_isnt_zero(~%+n, sym(~Nat, ~%zero, ~%succ(+n), e))
+zero_isnt_succ : {~n : -Nat, e : Equal(Nat, zero, succ(n))} -> Empty
+  succ_isnt_zero(~n, sym(~Nat, ~zero, ~succ(n), e))
 
 pred_succ : {~x : -Nat} -> Equal(Nat, pred(succ(x)), x)
-  refl(~Nat, ~%+x)
+  refl(~Nat, ~x)
 
 cong_pred :
   { ~n : -Nat
   , ~m : -Nat
   , e  : Equal(Nat, n, m)
-  } -> Equal(Nat, %pred(+n), %pred(+m))
-  cong(~Nat, ~Nat, ~%+n, ~%+m, ~%pred, e)
+  } -> Equal(Nat, pred(n), pred(m))
+  cong(~Nat, ~Nat, ~n, ~m, ~pred, e)
 
 // An Ind that is equal to a Nat
 //IndOf : {n : Nat} -> Type

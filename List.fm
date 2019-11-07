@@ -15,11 +15,11 @@ head : {~T : Type, default : T, case list : List(T)} -> T
 
 tail : {~T : Type, case list : List(T)} -> List(T)
 | cons => list.tail
-| nil  => nil(~&T)
+| nil  => nil(~T)
 
 take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 | cons => [list.head, list.tail]
-| nil  => [default, nil(~&T)]
+| nil  => [default, nil(~T)]
 
 // :::::::::::::::::::::::::
 // :: Recursive functions ::
@@ -27,18 +27,18 @@ take : {~T : Type, default : T, case list : List(T)} -> [x : T, List(T)]
 
 // Returns the same list
 #same*n : !{~A : Type, case halt list : List(A)} -> List(A)
-| cons => cons(~&A, list.head, same(~&A, list.tail))
-| nil  => nil(~&A)
+| cons => cons(~A, list.head, same(~A, list.tail))
+| nil  => nil(~A)
 
 // Allocates a Vec with given length
 #alloc*N : {~A : Type, x : !A} -> !List(A)
-  cons(~&A, x, alloc)
-halt: nil(~&A)
+  cons(~A, x, alloc)
+halt: nil(~A)
 
 // Creates a list with `N` ascending words starting from `idx` 
 #range*N : !{init : Num} -> List(Num)
-  cons(~&Num, init, range(init .+. 1))
-halt: cons(~&Num, init, nil(~&Num))
+  cons(~Num, init, range(init .+. 1))
+halt: cons(~Num, init, nil(~Num))
 
 // Sums every word in a list
 #sum*n : !{case list : List(Num)} -> Num
@@ -52,13 +52,13 @@ halt: 0
   , ~B : Type
   , f : !A -> B
   } -> ! {case list : List(A)} -> List(B)
-| cons => cons(~&B, f(list.head), map(list.tail))
-| nil  => nil(~&B)
-halt: nil(~&B)
+| cons => cons(~B, f(list.head), map(list.tail))
+| nil  => nil(~B)
+halt: nil(~B)
 
 // Concatenates two lists
 #concat*n : !{~T : Type, case halt xs : List(T), ys : List(T)} -> List(T)
-| cons => cons(~&T, xs.head, concat(~&T, xs.tail, ys))
+| cons => cons(~T, xs.head, concat(~T, xs.tail, ys))
 | nil  => ys
 
 // Helper for reverse
@@ -67,12 +67,12 @@ halt: nil(~&B)
     , case halt list : List(T)
     , result : List(T)
     } -> List(T)
-| cons  => reverse.go(~&T, list.tail, cons(~&T, list.head, result))
+| cons  => reverse.go(~T, list.tail, cons(~T, list.head, result))
 | nil   => result
 
 // Reverses a list
 #reverse : {n : Ind} -> !{~T : Type, list : List(T)} -> List(T)
-  ($reverse.go(n))(~&T, list, nil(~&T))
+  ($reverse.go(n))(~T, list, nil(~T))
 
 #zipp*n :
   ! { ~A : Type
@@ -80,22 +80,22 @@ halt: nil(~&B)
     , case func : List(A -> B)
     , case list : List(A)
     } -> List(B)
-| cons cons => cons(~&B, func.head(list.head), zipp(~&A, ~&B, func.tail, list.tail))
-| cons nil  => nil(~&B)
-| nil  cons => nil(~&B)
-| nil  nil  => nil(~&B)
-halt: nil(~&B)
+| cons cons => cons(~B, func.head(list.head), zipp(~A, ~B, func.tail, list.tail))
+| cons nil  => nil(~B)
+| nil  cons => nil(~B)
+| nil  nil  => nil(~B)
+halt: nil(~B)
 
 // Examples
 
 #same.example : !List(Num)
-  ($same*)(~&Num, Num$[1,2,3,4])
+  ($same*)(~Num, Num$[1,2,3,4])
 
 #map.example : !List(Num)
-  ($map*(~&Num, ~&Num, #{x} x .+. 1))(Num$[1,2,3,4])
+  ($map*(~Num, ~Num, #{x} x .+. 1))(Num$[1,2,3,4])
 
 #reverse.example : !List(Num)
-  ($reverse*)(~&Num, Num$[1,2,3,4])
+  ($reverse*)(~Num, Num$[1,2,3,4])
 
 // ::::::::::::::::::::::::
 // :: Fast Concatenation ::
@@ -110,14 +110,14 @@ concatenate : {~A : Type, xs : Concatenator(A), ys : Concatenator(A)} -> Concate
 #list_to_concatenator*N : ! {~A : Type, xs : List(A)} -> Concatenator(A)
   {x} case/List xs
       + x : List(A)
-      | cons => cons(~&A, xs.head, list_to_concatenator(~&A, xs.tail, x))
+      | cons => cons(~A, xs.head, list_to_concatenator(~A, xs.tail, x))
       | nil  => x
       : List(A)
 halt: {x} x
 
 #concatenator_to_list*N : ! {~A : Type, xs : Concatenator(A)} -> List(A)
-  xs(nil(~&A))
-halt: nil(~&A)
+  xs(nil(~A))
+halt: nil(~A)
 
 // :::::::::::::::::::::::
 // :: Fusible functions ::
@@ -126,34 +126,34 @@ halt: nil(~&A)
 #same_f*n : !{~A : Type, halt list : List(A)} -> List(A)
   new(~List(A)){~P, cons, nil}
   case/List list
-  | cons => cons(list.head, same_f(~&A, list.tail))
+  | cons => cons(list.head, same_f(~A, list.tail))
   | nil  => nil
-  : P(($same_f.step)(~n, same_f, ~&A, list))
+  : P(($same_f.step)(~n, same_f, ~A, list))
 
 #map_f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
   new(~List(B)){~P, cons, nil}
   case/List list
   | cons => cons(f(list.head), map_f(list.tail))
   | nil  => nil
-  : P(($map_f.step(~&A, ~&B, #f))(~n, map_f, list))
+  : P(($map_f.step(~A, ~B, #f))(~n, map_f, list))
 halt:
-  nil(~&B)
+  nil(~B)
 
 #zipp_f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
   new(~List(B)){~P, consf, nilf}
   case/List func
-  + consf : {head : B, tail : List(B)} -> P(cons(~&B, head, tail))
-  + nilf  : P(nil(~&B))
+  + consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
+  + nilf  : P(nil(~B))
   | cons =>
     case/List list
-    | cons => consf(func.head(list.head), zipp_f(~&A, ~&B, func.tail, list.tail))
+    | cons => consf(func.head(list.head), zipp_f(~A, ~B, func.tail, list.tail))
     | nil  => nilf
-    : P(($zipp_f.step)(~n, zipp_f, ~&A, ~&B, cons(~(A -> B), func.head, func.tail), list))
+    : P(($zipp_f.step)(~n, zipp_f, ~A, ~B, cons(~(A -> B), func.head, func.tail), list))
   | nil =>
     nilf
-  : P(($zipp_f.step)(~n, zipp_f, ~&A, ~&B, func, list))
+  : P(($zipp_f.step)(~n, zipp_f, ~A, ~B, func, list))
 halt:
-  nil(~&B)
+  nil(~B)
 
 // Examples
 
@@ -214,4 +214,3 @@ map_f.example
 ////  : <concat(step(n))>(~T,self,concat(step(n),~T,ys,zs)) ==
 ////    <concat(step(n))>(~T,concat(step(n), ~T,self,ys), zs)
 ////  * refl(~xs)
-

@@ -60,41 +60,41 @@ not-f : {b : Bool} -> Bool
 
 // If-then-else
 bool_if : {b : Bool, ~P : Type, T : P, F : P} -> P
-  (use(b))(~{b} &P, T, F)
+  (use(b))(~{b} P, T, F)
 
 // ::::::::::::::
 // :: Theorems ::
 // ::::::::::::::
 
-true_isnt_false : Not(Equal(Bool, %true, %false))
-  {e} rewrite(~Bool, ~%true, ~%false, e, ~{x} (case/Bool x | true => Unit | false => Empty : Type), unit)
+true_isnt_false : Not(Equal(Bool, true, false))
+  {e} rewrite(~Bool, ~true, ~false, e, ~{x} (case/Bool x | true => Unit | false => Empty : Type), unit)
 
-false_isnt_true : Not(Equal(Bool, %false, %true))
-  {e} rewrite(~Bool, ~%false, ~%true, e, ~{x} (case/Bool x | true => Empty | false => Unit : Type), unit)
+false_isnt_true : Not(Equal(Bool, false, true))
+  {e} rewrite(~Bool, ~false, ~true, e, ~{x} (case/Bool x | true => Empty | false => Unit : Type), unit)
 
-different_elem : {a : Bool} -> [b : Bool ~ Not(Equal(Bool, %a, %b))]
+different_elem : {a : Bool} -> [b : Bool ~ Not(Equal(Bool, a, b))]
   case/Bool a
   | true  => [false ~ true_isnt_false]
   | false => [true  ~ false_isnt_true]
-  : [b : Bool ~ Not(Equal(Bool, %a, %b))]
+  : [b : Bool ~ Not(Equal(Bool, a, b))]
 
-demorgan_0 : {case a : Bool, case b : Bool} -> Equal(Bool, %not(or(a,b)), %and(not(a), not(b)))
-| true  true  => refl(~Bool, ~%false)
-| true  false => refl(~Bool, ~%false)
-| false true  => refl(~Bool, ~%false)
-| false false => refl(~Bool, ~%true)
+demorgan_0 : {case a : Bool, case b : Bool} -> Equal(Bool, not(or(a,b)), and(not(a), not(b)))
+| true  true  => refl(~Bool, ~false)
+| true  false => refl(~Bool, ~false)
+| false true  => refl(~Bool, ~false)
+| false false => refl(~Bool, ~true)
 
-demorgan_1 : {case a : Bool, case b : Bool} -> Equal(Bool, %not(and(a,b)), %or(not(a), not(b)))
-| true  true  => refl(~Bool, ~%false)
-| true  false => refl(~Bool, ~%true)
-| false true  => refl(~Bool, ~%true)
-| false false => refl(~Bool, ~%true)
+demorgan_1 : {case a : Bool, case b : Bool} -> Equal(Bool, not(and(a,b)), or(not(a), not(b)))
+| true  true  => refl(~Bool, ~false)
+| true  false => refl(~Bool, ~true)
+| false true  => refl(~Bool, ~true)
+| false false => refl(~Bool, ~true)
 
-xnor_is_eq : {case a : Bool, case b : Bool, e : Equal(Bool, %xnor(a,b), %true)} -> Equal(Bool, %a, %b)
-| true true   => refl(~Bool, ~%true)
-| true false  => sym(~Bool, ~%false, ~%true, e)
+xnor_is_eq : {case a : Bool, case b : Bool, e : Equal(Bool, xnor(a,b), true)} -> Equal(Bool, a, b)
+| true true   => refl(~Bool, ~true)
+| true false  => sym(~Bool, ~false, ~true, e)
 | false true  => e
-| false false => refl(~Bool, ~%false)
+| false false => refl(~Bool, ~false)
 
 //xor_is_neq :
   //{ case a : Bool

@@ -7,8 +7,8 @@ import Nat
 
 // A vector is a list with a statically known length
 T Vector {A : Type} (len : -Nat)
-| vcons {~len : -Nat, head : A, tail : Vector(A, len)} (%succ(+len))
-| vnil                                                 (%zero)
+| vcons {~len : -Nat, head : A, tail : Vector(A, len)} (succ(len))
+| vnil                                                 (zero)
 
 // ::::::::::::::::::::::
 // :: Simple functions ::
@@ -17,12 +17,12 @@ T Vector {A : Type} (len : -Nat)
 // A type-safe "head" that returns the first element of a non-empty vector
 // - On the `vcons` case, return the vector's head
 // - On the `vnil` case, prove it is unreachable, since `xs.len > 0`
-vhead : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> T
+vhead : {~T : Type, ~n : -Nat, xs : Vector(T, succ(n))} -> T
   case/Vector xs
-  + refl(~Nat, ~%succ(+n)) as e : Equal(Nat, xs.len, %succ(+n))
+  + refl(~Nat, ~succ(n)) as e : Equal(Nat, xs.len, succ(n))
   | vcons => xs.head
-  | vnil  => absurd(zero_isnt_succ(~%+n, e), ~&T)
-  : &T
+  | vnil  => absurd(zero_isnt_succ(~n, e), ~T)
+  : T
 
 // Returns all but the first element of a non-empty vector
 //vtail : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> Vector(T, n)
@@ -58,10 +58,18 @@ vhead : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> T
   //: Vector(A, xs.len)
 //halt: vnil(_)
 
-//// Allocates a Vec with given length
-//#valloc*N : {~A : Type, x : !A} -> !Vector(A, %$nat(N))
-  //vcons(~&A, ~%$nat(+N), x, valloc)
-//halt: vnil(_)
+// Allocates a Vec with given length
+//#valloc*N : {~A : Type, x : !A} -> !Vector(A, $nat(N))
+  //vcons(~A, ~$nat(+N), x, valloc)
+//halt: vnil(~A)
+
+//valloc : {~A : Type, n : Nat} -> Vector(Unit, n)
+  //case/Nat n
+  //| succ => vcons(~Unit, ~n.pred, unit, valloc(~Unit, n.pred))
+  //| zero => vnil(~Unit)
+  //: Vector(Unit, n)
+
+//main valloc
 
 //// Creates a vector with `N` ascending words starting from `idx` 
 //#vrange*N : !{init : Word} -> Vector(Word, %$nat(N))

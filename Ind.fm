@@ -4,16 +4,16 @@ import Equal
 Ind : Type
   ${self}
   {~P     : {r : Ind} -> Type} ->
-  {step   : ! {~r : -Ind, i : P(+r)} -> P(step(+r))} ->
+  {step   : ! {~r : -Ind, i : P(r)} -> P(step(r))} ->
   ! {base : P(base)} ->
     P(self)
 
 step : {r : Ind} -> Ind
   new(~Ind){~P, step}
   dup step = step
-  dup func = (use(r))(~{x} &P(x), #step)
+  dup func = (use(r))(~{x} P(x), #step)
   # {base}
-    step(~%r, func(base))
+    step(~r, func(base))
 
 base : Ind
   new(~Ind){~P, step}
@@ -25,27 +25,27 @@ base : Ind
 ind :
   {n     : Ind
   , ~P   : {n : Ind} -> Type
-  , step : ! {~n : -Ind, i : P(+n)} -> P(step(+n))
+  , step : ! {~n : -Ind, i : P(n)} -> P(step(n))
   , stop : ! P(base)
   } -> ! P(n)
   dup step = step
   dup stop = stop
-  dup loop = (use(n))(~{x} &P(x), #step)
+  dup loop = (use(n))(~{x} P(x), #step)
   # loop(stop)
 
 // Induction without indices is just recursion.
 rec : {r : Ind, ~T : Type, step : !{x : T} -> T, base : !T} -> !T
   dup step = step
   dup base = base
-  dup loop = (use(r))(~{r} &T, #{~n} step)
+  dup loop = (use(r))(~{r} T, #{~n} step)
   # loop(base)
 
 // Doubles the number of steps of an `ind`.
 twice : {n : Ind} -> Ind
   new(~Ind) {~P, STEP}
   dup STEP = STEP
-  let moti = {n} &P(twice(n))
-  let STEP = {~n, i} STEP(~%step(twice(+n)), STEP(~%twice(+n), i))
+  let moti = {n} P(twice(n))
+  let STEP = {~n, i} STEP(~step(twice(n)), STEP(~twice(n), i))
   dup loop = (use(n))(~moti, #STEP)
   # {base} loop(base)
 
@@ -53,8 +53,8 @@ twice : {n : Ind} -> Ind
 plus : {a : Ind, b : Ind} -> Ind
   new(~Ind) {~P, s}
   dup S = s
-  dup A = (use(a))(~{a} &P(plus(a, b)), #{~n, h} S(~%plus(+n, b), h))
-  dup B = (use(b))(~{b} &P(plus(base, b)), #{~n, h} S(~%plus(base, +n), h))
+  dup A = (use(a))(~{a} P(plus(a, b)), #{~n, h} S(~plus(n, b), h))
+  dup B = (use(b))(~{b} P(plus(base, b)), #{~n, h} S(~plus(base, n), h))
   # {z} A(B(z))
 
 T UnstepPos
@@ -69,12 +69,12 @@ unstep : {n : Ind} -> Ind
     (use(b))(~{b}Type, P(unstep(n)), P(unstep(step(n))))
   let case_s = {~n, h, b}
     case/UnstepPos b
-    + h(unstep_tail) as x : P(unstep(step(+n)))
+    + h(unstep_tail) as x : P(unstep(step(n)))
     | unstep_head => x
-    | unstep_tail => S(~%(unstep(step(+n))), x)
+    | unstep_tail => S(~(unstep(step(n))), x)
     : case/UnstepPos b
-      | unstep_head => P(unstep(step(+n)))
-      | unstep_tail => P(step(unstep(step(+n))))
+      | unstep_head => P(unstep(step(n)))
+      | unstep_tail => P(step(unstep(step(n))))
       : Type
   dup F = (use(n))(~motive, #case_s)
   # {Z}
@@ -93,11 +93,11 @@ unstep : {n : Ind} -> Ind
 //// :: Theorems ::
 //// ::::::::::::::
 
-unstep_step_is_id : {i : Ind} -> ! Equal(Ind, %unstep(step(i)), %i)
-  let motive = {i} &Equal(Ind, %unstep(step(i)), %i)
-  let case_s = # {~n, h} cong(~Ind, ~Ind, ~%unstep(step(+n)), ~%+n, ~%step, h)
+unstep_step_is_id : {i : Ind} -> ! Equal(Ind, unstep(step(i)), i)
+  let motive = {i} Equal(Ind, unstep(step(i)), i)
+  let case_s = # {~n, h} cong(~Ind, ~Ind, ~unstep(step(n)), ~n, ~step, h)
   dup F = (use(i))(~motive, case_s)
-  # F(refl(~Ind, ~%base))
+  # F(refl(~Ind, ~base))
 
 //#cong_unstep : {a : Ind, b : Ind, e : !Equal(Ind, %step(a), %step(b))} -> !Equal(Ind, %a, %b)
   //// unstep(step(a)) == a

@@ -9,21 +9,21 @@ rewrite :
   , ~b : -A
   , e  : Equal(A, a, b)
   , ~P : A -> Type
-  , x  : P(+a)
-  } -> P(+b)
+  , x  : P(a)
+  } -> P(b)
   case/Equal e
   | refl => x
-  : P(+e.b)
+  : P(e.b)
 
 // Symmetry
 sym :
   { ~A : Type
   , ~a : -A
   , ~b : -A
-  , e : Equal(A, a, b)
+  , e  : Equal(A, a, b)
   } -> Equal(A, b, a)
   case/Equal e
-  | refl => refl(~&A, ~%+a)
+  | refl => refl(~A, ~a)
   : Equal(A, e.b, a)
 
 // Congruence
@@ -34,10 +34,10 @@ cong :
   , ~b : -A
   , ~f : -(A -> B)
   , e  : Equal(A, a, b)
-  } -> Equal(B, %(+f)(+a), %(+f)(+b))
+  } -> Equal(B, (+f)(a), (+f)(b))
   case/Equal e
-  | refl => refl(~&B, ~%(+f)(+a))
-  : Equal(B, %(+f)(+a), %(+f)(+e.b))
+  | refl => refl(~B, ~(+f)(a))
+  : Equal(B, (+f)(a), (+f)(e.b))
 
 // Transitivity
 trans :

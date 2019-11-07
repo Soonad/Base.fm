@@ -32,30 +32,30 @@ QueryBuilder : {A : Type, n : Nat} -> Type
 query_builder.zero : {~A : Type, query : A -> [:A, A]} -> QueryBuilder(A, zero)
   {~K, edit} edit(query)
 
-query_builder.succ : {~A : Type, ~n : -Nat, side : Num, build : QueryBuilder(A, +n)} -> QueryBuilder(A, succ(+n))
-  {~K, edit} edit(build(~{fn : Array(A, succ(+n))} -> [:A, Array(A, succ(+n))],
+query_builder.succ : {~A : Type, ~n : -Nat, side : Num, build : QueryBuilder(A, n)} -> QueryBuilder(A, succ(n))
+  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))],
     {fn, arr} (if side
-      then: {arr : Array(A, succ(+n)), fn : Array(A, +n) -> [:A, Array(A, +n)]}
+      then: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
         get [a, b] = arr
         get [w, b] = fn(b)
         [w, [a, b]]
-      else: {arr : Array(A, succ(+n)), fn : Array(A, +n) -> [:A, Array(A, +n)]}
+      else: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
         get [a, b] = arr
         get [w, a] = fn(a)
         [w, [a, b]]
       )(arr, fn)))
 
 #query_builder*N : !{~A : Type, path : Num, query : A -> [:A, A]} -> [path : Num, QueryBuilder(A, ($nat(N)))]
-  get [abc, builder] = query_builder(~&A, path, query)
+  get [abc, builder] = query_builder(~A, path, query)
   cpy path_rest      = abc
-  [path_rest .>>>. 1, query_builder.succ(~&A, ~%($nat(+N)), path_rest .&. 1, builder)]
+  [path_rest .>>>. 1, query_builder.succ(~A, ~($nat(N)), path_rest .&. 1, builder)]
 halt:
-  [path, query_builder.zero(~&A, query)]
+  [path, query_builder.zero(~A, query)]
 
 #query : {N : Ind} -> !{~A : Type, path : Num, query : A -> [:A, A], array : Array(A, ($nat(N)))} -> [arr : Array(A, ($nat(N))), A]
   let build = ($query_builder(N))
   let fntyp = Array(A, ($nat(N))) -> [x : A, Array(A, ($nat(N)))]
-  get [a, b] = snd(build(~&A, path, query))(~fntyp, {x}x, array)
+  get [a, b] = snd(build(~A, path, query))(~fntyp, {x}x, array)
   [b, a]
 
 #query.test : ![arr : Array(Num, 0n4), Num]
@@ -68,15 +68,15 @@ halt:
 
 // Sets value at position to `val`, returns old value
 #set : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, val : A, array : Array(A, ($nat(N)))} -> [:Array(A, ($nat(N))), A]
-  ($query(N))(~&A, path, {x} [x, val], array)
+  ($query(N))(~A, path, {x} [x, val], array)
 
 // Mutates value at position with `fun`, returns old value
 #mut : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, fun : A -> A, array : Array(A, ($nat(N)))} -> [:Array(A, ($nat(N))), A]
-  ($query(N))(~&A, path, {x} get [a,b] = ($#copy)(x); [a, fun(b)], array)
+  ($query(N))(~A, path, {x} get [a,b] = ($#copy)(x); [a, fun(b)], array)
 
 // Gets the value at position `val`
 #got : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, array : Array(A, ($nat(N)))} -> [:Array(A, ($nat(N))), A]
-  ($query(N))(~&A, path, {x} ($#copy)(x), array)
+  ($query(N))(~A, path, {x} ($#copy)(x), array)
 
 #array.test : ![:Num, :Num, :Num, :Num, Num]
   // Prepares functions

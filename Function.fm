@@ -50,7 +50,7 @@ Fun : {A : Type, B : Type} -> Type
 
 // Extentional equality for functions
 Funext : {A : Type, B : {x : A} -> Type, f : {x : A} -> B(x), g : {x : A} -> B(x)} -> Type
-  {x : A} -> Equal(B(x), %f(x), %g(x))
+  {x : A} -> Equal(B(x), f(x), g(x))
 
 //feq.Reflexive : {A : Type, B : Type} -> Reflexive(A -> B,Feq(A,B))
   //{~f,x} refl(~f(x))

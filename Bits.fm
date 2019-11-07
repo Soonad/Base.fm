@@ -12,11 +12,11 @@ T Bits
 | be => be
 halt: x
 
-#bits.not.theo*N : !{case x : Bits} -> Equal(Bits, %($bits.not*N)(($bits.not*N)(x)), %x)
-| b0 => cong(~Bits, ~Bits, ~%($bits.not(+N))(($bits.not(+N))(x.pred)), ~%x.pred, ~%b0, bits.not.theo(x.pred))
-| b1 => cong(~Bits, ~Bits, ~%($bits.not(+N))(($bits.not(+N))(x.pred)), ~%x.pred, ~%b1, bits.not.theo(x.pred))
-| be => refl(~Bits, ~%be)
-halt: refl(~Bits, ~%x)
+#bits.not.theo*N : !{case x : Bits} -> Equal(Bits, ($bits.not*N)(($bits.not*N)(x)), x)
+| b0 => cong(~Bits, ~Bits, ~($bits.not(N))(($bits.not(N))(x.pred)), ~x.pred, ~b0, bits.not.theo(x.pred))
+| b1 => cong(~Bits, ~Bits, ~($bits.not(N))(($bits.not(N))(x.pred)), ~x.pred, ~b1, bits.not.theo(x.pred))
+| be => refl(~Bits, ~be)
+halt: refl(~Bits, ~x)
 
 #bits.and*n : !{case x : Bits, case y : Bits} -> Bits
 | b0 b0 => b0(bits.and(x.pred, y.pred))

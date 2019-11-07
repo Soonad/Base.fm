@@ -5,7 +5,7 @@ import Nat
 Ind2 : Type
   ${self}
   { ~P    : {a : Ind2} -> Type
-  , step2 : ! {~k : -Ind2, a : P(+k), b : P(+k)} -> P(step2(+k))
+  , step2 : ! {~k : -Ind2, a : P(k), b : P(k)} -> P(step2(k))
   , base2 : ! P(base2)
   } -> ! P(self)
 
@@ -13,8 +13,8 @@ step2 : {k : Ind2} -> Ind2
   new(~Ind2){~P, step2, base2}
   dup step2 = step2
   dup base2 = base2
-  dup kfold = (use(k))(~{x} &P(x), #step2, #base2)
-  # step2(~%k, kfold, kfold)
+  dup kfold = (use(k))(~{x} P(x), #step2, #base2)
+  # step2(~k, kfold, kfold)
 
 base2 : Ind2
   new(~Ind2){~P, step2, base2}

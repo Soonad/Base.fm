@@ -2,33 +2,33 @@ import Nat
 import Empty
 
 T Fin (lim : -Nat)
-| fsucc {~lim : -Nat, pred : Fin(lim)} (%succ(+lim))
-| fzero {~lim : -Nat}                  (%succ(+lim))
+| fsucc {~lim : -Nat, pred : Fin(lim)} (succ(lim))
+| fzero {~lim : -Nat}                  (succ(lim))
 
 #fin_to_nat*N : !{~lim : -Nat, fin : Fin(lim)} -> Nat
   case/Fin fin
-  | fsucc => succ(fin_to_nat(~%+fin.lim, fin.pred))
+  | fsucc => succ(fin_to_nat(~fin.lim, fin.pred))
   | fzero => zero
   : Nat
 halt: zero
 
-#nat_to_fin*N : !{case n : Nat} -> Fin(%succ(n))
-| succ => fsucc(~%succ(n.pred), nat_to_fin(n.pred))
-| zero => fzero(~%zero)
-halt: fzero(~%n)
+#nat_to_fin*N : !{case n : Nat} -> Fin(succ(n))
+| succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
+| zero => fzero(~zero)
+halt: fzero(~n)
 
-#fin_inc*N : !{~lim : -Nat, fin : Fin(lim)} -> Fin(%succ(+lim))
+#fin_inc*N : !{~lim : -Nat, fin : Fin(lim)} -> Fin(succ(lim))
   case/Fin fin
-  | fsucc => fsucc(~%succ(+fin.lim), fin_inc(~%+fin.lim, fin.pred))
-  | fzero => fzero(~%succ(+fin.lim))
-  : Fin(%succ(+fin.lim))
-halt: fzero(~%+lim)
+  | fsucc => fsucc(~succ(fin.lim), fin_inc(~fin.lim, fin.pred))
+  | fzero => fzero(~succ(fin.lim))
+  : Fin(succ(fin.lim))
+halt: fzero(~lim)
 
-no_fin_zero : {fin : Fin(%zero)} -> Empty
+no_fin_zero : {fin : Fin(zero)} -> Empty
   case/Fin fin
-  + refl(~Nat, ~%zero) as e : Equal(Nat, fin.lim, %zero)
-  | fsucc => succ_isnt_zero(~%+fin.lim, e)
-  | fzero => succ_isnt_zero(~%+fin.lim, e)
+  + refl(~Nat, ~zero) as e : Equal(Nat, fin.lim, zero)
+  | fsucc => succ_isnt_zero(~fin.lim, e)
+  | fzero => succ_isnt_zero(~fin.lim, e)
   : Empty
 
 //#fin_raise*N : !{~n : Nat, f : Fin(n)} -> Fin(<add*N>(<nat(N)>, n))
