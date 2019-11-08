@@ -1,0 +1,51 @@
+import Array
+import JSON
+import Nat
+import Unit
+
+// Doc is a renderable document
+T Doc
+| text {value : String}
+| numb {value : Num}
+| many {value : List(Doc)}
+
+// App is an interactive application
+T App {A : Type}
+| app {
+  state  : A,
+  render : {state : A} -> Doc,
+  update : {event : JSON, state : A} -> A
+}
+
+get_state : {~A : Type, case app : App(A)} -> A
+| app => app.state
+
+get_render : {~A : Type, case app : App(A)} -> {state : A} -> Doc
+| app => app.render
+
+get_update : {~A : Type, case app : App(A)} -> {event : JSON, state : A} -> A
+| app => app.update
+
+// Converts a Formality Doc to a JSON
+doc_to_json : {case doc : Doc} -> JSON
+| text =>
+  object([:String, JSON] $ [
+    ["type", string("text")],
+    ["value", string(doc.value)]
+  ])
+| numb =>
+  object([:String, JSON] $ [
+    ["type", string("numb")],
+    ["value", number(doc.value)]
+  ])
+| many => 
+  object([:String, JSON] $ [
+    ["type", string("many")],
+    ["value", list(many_to_json(doc.value))]
+  ])
+
+many_to_json : {list : List(Doc)} -> List(JSON)
+  case/List list
+  | cons => cons(~JSON, doc_to_json(list.head), many_to_json(list.tail))
+  | nil  => nil(~JSON)
+  : List(JSON)
