@@ -46,7 +46,7 @@ vhead : {~T : Type, ~n : -Nat, xs : Vector(T, succ(n))} -> T
 // :::::::::::::::::::::::::
 
 // Returns the same vector
-#vsame*N : !{~A : Type, xs : Vector(A, $nat(N))} -> Vector(A, $nat(N))
+#vsame*N : !{~A : Type, xs : Vector(A, nat(N))} -> Vector(A, nat(N))
   case/Vector xs
   + vsame : {~A : Type, xs : Vector(A, pred(xs.len))} -> Vector(A, pred(xs.len))
   | vcons => vcons(~A, ~xs.len, xs.head, vsame(~A, xs.tail))
@@ -55,8 +55,8 @@ vhead : {~T : Type, ~n : -Nat, xs : Vector(T, succ(n))} -> T
 halt: vnil(~A)
 
 // Allocates a Vec with given length
-#valloc*N : {~A : Type, x : !A} -> !Vector(A, $nat(N))
-  vcons(~A, ~$nat(N), x, valloc)
+#valloc*N : {~A : Type, x : !A} -> !Vector(A, nat(N))
+  vcons(~A, ~nat(N), x, valloc)
 halt: vnil(~A)
 
 //valloc : {~A : Type, n : Nat} -> Vector(Unit, n)

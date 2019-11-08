@@ -73,9 +73,12 @@ halt: zero
   ($mul.go*N)(zero, n, m)
 
 // Converts a Ind to a Nat 
-nat : {i : Ind} -> !Nat
+ind_to_nat : {i : Ind} -> !Nat
   dup add_i = (use(i))(~{i}Nat, #{~i}succ)
   # add_i(zero)
+
+nat : {i : Ind} -> -Nat
+  %$ind_to_nat(i)
 
 // Increments a Nat with an Ind
 add_ind : {i : Ind} -> !{n : Nat} -> Nat
