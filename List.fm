@@ -89,13 +89,13 @@ halt: nil(~B)
 // Examples
 
 #same.example : !List(Num)
-  ($same*)(~Num, Num$[1,2,3,4])
+  ($same*)(~Num, <Num>[1,2,3,4])
 
 #map.example : !List(Num)
-  ($map*(~Num, ~Num, #{x} x .+. 1))(Num$[1,2,3,4])
+  ($map*(~Num, ~Num, #{x} x .+. 1))(<Num>[1,2,3,4])
 
 #reverse.example : !List(Num)
-  ($reverse*)(~Num, Num$[1,2,3,4])
+  ($reverse*)(~Num, <Num>[1,2,3,4])
 
 // ::::::::::::::::::::::::
 // :: Fast Concatenation ::
@@ -159,7 +159,7 @@ halt:
 
 // From 2.7m to 3.8k rewrites by using `same_f` to build the list
 same_f.example
-  let list = Num$[1, 2, 3, 4, 5, 6, 7]
+  let list = <Num>[1, 2, 3, 4, 5, 6, 7]
   dup same   = same*256
   dup same_f = same_f*256
   dup list = rec(*10000, ~List(Num), #same_f(~Num), #list)
@@ -167,7 +167,7 @@ same_f.example
 
 // From 3.3m rewrites to 229k rewrites using map_f
 map_f.example
-  let list = Num$[1, 2, 3, 4, 5, 6, 7, 8]
+  let list = <Num>[1, 2, 3, 4, 5, 6, 7, 8]
   dup same = same*256
   dup map  = map_f*256(~Num, ~Num, #{x} x .+. 1)
   dup list = rec(*10000, ~List(Num), #map, #list)
