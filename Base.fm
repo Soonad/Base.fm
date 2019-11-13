@@ -1,12 +1,13 @@
 import And
+import App
 import Array
 import Bits
 import Bool
 import Empty
 import Equal
 import Function
-import Ind
-import Ind2
+import IBinTree
+import INat
 import JSON
 import List
 import Maybe

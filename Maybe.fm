@@ -1,3 +1,3 @@
-T Maybe {A : Type}
-| just {value : A}
+T Maybe<A>
+| just(value : A)
 | none

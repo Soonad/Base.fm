@@ -1,0 +1,2 @@
+T The<A> (x : A)
+| the (x : A) : The(A, x)

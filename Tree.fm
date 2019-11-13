@@ -1,0 +1,5 @@
+import Nat
+
+T Tree<A> (n : -Nat)
+| node(~n : Nat, x : A, a : Tree(A, n), b : Tree(A, n)) : Tree(A, succ(n))
+| leaf                                                  : Tree(A, zero)

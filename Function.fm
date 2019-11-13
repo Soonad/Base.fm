@@ -1,72 +1,30 @@
 import Equal
 
 // The identity function
-id : {~A : Type, x:A} -> A
+id(~A, x : A) : A
   x
 
 // The constant function always returns the same value
-const : {~A : Type, ~B : Type, x : A, y : B} -> A
+const(~A : Type, ~B : Type, x : A, y : B) : A
   x
 
-// Function composition
-compose : {~A : Type, ~B : Type, ~C : Type, g : B -> C, f : A -> B, x : A} -> C
-  g(f(x))
-
 // dependent composition
-composeD :
-  { ~A : Type
-  , ~B : Type
-  , ~C : B -> Type
-  , g : {b : B} -> C(b)
-  , f : A -> B
-  , x : A
-  } -> C(f(x))
+compose(~A, ~B, ~C : B -> Type, g : (b : B) -> C(b), f : A -> B, x : A) : C(f(x))
   g(f(x))
 
 // uncurry 2-ary function
-uncurry2 : {A : Type, B : Type, C : Type, f : A -> B -> C, p : [:A, B]} -> C
+uncurry2(~A, ~B, ~C, f : A -> B -> C, p : [:A, B]) : C
   get [a, b] = p
   f(a,b)
 
 // Flip the term arguments
-flip : {~A : Type, ~B : Type, ~C : Type, f : A -> B -> C, y : B, x : A} -> C
+flip(~A, ~B, ~C, f : A -> B -> C, y : B, x : A) : C
   f(x,y)
 
-apply : {~A : Type, ~B : Type, f : A -> B, x : A} -> B
+// Applies a function to an argument
+apply(~A, ~B, f : A -> B, x : A) : B
   f(x)
 
-pipe : {~A : Type, ~B : Type, x : A, f : A -> B} -> B
+// Pipes an argument to a function
+pipe(~A, ~B, x : A, f : A -> B) : B
   f(x)
-
-// Creates a boxed version of a function (from `A -> A` to `!A -> !A`)
-boxed : {~A : Type, f : !{x : A} -> A, x : !A} -> !A
-  dup f = f
-  dup x = x
-  # f(x)
-
-// Function wrapper
-Fun : {A : Type, B : Type} -> Type
-  A -> B
-
-// Extentional equality for functions
-Funext : {A : Type, B : {x : A} -> Type, f : {x : A} -> B(x), g : {x : A} -> B(x)} -> Type
-  {x : A} -> Equal(B(x), f(x), g(x))
-
-//feq.Reflexive : {A : Type, B : Type} -> Reflexive(A -> B,Feq(A,B))
-  //{~f,x} refl(~f(x))
-
-//feq.Symmetric : {A : Type, B : Type} -> Symmetric(A -> B,Feq(A,B))
-  //{~f,~g,~e,x} sym(e(x))
-
-//feq.Transitive : {A : Type, B : Type} -> Transitive(A -> B,Feq(A,B))
-  //{~f,~g,~h,~e1,~e2,x} trans(~B,~f(x),~g(x),~h(x),~e1(x),~e2(x))
-
-//feq.Equivalence : {A : Type,B : Type} -> Equivalence(A -> B,Feq(A,B))
-  //let fr = feq.Reflexive(type(A),type(B))
-  //let fs = feq.Symmetric(type(A),type(B))
-  //let ft = feq.Transitive(type(A),type(B))
-  //equivalence( ~(A -> B) , ~Feq(A,B), fr,fs,ft)
-
-// Setoid of functions
-//feq : {A : Type, B : Type} -> Setoid(A -> B)
- //setoid(~(A -> B), Feq(type(A),type(B)), feq.Equivalence(type(A),type(B)))

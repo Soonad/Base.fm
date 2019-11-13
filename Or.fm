@@ -1,8 +1,6 @@
-import And
-
 // A value (proof) of type `Or(A,B)` contains *either*:
 // - a value (proof) of the first type, `A`, *or*...
 // - a value (proof) of the second type, `B`
-T Or {A : Type, B: Type}
-| left  { value : A }
-| right { value : B }
+T Or<A, B>
+| lft(value : A)
+| rgt(value : B)

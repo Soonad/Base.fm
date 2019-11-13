@@ -1,0 +1,107 @@
+import Equal
+
+// The inductive hypothesis on nats. Erases to Church.
+INat : Type
+  ${self}
+  (~P     : INat -> Type
+  , izero : ! P(izero)
+  , isucc : ! (~r : -INat, i : P(r)) -> P(isucc(r))
+  ) -> ! P(self)
+
+// INat successor
+isucc(r : INat) : INat
+  new(~INat) (~P, izero, isucc) =>
+  dup izero = izero
+  dup isucc = isucc
+  dup irest = (use(r))(~(x) => P(x), #izero, #isucc)
+  # isucc(~r, irest)
+
+// INAt zero
+izero : INat
+  new(~INat) (~P, izero, isucc) =>
+  dup izero = izero
+  dup isucc = isucc
+  # izero
+
+// Induction on `INat` is just identity.
+induct(n : INat, ~P : INat -> Type, z : ! P(izero), s : ! (~n : -INat, i : P(n)) -> P(isucc(n))) : !P(n)
+  (use(n))(~(x) => P(x), z, s)
+
+// Simple induction is recursion.
+recurse(n : INat, ~P : Type, z : ! P, s : ! P -> P) : !P
+  dup s = s
+  (use(n))(~(x) => P, z, #(~i) => s)
+
+// Doubles an INat.
+twice(n : INat) : INat
+  new(~INat) (~P, b, s) =>
+  dup b = b
+  dup s = s
+  let t = (n) => P(twice(n))
+  let s = (~n, i) => s(~isucc(twice(n)), s(~twice(n), i))
+  (use(n))(~t, #b, #s)
+
+// TODO
+
+//// Adds two INats.
+//plus : {a : INat, b : INat} -> INat
+  //new(~INat) {~P, s}
+  //dup S = s
+  //dup A = (use(a))(~{a} P(plus(a, b)), #{~n, h} S(~plus(n, b), h))
+  //dup B = (use(b))(~{b} P(plus(base, b)), #{~n, h} S(~plus(base, n), h))
+  //# {z} A(B(z))
+
+//T UnstepPos
+//| unstep_head
+//| unstep_tail
+
+//// Fusible predecessor of an INat
+//unstep : {n : INat} -> INat
+  //new(~INat) {~P, S}
+  //dup S = S
+  //let motive = {n} {b : UnstepPos} ->
+    //(use(b))(~{b}Type, P(unstep(n)), P(unstep(step(n))))
+  //let case_s = {~n, h, b}
+    //case/UnstepPos b
+    //+ h(unstep_tail) as x : P(unstep(step(n)))
+    //| unstep_head => x
+    //| unstep_tail => S(~(unstep(step(n))), x)
+    //: case/UnstepPos b
+      //| unstep_head => P(unstep(step(n)))
+      //| unstep_tail => P(step(unstep(step(n))))
+      //: Type
+  //dup F = (use(n))(~motive, #case_s)
+  //# {Z}
+  //let case_z = {b}
+    //case/UnstepPos b
+    //+ Z : P(base)
+    //| unstep_head => Z
+    //| unstep_tail => Z
+    //: case/UnstepPos b
+      //| unstep_head => P(unstep(base))
+      //| unstep_tail => P(unstep(step(base)))
+      //: Type
+  //F(case_z, unstep_head)
+
+////// ::::::::::::::
+////// :: Theorems ::
+////// ::::::::::::::
+
+//unstep_step_is_id : {i : INat} -> ! Equal(INat, unstep(step(i)), i)
+  //let motive = {i} Equal(INat, unstep(step(i)), i)
+  //let case_s = # {~n, h} cong(~INat, ~INat, ~unstep(step(n)), ~n, ~step, h)
+  //dup F = (use(i))(~motive, case_s)
+  //# F(refl(~INat, ~base))
+
+////#cong_unstep : {a : INat, b : INat, e : !Equal(INat, %step(a), %step(b))} -> !Equal(INat, %a, %b)
+  ////// unstep(step(a)) == a
+  ////let ae = $unstep_step_is_id(a)
+  ////// unstep(step(b)) == b
+  ////let be = $unstep_step_is_id(b)
+  ////// unstep(step(a)) == unstep(step(b))
+  ////let e0 = cong(__ ~%step(a), ~%step(b), ~%unstep, e)
+  ////// a == unstep(step(b))
+  ////let e1 = rewrite(___ ae, ~{x} Equal(INat, %x, %unstep(step(b))), e0)
+  ////// a == b
+  ////let e2 = rewrite(___ be, ~{x} Equal(INat, %a, %x), e1)
+  ////e2

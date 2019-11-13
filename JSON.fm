@@ -2,8 +2,8 @@ import List
 import String
 
 T JSON
-| null
-| number {value: Num}
-| string {value: String}
-| list {value : List(JSON)}
-| object {value : List([:String, JSON])}
+| json_null
+| json_number(value: Number)
+| json_string(value: String)
+| json_list(value : List(JSON))
+| json_object(value : List([:String, JSON]))

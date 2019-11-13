@@ -5,47 +5,55 @@ import Unit
 
 // Doc is a renderable document
 T Doc
-| text {value : String}
-| numb {value : Num}
-| many {value : List(Doc)}
+| text(value : String)
+| numb(value : Number)
+| many(value : List(Doc))
 
 // App is an interactive application
-T App {A : Type}
-| app {
+T App<A>
+| app(
   state  : A,
-  render : {state : A} -> Doc,
-  update : {event : JSON, state : A} -> A
-}
+  render : (state : A) -> Doc,
+  update : (event : JSON, state : A) -> A
+)
 
-get_state : {~A : Type, case app : App(A)} -> A
-| app => app.state
+get_state(~A, app : App(A)) : A
+  case app
+  | app => app.state
+  : A
 
-get_render : {~A : Type, case app : App(A)} -> {state : A} -> Doc
-| app => app.render
+get_render(~A, app : App(A)) : A -> Doc
+  case app
+  | app => app.render
+  : A -> Doc
 
-get_update : {~A : Type, case app : App(A)} -> {event : JSON, state : A} -> A
-| app => app.update
+get_update(~A, app : App(A)) : JSON -> A -> A
+  case app
+  | app => app.update
+  : JSON -> A -> A
 
 // Converts a Formality Doc to a JSON
-doc_to_json : {case doc : Doc} -> JSON
-| text =>
-  object([:String, JSON] $ [
-    ["type", string("text")],
-    ["value", string(doc.value)]
-  ])
-| numb =>
-  object([:String, JSON] $ [
-    ["type", string("numb")],
-    ["value", number(doc.value)]
-  ])
-| many => 
-  object([:String, JSON] $ [
-    ["type", string("many")],
-    ["value", list(many_to_json(doc.value))]
-  ])
+doc_to_json(doc : Doc) : JSON
+  case doc
+  | text =>
+    json_object(<[:String, JSON]>[
+      ["type", json_string("text")],
+      ["value", json_string(doc.value)]
+    ])
+  | numb =>
+    json_object(<[:String, JSON]>[
+      ["type", json_string("numb")],
+      ["value", json_number(doc.value)]
+    ])
+  | many => 
+    json_object(<[:String, JSON]>[
+      ["type", json_string("many")],
+      ["value", json_list(many_to_json(doc.value))]
+    ])
+  : JSON
 
-many_to_json : {list : List(Doc)} -> List(JSON)
-  case/List list
-  | cons => cons(~JSON, doc_to_json(list.head), many_to_json(list.tail))
+many_to_json(list : List(Doc)) : List(JSON)
+  case list
   | nil  => nil(~JSON)
+  | cons => cons(~JSON, doc_to_json(list.head), many_to_json(list.tail))
   : List(JSON)

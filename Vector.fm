@@ -1,108 +1,49 @@
-// TODO: port to new version of Formality
-
 import Equal
 import Fin
-import Ind
 import Nat
+import Unit
 
 // A vector is a list with a statically known length
-T Vector {A : Type} (len : -Nat)
-| vcons {~len : -Nat, head : A, tail : Vector(A, len)} (succ(len))
-| vnil                                                 (zero)
+T Vector<A> (len : -Nat)
+| vnil                                                : Vector(A, zero)
+| vcons(~len : -Nat, head : A, tail : Vector(A, len)) : Vector(A, succ(len))
 
-// ::::::::::::::::::::::
-// :: Simple functions ::
-// ::::::::::::::::::::::
-
-// A type-safe "head" that returns the first element of a non-empty vector
-// - On the `vcons` case, return the vector's head
-// - On the `vnil` case, prove it is unreachable, since `xs.len > 0`
-vhead : {~T : Type, ~n : -Nat, xs : Vector(T, succ(n))} -> T
-  case/Vector xs
-  + refl(~Nat, ~succ(n)) as e : Equal(Nat, xs.len, succ(n))
+// Returns the first element of a non-empty vector
+vhead(~A, ~len : -Nat, xs : Vector(A, succ(len))) : A
+  case xs
+  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
+  | vnil  => absurd(zero_isnt_succ(~len, e), ~A)
   | vcons => xs.head
-  | vnil  => absurd(zero_isnt_succ(~n, e), ~T)
-  : T
+  : A
 
 // Returns all but the first element of a non-empty vector
-//vtail : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> Vector(T, n)
-  //case/Vector xs
-  //+ refl(~Nat, ~%succ(+n)) as e : Equal(Nat, xs.len, %succ(+n))
-  //| vcons => rewrite(~?a, ~?b, ~?c, cong(~?d, ~?e, ~?f, ~%pred, e), ~{x} Vector(&T, %x), xs.tail)
-  //| vnil  => absurd(succ_isnt_zero(~%+n, sym(~?g, ~?h, ~?i, e)), ~Vector(&T, %+n))
-  //: Vector(&T, %+n)
+vtail(~A, ~len : -Nat, xs : Vector(A, succ(len))) : Vector(A, len)
+  case xs
+  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
+  | vnil  => absurd(zero_isnt_succ(~len, e), ~Vector(A, zero))
+  | vcons => xs.tail
+  : Vector(A, pred(xs.len))
 
-////// Returns a pair with the head and the tail of a non-empty vector
-//vtake : {~T : Type, ~n : -Nat, xs : Vector(T, %succ(+n))} -> [:T, Vector(T,n)]
-  //case/Vector xs
-  //+ refl(~Nat, ~%succ(+n)) as e : Equal(Nat, xs.len, %succ(+n))
-  //| vcons => let e = cong(____ ~%pred, e)
-    //[xs.head, rewrite(___ e, ~{x} Vector(T,%x), xs.tail)]
-  //| vnil  => absurd(succ_isnt_zero(~%+n,sym(___ e)), ~[:T, Vector(T,%+n)])
-  //: [:T, Vector(T,%+n)]
-
-// :::::::::::::::::::::::::
-// :: Recursive Functions ::
-// :::::::::::::::::::::::::
+// Returns a pair with the head and the tail of a non-empty vector
+vtake(~A, ~len : -Nat, xs : Vector(A, succ(len))) : [:A, Vector(A, len)]
+  case xs
+  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
+  | vnil  => absurd(zero_isnt_succ(~len, e), ~[:A, Vector(A, zero)])
+  | vcons => [xs.head, xs.tail]
+  : [:A, Vector(A, pred(xs.len))]
 
 // Returns the same vector
-#vsame*N : !{~A : Type, xs : Vector(A, nat(N))} -> Vector(A, nat(N))
-  case/Vector xs
-  + vsame : {~A : Type, xs : Vector(A, pred(xs.len))} -> Vector(A, pred(xs.len))
-  | vcons => vcons(~A, ~xs.len, xs.head, vsame(~A, xs.tail))
+vsame(~A, ~len : -Nat, xs : Vector(A, len)) : Vector(A, len)
+  case xs
   | vnil  => vnil(~A)
+  | vcons => vcons(~A, ~xs.len, xs.head, vsame(~A, ~xs.len, xs.tail))
   : Vector(A, xs.len)
-halt: vnil(~A)
 
 // Allocates a Vec with given length
-#valloc*N : {~A : Type, x : !A} -> !Vector(A, nat(N))
-  vcons(~A, ~nat(N), x, valloc)
-halt: vnil(~A)
+valloc(len : Nat) : Vector(Unit, len)
+  case len
+  | zero => vnil(~Unit)
+  | succ => vcons(~Unit, ~len.pred, unit, valloc(len.pred))
+  : Vector(Unit, len)
 
-//valloc : {~A : Type, n : Nat} -> Vector(Unit, n)
-  //case/Nat n
-  //| succ => vcons(~Unit, ~n.pred, unit, valloc(~Unit, n.pred))
-  //| zero => vnil(~Unit)
-  //: Vector(Unit, n)
-
-//main valloc
-
-//// Creates a vector with `N` ascending words starting from `idx` 
-//#vrange*N : !{init : Word} -> Vector(Word, %$nat(N))
-  //vcons(~Word, ~%$nat(+N), init, vrange(init .+. 1))
-//halt: vnil(_)
-
-//// Applies a function to every element of a vector
-//#vmap*N :
-  //{ ~A : Type
-  //, ~B : Type
-  //, f : !A -> B
-  //} -> ! {xs : Vector(A, %$nat(N))} -> Vector(B, %$nat(N))
-  //case/Vector xs
-  //+ refl(~Nat, ~%$nat(+N)) as e : Equal(Nat, %pred(+xs.len), %$nat(+N))
-  //+ refl(~Nat, ~%$nat(+N)) as e2 : Equal(Nat, %pred(+xs.len), %$nat(+N))
-  //| vcons =>
-    //let tail = rewrite(___ e, ~{x} Vector(A, %x), xs.tail)
-    //let tail = rewrite(___ sym(___ e2), ~{x} Vector(B, %x), vmap(tail))
-    //vcons(~B, ~xs.len, f(xs.head), tail)
-  //| vnil => vnil(~B)
-  //: Vector(B, xs.len)
-//halt: vnil(~B)
-
-//// Concatenates two vectors
-//#vconcat*N : 
-  //! { ~A : Type
-    //, xs : Vector(A, %$nat(N))
-    //, m : -Nat
-    //, ys : Vector(A, %+m)
-    //} -> Vector(A, %($add_ind(N))(+m))
-  //case/Vector xs
-  //+ refl(~Nat, ~%$nat(step(+N))) as e : Equal(Nat, xs.len, %$nat(step(+N)))
-  //| vcons =>
-     //let tail = rewrite(___ cong(____ ~%pred, e), ~{x} Vector(A,%x),xs.tail)
-     //let tail = vconcat(~A, tail, m, ys)
-     //vcons(~A, ~%($add_ind(+N))(+m), xs.head, tail)
-  //| vnil => let empty = succ_isnt_zero(~%$nat(+N), sym(___ e))
-      //absurd(empty, ~Vector(A, %($add_ind(step(+N)))(+m)))
-  //: Vector(A, %($add_ind(step(+N)))(+m))
-//halt: ys
+// TODO: range, map, concat, zip, etc.

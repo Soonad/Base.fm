@@ -1,117 +1,127 @@
 import Nat
-import Ind2
+import Path
+import The
+import Tree
 
-Array : {A : Type, n : Nat} -> Type
-  case/Nat n
-  | succ => [x : Array(A, n.pred), Array(A, n.pred)]
+Array(A, n : Nat) : Type
+  case n
   | zero => A
+  | succ => [x : Array(A, n.pred), Array(A, n.pred)]
   : Type
+
+// ::::::::::::
+// :: Getter ::
+// ::::::::::::
+
+Getter(A, n : Nat) : Type
+  (arr : Array(A, n)) -> A
+
+get.end(~A) : Getter(A, zero)
+  (a) => a
+
+get.lft(~A, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
+  (a) => get [x,y] = a; g(x)
+
+get.rgt(~A : Type, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
+  (a) => get [x,y] = a; g(y)
+
+path_getter(~A : Type, ~len : -Nat, path : Path(len)) : Getter(A, len)
+  case path
+  | pe => get.end(~A)
+  | pl => get.lft(~A, ~path.len, path_getter(~A, ~path.len, path.pred))
+  | pr => get.rgt(~A, ~path.len, path_getter(~A, ~path.len, path.pred))
+  : Getter(A, path.len)
+
+// ::::::::::::
+// :: Mutter ::
+// ::::::::::::
+
+Mutter(A, n : Nat) : Type
+  (arr : Array(A, n), fun : A -> A) -> Array(A, n)
+
+mut.end(~A) : Mutter(A, zero)
+  (a, f) => f(a)
+
+mut.lft(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
+  (a, f) => get [x,y] = a; [g(x,f),y]
+
+mut.rgt(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
+  (a, f) => get [x,y] = a; [x,g(y,f)]
+
+path_mutter(~A, ~len : -Nat, path : Path(len)) : Mutter(A, len)
+  case path
+  | pe => mut.end(~A)
+  | pl => mut.lft(~A, ~path.len, path_mutter(~A, ~path.len, path.pred))
+  | pr => mut.rgt(~A, ~path.len, path_mutter(~A, ~path.len, path.pred))
+  : Mutter(A, path.len)
+
+// ::::::::::::
+// :: Reader ::
+// ::::::::::::
+
+Reader(A, n : Nat) : Type
+  (arr : Array(A, n), copy : A -> [:A, A]) -> [: Array(A, n), A]
+
+read.end(~A) : Reader(A, zero)
+  (a, c) => c(a)
+
+read.lft(~A, ~n : -Nat, r : Reader(A, n)) : Reader(A, succ(n))
+  (a, c) => get [x,y] = a; get [x,k] = r(x,c); [[x,y],k]
+
+read.rgt(~A, ~n : -Nat, r : Reader(A, n)) : Reader(A, succ(n))
+  (a, c) => get [x,y] = a; get [y,k] = r(y,c); [[x,y],k]
+
+path_reader(~A, ~len : -Nat, path : Path(len)) : Reader(A, len)
+  case path
+  | pe => read.end(~A)
+  | pl => read.lft(~A, ~path.len, path_reader(~A, ~path.len, path.pred))
+  | pr => read.rgt(~A, ~path.len, path_reader(~A, ~path.len, path.pred))
+  : Reader(A, path.len)
 
 // ::::::::::
 // :: Fold ::
 // ::::::::::
 
-zapp : {N : Ind2, ~A : Type, ~B : Type} -> ! {fs : Array(A -> B, $ind2_depth(N)), xs : Array(A, $ind2_depth(N))} -> Array(B, $ind2_depth(N))
-  let moti = {N} {fs : Array(A -> B, $ind2_depth(N)), xs : Array(A, $ind2_depth(N))} -> Array(B, $ind2_depth(N))
-  let step = {~n, a, b, fs, xs}
-    get [fs.a, fs.b] = fs
-    get [xs.a, xs.b] = xs
-    [a(fs.a, xs.a), b(fs.b, xs.b)] :: Array(B, $ind2_depth(step2(n)))
-  let base = {fs, xs}
-    fs(xs)
-  dup fold = (use(N))(~moti, #step, #base)
-  # {arr} fold(arr)
-
-fold : {N : Ind2, ~A : Type, ~B : Type, id : !(A -> B), op : !(B -> B -> B)} -> ! {arr : Array(A, $ind2_depth(N))} -> B
-  dup op   = op
-  dup id   = id
-  let moti = {n} Array(A, $ind2_depth(n)) -> B
-  let step = {~n, a, b, arr}
-    get [x, y] = arr
-    op(a(x), b(y))
-  let base = {n} id(n)
-  dup fold = (use(N))(~moti, #step, #base)
-  # {arr} fold(arr)
+fold(~A : Type, ~n : -Nat, t : Tree(A -> A -> A, n), arr : Array(A, n)) : A
+  case t
+  + arr : Array(A, t.n)
+  | node =>
+    get [arr.x, arr.y] = arr
+    let res.x = fold(~A, ~t.n, t.a, arr.x)
+    let res.y = fold(~A, ~t.n, t.b, arr.y)
+    t.x(res.x, res.y)
+  | leaf =>
+    arr
+  : A
 
 // :::::::::::
-// :: Query ::
+// :: Tests ::
 // :::::::::::
 
-QueryBuilder : {A : Type, n : Nat} -> Type
-  {~K : Type, edit : {fn : Array(A, n) -> [:A, Array(A, n)]} -> K} -> K
-
-query_builder.zero : {~A : Type, query : A -> [:A, A]} -> QueryBuilder(A, zero)
-  {~K, edit} edit(query)
-
-query_builder.succ : {~A : Type, ~n : -Nat, side : Num, build : QueryBuilder(A, n)} -> QueryBuilder(A, succ(n))
-  {~K, edit} edit(build(~{fn : Array(A, succ(n))} -> [:A, Array(A, succ(n))],
-    {fn, arr} (if side
-      then: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
-        get [a, b] = arr
-        get [w, b] = fn(b)
-        [w, [a, b]]
-      else: {arr : Array(A, succ(n)), fn : Array(A, n) -> [:A, Array(A, n)]}
-        get [a, b] = arr
-        get [w, a] = fn(a)
-        [w, [a, b]]
-      )(arr, fn)))
-
-#query_builder*N : !{~A : Type, path : Num, query : A -> [:A, A]} -> [path : Num, QueryBuilder(A, nat(N))]
-  get [abc, builder] = query_builder(~A, path, query)
-  cpy path_rest      = abc
-  [path_rest .>>>. 1, query_builder.succ(~A, ~nat(N), path_rest .&. 1, builder)]
-halt:
-  [path, query_builder.zero(~A, query)]
-
-#query : {N : Ind} -> !{~A : Type, path : Num, query : A -> [:A, A], array : Array(A, nat(N))} -> [arr : Array(A, nat(N)), A]
-  let build = ($query_builder(N))
-  let fntyp = Array(A, nat(N)) -> [x : A, Array(A, nat(N))]
-  get [a, b] = snd(build(~A, path, query))(~fntyp, {x}x, array)
-  [b, a]
-
-#query.test : ![arr : Array(Num, 0n4), Num]
-  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
-  let qry = {x} cpy x = x; [x, x .+. 100] // adds 100 to the element, returns the old value
-  get [arr, a] = ($query*4)(~Num,  4, qry, arr)
-  get [arr, b] = ($query*4)(~Num,  8, qry, arr)
-  get [arr, c] = ($query*4)(~Num, 12, qry, arr)
-  [arr, a .+. b .+. c]
-
-// Sets value at position to `val`, returns old value
-#set : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, val : A, array : Array(A, nat(N))} -> [:Array(A, nat(N)), A]
-  ($query(N))(~A, path, {x} [x, val], array)
-
-// Mutates value at position with `fun`, returns old value
-#mut : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, fun : A -> A, array : Array(A, nat(N))} -> [:Array(A, nat(N)), A]
-  ($query(N))(~A, path, {x} get [a,b] = ($#copy)(x); [a, fun(b)], array)
-
-// Gets the value at position `val`
-#got : {N : Ind, ~A : Type, copy : ! A -> [:A,A]} -> !{path : Num, array : Array(A, nat(N))} -> [:Array(A, nat(N)), A]
-  ($query(N))(~A, path, {x} ($#copy)(x), array)
-
-#array.test : ![:Num, :Num, :Num, :Num, Num]
-  // Prepares functions
-  let cop = {x : Num} cpy x = x; [x, x]
-  let set = set*8(~Num, #cop)
-  let mut = mut*8(~Num, #cop)
-  let got = got*8(~Num, #cop)
-
-  // Creates array
-  let arr = [[[[0,1],[2,3]],[[4,5],[6,7]]], [[[8,9],[10,11]],[[12,13],[14,15]]]]
+array.test0.ones : Array(Number, 8n)
+  let arr = 1
   let arr = [arr, arr]
   let arr = [arr, arr]
   let arr = [arr, arr]
   let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  let arr = [arr, arr]
+  arr
 
-  // Performs many operations
-  get [arr, a] = ($set)(2, 100, arr)      // a = arr[2]; arr[2] = 100
-  get [arr, b] = ($mut)(4, .+.(100), arr) // b = arr[4]; arr[4] = arr[4] + 100
-  get [arr, c] = ($got)(2, arr)           // c = arr[2]
-  get [arr, d] = ($got)(4, arr)           // d = arr[4]
-  get [arr, e] = ($got)(6, arr)           // e = arr[6]
-  get [arr, e] = ($got)(6, arr)           // e = arr[6]
-  get [arr, e] = ($got)(6, arr)           // e = arr[6]
-  get [arr, e] = ($got)(6, arr)           // e = arr[6]
+array.test0.adds : Tree(Number -> Number -> Number, 8n)
+  let op = .+.
+  let tr = leaf(~Number -> Number -> Number)
+  let tr = node(~Number -> Number -> Number, ~0n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~1n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~2n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~3n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~4n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~5n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~6n, op, tr, tr)
+  let tr = node(~Number -> Number -> Number, ~7n, op, tr, tr)
+  tr
 
-  // Returns numbers
-  [a, b, c, d, e]
+array.test0 : The(Number, 256)
+  the(~Number, fold(~Number, ~8n, array.test0.adds, array.test0.ones))

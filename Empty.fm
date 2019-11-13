@@ -2,10 +2,9 @@
 T Empty
 
 // From falsehood, everything follows
-absurd : {e : Empty, ~P : Type} -> P
-  case/Empty e
-  : P
+absurd(e : Empty, ~P : Type) : P
+  case e : P
 
 // A false proposition returns a falsehood
-Not : {P : Type} -> Type
-  {x : P} -> Empty
+Not(P) : Type
+  (x : P) -> Empty
