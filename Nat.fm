@@ -23,7 +23,8 @@ add(n : Nat, m : Nat) : Nat
   | zero => m
   | succ =>
     case m
-    | zero => zero
+    + n.pred : Nat
+    | zero => succ(n.pred)
     | succ => succ(succ(add(n.pred, m.pred)))
     : Nat
   : Nat
