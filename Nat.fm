@@ -20,7 +20,11 @@ add(n : Nat, m : Nat) : Nat
   case n
   + m : Nat
   | zero => m
-  | succ => succ(add(n.pred, m))
+  | succ =>
+    case m
+    | zero => zero
+    | succ => succ(succ(add(n.pred, m.pred)))
+    : Nat
   : Nat
 
 // Doubles
@@ -90,13 +94,6 @@ zero_isnt_succ(~n : -Nat, e : Equal(Nat, zero, succ(n))) : Empty
 // Proofs that `n == m` implies `succ(n) == succ(m)`
 cong_succ(~n : Nat, ~m : Nat, e : Equal(Nat, n, m)) : Equal(Nat, succ(n), succ(m))
   cong(~Nat, ~Nat, ~n, ~m, ~succ, e)
-
-// Proof that `n + (1 + m) == 1 + (n + m)`
-add_right(n : Nat, m : Nat) : Equal(Nat, add(n, succ(m)), succ(add(n, m)))
-  case n
-  | zero => refl(~Nat, ~succ(m))
-  | succ => cong(~Nat, ~Nat, ~add(n.pred, succ(m)), ~succ(add(n.pred, m)), ~succ, add_right(n.pred, m))
-  : Equal(Nat, add(n, succ(m)), succ(add(n, m)))
 
 // :::::::::::
 // :: Tests ::
