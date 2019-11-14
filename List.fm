@@ -74,6 +74,13 @@ reverse.go(~A, xs : List(A), rs : List(A)) : List(A)
 reverse(~A, list : List(A)) : List(A)
   reverse.go(~A, list, nil(~A))
 
+// Length of a list
+length(~A, list : List(A)) : Nat
+  case list
+  | nil  => zero
+  | cons => succ(length(~A, list.tail))
+  : Nat
+
 // O(1) concatenator
 Concatenator(A : Type) : Type
   (x : List(A)) -> List(A)

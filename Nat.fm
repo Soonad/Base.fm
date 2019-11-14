@@ -1,8 +1,9 @@
 import And
+import Bool
 import Empty
 import Equal
-import Unit
 import The
+import Unit
 
 T Nat
 | zero
@@ -69,6 +70,20 @@ mul.go(k : Nat, n : Nat, m : Nat) : Nat
     : Nat
   | succ => succ(f(k.pred, succ(n), m))
   : Nat
+
+// Tests if two nats are identical
+nat_equals(n : Nat, m : Nat) : Bool
+  case n
+  + m : Nat
+  | zero => case m
+    | zero => true
+    | succ => false
+    : Bool
+  | succ => case m
+    | zero => false
+    | succ => nat_equals(n.pred, m.pred)
+    : Bool
+  : Bool
 
 // Multiplication
 mul(n : Nat, m : Nat) : Nat
