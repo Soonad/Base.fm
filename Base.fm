@@ -3,6 +3,7 @@ import App
 import Array
 import Bits
 import Bool
+import DemoApp
 import Empty
 import Equal
 import Function

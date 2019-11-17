@@ -1,0 +1,62 @@
+import App 
+
+// A demo App that displays screen coordinates
+T DemoAppState
+| demoappstate(
+  mousex  : Number,
+  mousey  : Number,
+  clicks  : Number,
+  lastkey : Number
+)
+
+demo_app : App(DemoAppState)
+  // Application state
+  let state = demoappstate(0, 0, 0, 0)
+
+  // Application interface
+  let render = (state) =>
+    case state
+    | demoappstate =>
+      box("div", <Prop>{"border": "1px solid black"}, <Doc>[
+        // Title
+        box("h2", <Prop>{}, <Doc>[txt("Formality Demo App")]),
+
+        // Mouse position
+        box("h3", <Prop>{}, <Doc>[txt("Mouse position:")]),
+        box("ul", <Prop>{}, <Doc>[
+          box("li", <Prop>{}, <Doc>[txt("x:"), num(state.mousex)]),
+          box("li", <Prop>{}, <Doc>[txt("y:"), num(state.mousey)])
+        ]),
+
+        // Click count
+        box("h3", <Prop>{}, <Doc>[txt("Mouse clicks:")]),
+        box("div", <Prop>{}, <Doc>[num(state.clicks)]),
+
+        // Last key
+        box("h3", <Prop>{}, <Doc>[txt("Last key press:")]),
+        box("div", <Prop>{}, <Doc>[num(state.lastkey)])
+      ])
+    : Doc
+
+  // Application interaction
+  let update = (event, state) =>
+    case event
+    + state : DemoAppState
+    | mouseclick =>
+      case state
+      | demoappstate => demoappstate(state.mousex, state.mousey, state.clicks .+. 1, state.lastkey)
+      : DemoAppState
+    | mousemove =>
+      case state
+      | demoappstate => demoappstate(event.x, event.y, state.clicks, state.lastkey)
+      : DemoAppState
+    | keypress => 
+      case state
+      | demoappstate => demoappstate(state.mousex, state.mousey, state.clicks, event.key)
+      : DemoAppState
+    | keydown => state
+    | keyup => state
+    : DemoAppState
+
+  // Builds the application
+  app(~DemoAppState, state, render, update)

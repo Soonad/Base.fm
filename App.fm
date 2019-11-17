@@ -3,57 +3,45 @@ import JSON
 import Nat
 import Unit
 
+Prop : Type
+  [:String, String]
+
 // Doc is a renderable document
 T Doc
-| text(value : String)
-| numb(value : Number)
-| many(value : List(Doc))
+| txt(value : String)
+| num(value : Number)
+| box(tag : String, props : List(Prop), children : List(Doc))
+
+// An event
+T Event
+| mouseclick(x : Number, y : Number)
+| mousemove(x : Number, y : Number)
+| keypress(key : Number)
+| keydown(key : Number)
+| keyup(key : Number)
 
 // App is an interactive application
 T App<A>
 | app(
   state  : A,
   render : (state : A) -> Doc,
-  update : (event : JSON, state : A) -> A
+  update : (event : Event, state : A) -> A
 )
 
+// Gets the state
 get_state(~A, app : App(A)) : A
   case app
   | app => app.state
   : A
 
+// Renders the state
 get_render(~A, app : App(A)) : A -> Doc
   case app
   | app => app.render
   : A -> Doc
 
-get_update(~A, app : App(A)) : JSON -> A -> A
+// Updates the state
+get_update(~A, app : App(A)) : Event -> A -> A
   case app
   | app => app.update
-  : JSON -> A -> A
-
-// Converts a Formality Doc to a JSON
-doc_to_json(doc : Doc) : JSON
-  case doc
-  | text =>
-    json_object(<[:String, JSON]>[
-      ["type", json_string("text")],
-      ["value", json_string(doc.value)]
-    ])
-  | numb =>
-    json_object(<[:String, JSON]>[
-      ["type", json_string("numb")],
-      ["value", json_number(doc.value)]
-    ])
-  | many => 
-    json_object(<[:String, JSON]>[
-      ["type", json_string("many")],
-      ["value", json_list(many_to_json(doc.value))]
-    ])
-  : JSON
-
-many_to_json(list : List(Doc)) : List(JSON)
-  case list
-  | nil  => nil(~JSON)
-  | cons => cons(~JSON, doc_to_json(list.head), many_to_json(list.tail))
-  : List(JSON)
+  : Event -> A -> A
