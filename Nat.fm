@@ -90,10 +90,6 @@ nat_equals(n : Nat, m : Nat) : Bool
 mul(n : Nat, m : Nat) : Nat
   mul.go(zero, n, m)
 
-// Equality for Nat
-=Nat=(n : -Nat, m : -Nat) : Type
-  Equal(Nat, n, m)
-
 // ::::::::::::::
 // :: Theorems ::
 // ::::::::::::::

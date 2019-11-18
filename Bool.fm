@@ -63,10 +63,6 @@ not_f(b : Bool) : Bool
     | false => true
     : P(not_f(b))
 
-// Equality for Bool
-=Bool=(n : -Bool, m : -Bool) : Type
-  Equal(Bool, n, m)
-
 // ::::::::::::::
 // :: Theorems ::
 // ::::::::::::::
