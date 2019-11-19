@@ -1,2 +1,23 @@
+/* Unit.fm defines the trivial type with one inhabitant
+ */
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
 T Unit
 | unit
+
+// ========================================================
+// =                    Conversion                        =
+// ========================================================
+
+// A terminal object has a morphism from any other object.
+
+// There is a function from any type to Unit
+to_Unit(~A, x : A) : Unit
+  unit
+
+// There is a function from Unit to any term
+from_Unit(~A, x : A, u : Unit) : A
+  x

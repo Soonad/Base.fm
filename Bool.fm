@@ -1,47 +1,70 @@
+/* Bool.fm defines the boolean datatype
+ *
+ * A Bool represents a binary logical truth-value
+ * (i.e. true or false) at the term level.
+ */
+
 import Empty
 import Equal
 import Unit
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
 
 T Bool
 | true
 | false
 
+// Since bool is a finite datatype, it can be copied freely
+// this function will be implicitly auto-generated in a
+// future version of Formality
 copy(b : Bool) : [:Bool, Bool]
   case b
   | true  => [true, true]
   | false => [false, false]
   : [:Bool, Bool]
 
+// ========================================================
+// =                    Operations                        =
+// ========================================================
+
+// negation
 not(b : Bool) : Bool
   case b
   | true  => false
   | false => true
   : Bool
 
+// conjunction
 and(a : Bool, b : Bool) : Bool
   case a
   | true  => b
   | false => false
   : Bool
 
+// disjuction
 or(a : Bool, b : Bool) : Bool
   case a
   | true  => true
   | false => b
   : Bool
 
+// conjuction complement
 nand(a : Bool, b : Bool) : Bool
   case a
   | true  => not(b)
   | false => true
   : Bool
 
+// disjunction complement
 nor(a : Bool, b : Bool) : Bool
   case a
   | true  => false
   | false => not(b)
   : Bool
 
+// exclusive or
 xor(a : Bool, b : Bool) : Bool
   case a
   + b : Bool
@@ -55,6 +78,20 @@ xor(a : Bool, b : Bool) : Bool
     : Bool
   : Bool
 
+// logical equality
+xnor(a : Bool, b : Bool) : Bool
+  case a
+  + b : Bool
+  | true  => case b
+    | true  => true
+    | false => false
+    : Bool
+  | false => case b
+    | true  => false
+    | false => true
+    : Bool
+  : Bool
+
 // Not with runtime fusion
 not_f(b : Bool) : Bool
   new(~Bool) (~P, true, false) =>
@@ -63,22 +100,31 @@ not_f(b : Bool) : Bool
     | false => true
     : P(not_f(b))
 
-// ::::::::::::::
-// :: Theorems ::
-// ::::::::::::::
+// ========================================================
+// =                  Utilities/Theorems                  =
+// ========================================================
 
+// true isn't false, since from a proof that true is false
+// we can generate an element of Empty
 true_isnt_false : Not(Equal(Bool, true, false))
-  (e) => rewrite(~Bool, ~true, ~false, e, ~(x) => (case x | true => Unit | false => Empty : Type), unit)
+  // We define a proposition `P` such that `unit :: P(true)`
+  let P = (x) => case x | true => Unit | false => Empty : Type
+  (e) => rewrite(~Bool, ~true, ~false, e, ~P, unit)
+  // with `e : Equal(Bool, true, false)` we rewrite to `unit :: P(false)`
 
+// the symmetry of true_isnt_false
 false_isnt_true : Not(Equal(Bool, false, true))
-  (e) => rewrite(~Bool, ~false, ~true, e, ~(x) => (case x | true => Empty | false => Unit : Type), unit)
+  let P = (x) => case x | true => Empty | false => Unit : Type
+  (e) => rewrite(~Bool, ~false, ~true, e, ~P, unit)
 
+// produce a provably different bool than the input
 different_elem(a : Bool) : [b : Bool ~ Not(Equal(Bool, a, b))]
   case a
   | true  => [false ~ true_isnt_false]
   | false => [true  ~ false_isnt_true]
   : [b : Bool ~ Not(Equal(Bool, a, b))]
 
+// Demorgan's Laws: !(a || b) == !a && !b
 demorgan_0(a : Bool, b : Bool) : Equal(Bool, not(or(a,b)), and(not(a), not(b)))
   case a
   + b : Bool
@@ -92,6 +138,7 @@ demorgan_0(a : Bool, b : Bool) : Equal(Bool, not(or(a,b)), and(not(a), not(b)))
     : Equal(Bool, not(or(false,b)), and(not(false), not(b)))
   : Equal(Bool, not(or(a,b)), and(not(a), not(b)))
 
+// Demorgan's Laws: !(a && b) == !a || !b
 demorgan_1(a : Bool, b : Bool) : Equal(Bool, not(and(a,b)), or(not(a), not(b)))
   case a
   + b : Bool
