@@ -7,13 +7,15 @@ import DemoApp
 import Empty
 import Equal
 import Function
-import IBinTree
+import IBin
+import IBits
 import INat
 import JSON
 import List
 import Maybe
 import Nat
 import Or
+import Path
 import String
 import Unit
 import Vector

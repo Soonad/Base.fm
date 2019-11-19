@@ -17,6 +17,9 @@ demo_app : App(DemoAppState)
   let render = (state) =>
     case state
     | demoappstate =>
+      cpy state.mousex = state.mousex
+      cpy state.mousey = state.mousey
+
       box("div", <Prop>{"border": "1px solid black"}, <Doc>[
         // Title
         box("h2", <Prop>{}, <Doc>[txt("Formality Demo App")]),
@@ -34,7 +37,19 @@ demo_app : App(DemoAppState)
 
         // Last key
         box("h3", <Prop>{}, <Doc>[txt("Last key press:")]),
-        box("div", <Prop>{}, <Doc>[num(state.lastkey)])
+        box("div", <Prop>{}, <Doc>[num(state.lastkey)]),
+
+        // An image
+        img([64, 64], (pos) => 
+          get [x,y] = pos
+          let r = ((x .*. 8 .+. state.mousex) .%. 256) .|. 0
+          let g = ((y .*. 8 .+. state.mousey) .%. 256) .|. 0
+          let b = 128
+          let c = 0xFF000000
+          let c = c .|. (b .<<. 16)
+          let c = c .|. (g .<<. 8)
+          let c = c .|. r
+          c),
       ])
     : Doc
 

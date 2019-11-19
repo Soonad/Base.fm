@@ -25,3 +25,13 @@ trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c)) :
   case bc
   | refl => ab
   : Equal(A, a, bc.b)
+
+// Clones an equality
+same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b)) : [:Equal(A, a, b), Equal(A, a, b)]
+  case e
+  | refl => [refl(~A, ~a), refl(~A, ~a)]
+  : [: Equal(A, a, e.b), Equal(A, a, e.b)]
+
+// A copy of a value
+Same(A, x : A) : Type
+  [y : A, Equal(A, y, x)]

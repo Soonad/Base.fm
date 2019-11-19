@@ -1,5 +1,3 @@
-import Equal
-
 // The inductive hypothesis on nats. Erases to Church.
 INat : Type
   ${self}
@@ -33,15 +31,13 @@ recurse(n : INat, ~P : Type, z : ! P, s : ! P -> P) : !P
   (use(n))(~(x) => P, z, #(~i) => s)
 
 // Doubles an INat.
-twice(n : INat) : INat
+imul2(n : INat) : INat
   new(~INat) (~P, b, s) =>
   dup b = b
   dup s = s
-  let t = (n) => P(twice(n))
-  let s = (~n, i) => s(~isucc(twice(n)), s(~twice(n), i))
+  let t = (n) => P(imul2(n))
+  let s = (~n, i) => s(~isucc(imul2(n)), s(~imul2(n), i))
   (use(n))(~t, #b, #s)
-
-// TODO
 
 //// Adds two INats.
 //plus : {a : INat, b : INat} -> INat
