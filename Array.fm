@@ -1,7 +1,8 @@
 import Nat
 import Path
 import The
-import Tree
+import IBin
+import IBits
 
 Array(A, n : Nat) : Type
   case n
@@ -13,6 +14,7 @@ Array(A, n : Nat) : Type
 // :: Getter ::
 // ::::::::::::
 
+// Returns a value and destroys the array
 Getter(A, n : Nat) : Type
   (arr : Array(A, n)) -> A
 
@@ -22,20 +24,28 @@ get.end(~A) : Getter(A, zero)
 get.lft(~A, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
   (a) => get [x,y] = a; g(x)
 
-get.rgt(~A : Type, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
+get.rgt(~A, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
   (a) => get [x,y] = a; g(y)
 
-path_getter(~A : Type, ~len : -Nat, path : Path(len)) : Getter(A, len)
+getter#(~A : Type, path : IBits) : !Getter(A, $ibits_to_nat(path))
+  let moti = (path) => Getter(A, $ibits_to_nat(path))
+  let ibe  = get.end(~A)
+  let ib0  = (~bs) => get.lft(~A, ~$ibits_to_nat(bs))
+  let ib1  = (~bs) => get.rgt(~A, ~$ibits_to_nat(bs))
+  use(path)(~moti, #ibe, #ib0, #ib1)
+  
+path_to_getter(~A : Type, ~len : -Nat, path : Path(len)) : Getter(A, len)
   case path
   | pe => get.end(~A)
-  | pl => get.lft(~A, ~path.len, path_getter(~A, ~path.len, path.pred))
-  | pr => get.rgt(~A, ~path.len, path_getter(~A, ~path.len, path.pred))
+  | pl => get.lft(~A, ~path.len, path_to_getter(~A, ~path.len, path.pred))
+  | pr => get.rgt(~A, ~path.len, path_to_getter(~A, ~path.len, path.pred))
   : Getter(A, path.len)
 
 // ::::::::::::
 // :: Mutter ::
 // ::::::::::::
 
+// Applies a function to a value
 Mutter(A, n : Nat) : Type
   (arr : Array(A, n), fun : A -> A) -> Array(A, n)
 
@@ -48,80 +58,115 @@ mut.lft(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
 mut.rgt(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
   (a, f) => get [x,y] = a; [x,g(y,f)]
 
-path_mutter(~A, ~len : -Nat, path : Path(len)) : Mutter(A, len)
+mutter#(~A : Type, path : IBits) : !Mutter(A, $ibits_to_nat(path))
+  let moti = (path) => Mutter(A, $ibits_to_nat(path))
+  let ibe  = mut.end(~A)
+  let ib0  = (~bs) => mut.lft(~A, ~$ibits_to_nat(bs))
+  let ib1  = (~bs) => mut.rgt(~A, ~$ibits_to_nat(bs))
+  use(path)(~moti, #ibe, #ib0, #ib1)
+
+path_to_mutter(~A, ~len : -Nat, path : Path(len)) : Mutter(A, len)
   case path
   | pe => mut.end(~A)
-  | pl => mut.lft(~A, ~path.len, path_mutter(~A, ~path.len, path.pred))
-  | pr => mut.rgt(~A, ~path.len, path_mutter(~A, ~path.len, path.pred))
+  | pl => mut.lft(~A, ~path.len, path_to_mutter(~A, ~path.len, path.pred))
+  | pr => mut.rgt(~A, ~path.len, path_to_mutter(~A, ~path.len, path.pred))
   : Mutter(A, path.len)
 
-// ::::::::::::
-// :: Reader ::
-// ::::::::::::
+// :::::::::::::
+// :: Querier ::
+// :::::::::::::
 
-Reader(A, n : Nat) : Type
-  (arr : Array(A, n), copy : A -> [:A, A]) -> [: Array(A, n), A]
+// Reads a value, replaces it and returns a function of it and the array
+Querier(A, n : Nat) : Type
+  (arr : Array(A, n), query : A -> [:A, A]) -> [: Array(A, n), A]
 
-read.end(~A) : Reader(A, zero)
-  (a, c) => c(a)
+query.end(~A) : Querier(A, zero)
+  (a, q) => q(a)
 
-read.lft(~A, ~n : -Nat, r : Reader(A, n)) : Reader(A, succ(n))
-  (a, c) => get [x,y] = a; get [x,k] = r(x,c); [[x,y],k]
+query.lft(~A, ~n : -Nat, r : Querier(A, n)) : Querier(A, succ(n))
+  (a, q) => get [x,y] = a; get [x,k] = r(x,q); [[x,y],k]
 
-read.rgt(~A, ~n : -Nat, r : Reader(A, n)) : Reader(A, succ(n))
-  (a, c) => get [x,y] = a; get [y,k] = r(y,c); [[x,y],k]
+query.rgt(~A, ~n : -Nat, r : Querier(A, n)) : Querier(A, succ(n))
+  (a, q) => get [x,y] = a; get [y,k] = r(y,q); [[x,y],k]
 
-path_reader(~A, ~len : -Nat, path : Path(len)) : Reader(A, len)
+querier#(~A : Type, path : IBits) : !Querier(A, $ibits_to_nat(path))
+  let moti = (path) => Querier(A, $ibits_to_nat(path))
+  let ibe  = query.end(~A)
+  let ib0  = (~bs) => query.lft(~A, ~$ibits_to_nat(bs))
+  let ib1  = (~bs) => query.rgt(~A, ~$ibits_to_nat(bs))
+  use(path)(~moti, #ibe, #ib0, #ib1)
+
+path_to_querier(~A, ~len : -Nat, path : Path(len)) : Querier(A, len)
   case path
-  | pe => read.end(~A)
-  | pl => read.lft(~A, ~path.len, path_reader(~A, ~path.len, path.pred))
-  | pr => read.rgt(~A, ~path.len, path_reader(~A, ~path.len, path.pred))
-  : Reader(A, path.len)
+  | pe => query.end(~A)
+  | pl => query.lft(~A, ~path.len, path_to_querier(~A, ~path.len, path.pred))
+  | pr => query.rgt(~A, ~path.len, path_to_querier(~A, ~path.len, path.pred))
+  : Querier(A, path.len)
 
-// ::::::::::
-// :: Fold ::
-// ::::::::::
+// :::::::::::::::
+// :: Functions ::
+// :::::::::::::::
 
-fold(~A : Type, ~n : -Nat, t : Tree(A -> A -> A, n), arr : Array(A, n)) : A
-  case t
-  + arr : Array(A, t.n)
-  | node =>
-    get [arr.x, arr.y] = arr
-    let res.x = fold(~A, ~t.n, t.a, arr.x)
-    let res.y = fold(~A, ~t.n, t.b, arr.y)
-    t.x(res.x, res.y)
-  | leaf =>
-    arr
-  : A
+// Applies a map/reduce operation over an array
+afold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A)
+: !(Array(A, $ibin_to_nat(t)) -> A)
+  dup id = id
+  dup fn = fn
+  let imoti = (t) => Array(A, $ibin_to_nat(t)) -> A
+  let ileaf = (n) => id(n)
+  let inode = (~k, a, b, arr) => get [lft, rgt] = arr; fn(a(lft), b(rgt))
+  use(t)(~imoti, #ileaf, #inode)
+
+// Creates a range from 0 to 2^depth(t)
+arange#(t : IBin) : !Array(Number, $ibin_to_nat(t))
+  let imoti = (t) => (n : Number) -> Array(Number, $ibin_to_nat(t)) 
+  let ileaf = (n) => n
+  let inode = (~k, a, b, n) => [
+    a(n .*. 2),
+    b((n .*. 2) .+. 1)
+  ] :: Array(Number, $ibin_to_nat(inode(k)))
+  dup start = use(t)(~imoti, #ileaf, #inode)
+  # start(0)
+
+// Allocates an array with 2^depth(t) identical elements
+alloc#(t : IBin, ~A : Type, value : !A) : !Array(A, $ibin_to_nat(t))
+  dup value = value
+  let imoti = (t) => Array(A, $ibin_to_nat(t)) 
+  let ileaf = value
+  let inode = (~k, a, b) => [a, b] :: Array(A, $ibin_to_nat(inode(k)))
+  use(t)(~imoti, #ileaf, #inode)
+
+// Sums the elements of an array
+asum#(t : IBin) : !Array(Number, $ibin_to_nat(t)) -> Number
+  afold#(t, ~Number, #(x) => x, #.+.)
 
 // :::::::::::
 // :: Tests ::
 // :::::::::::
 
-array.test0.ones : Array(Number, 8n)
-  let arr = 1
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  let arr = [arr, arr]
-  arr
+// Summing 256 elements requires 2387 rewrites 
+array.ex0
+  dup arr = alloc#(t8, ~Number, #1) // creates range from 0 til 256
+  dup sum = asum#(t8) // creates summing function
+# sum(arr)
 
-array.test0.adds : Tree(Number -> Number -> Number, 8n)
-  let op = .+.
-  let tr = leaf(~Number -> Number -> Number)
-  let tr = node(~Number -> Number -> Number, ~0n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~1n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~2n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~3n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~4n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~5n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~6n, op, tr, tr)
-  let tr = node(~Number -> Number -> Number, ~7n, op, tr, tr)
-  tr
-
-array.test0 : The(Number, 256)
-  the(~Number, fold(~Number, ~8n, array.test0.adds, array.test0.ones))
+// Query uses ~185 rewrites per new index, ~41 rewrites per reused index
+array.ex1
+  dup arr  = arange#(t8) // creates range from 0 til 256
+  dup qry0 = querier#(~Number, 00000000p) // querier for index 0
+  dup qry1 = querier#(~Number, 00000001p) // querier for index 1
+  dup qry2 = querier#(~Number, 00000010p) // querier for index 2
+  dup qry3 = querier#(~Number, 00000011p) // querier for index 3
+  dup qry4 = querier#(~Number, 00000100p) // querier for index 4
+  dup qry5 = querier#(~Number, 00000101p) // querier for index 5
+# get [arr, a] = qry0(arr, (x) => [x .+. 10, x]) // a = arr[0]; arr[0] += 10;
+  get [arr, b] = qry1(arr, (x) => [x, x .*. 10]) // b = arr[1] * 10;
+  get [arr, c] = qry2(arr, (x) => [x, x])        // c = arr[2];
+  get [arr, d] = qry3(arr, (x) => [x, x])        // d = arr[3];
+  get [arr, e] = qry4(arr, (x) => [x, x])        // e = arr[4];
+  get [arr, f] = qry5(arr, (x) => [x, x])        // f = arr[5];
+  get [arr, g] = qry0(arr, (x) => [x, x])        // g = arr[0];
+  get [arr, h] = qry0(arr, (x) => [x, x])        // h = arr[0];
+  get [arr, i] = qry0(arr, (x) => [x, x])        // i = arr[0];
+  get [arr, j] = qry0(arr, (x) => [x, x])        // j = arr[0];
+  [a, b, c, d, e, f, g, h, i, j]

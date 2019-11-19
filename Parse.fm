@@ -1,0 +1,107 @@
+import Maybe
+import Nat
+import String
+import Unit
+
+// Consumes a String and returns the rest and the parsed value, if any
+Parser(A) : Type
+  (str : String) -> [: String, Maybe(A)]
+
+// Consumes nothing, returns `x`
+return(~A, x : A) : Parser(A)
+  (str) => [str, some(~A, x)]
+
+// Errors
+throw(~A) : Parser(A)
+  (str) => [str, none(~A)]
+
+// Monadic composition of two parsers
+bind(~A, ~B, x : Parser(A), f : A -> Parser(B)) : Parser(B)
+  (str) =>
+    get [str, res] = x(str)
+    case res
+    + str : String
+    | none => [str, none(~B)]
+    | some => f(res.value, str)
+    : [: String, Maybe(B)]
+
+// Consumes nothing, returns the next character
+peek : Parser(Char)
+  (str) =>
+    case str
+    | nil  => [nil(~Char), none(~Char)]
+    | cons =>
+      cpy str.head = str.head
+      [cons(~Char, str.head, str.tail), some(~Char, str.head)]
+    : [: String, Maybe(Char)]
+
+// Parses one character if possible
+next : Parser(Char)
+  (str) =>
+    case str
+    | nil  => [nil(~Char), none(~Char)]
+    | cons => [str.tail, some(~Char, str.head)]
+    : [: String, Maybe(Char)]
+
+// If first is `chr`, return true and consumes it
+match_one(chr : Char) : Parser(Bool)
+  (str) =>
+    case str
+    | nil  => [nil(~Char), some(~Bool, false)]
+    | cons =>
+      (if chr .==. str.head:
+        (str.tail : String) => [
+          str.tail,
+          some(~Bool, true)
+        ]
+      else:
+        (str.tail : String) => [
+          cons(~Char, str.head, str.tail),
+          some(~Bool, false)
+        ]
+      )(str.tail)
+    : [: String, Maybe(Bool)]
+    
+// Parses exactly this character
+parse_exact(chr : Char) : Parser(Unit)
+  do<Unit>
+    bind val : Char = next
+    if chr .==. val:
+      return(~Unit, unit)
+    else:
+      throw(~Unit)
+
+// Skip whitespaces
+skip_whites : Parser(Unit)
+  do<Unit>
+    bind found_white : Bool = match_one(' ')
+    case found_white
+    | true  => skip_whites
+    | false => return(~Unit, unit)
+    : Parser(Unit)
+
+// Parses a nat on the form SSS...Z
+parse_nat : Parser(Nat)
+  do<Nat>
+    bind chr : Char = next
+    if chr .==. 'S': do<Nat>
+      bind pred : Nat = parse_nat
+      return(~Nat, succ(pred))
+    else:
+      return(~Nat, zero)
+
+// Parses a nat tuple on the form [SSS...Z,SSS...Z]
+parse_nats : Parser([:Nat, Nat])
+  do<[:Nat, Nat]>
+    bind skip : Unit = parse_exact('[')
+    bind nat0 : Nat  = parse_nat
+    bind skip : Unit = parse_exact(',')
+    bind nat1 : Nat  = parse_nat
+    bind skip : Unit = parse_exact(']')
+    return(~[:Nat, Nat], [nat0, nat1])
+
+// Evaluates a parser
+run_parser(~A, parser : Parser(A), str : String) : Maybe(A)
+  snd(parser(str))
+
+main skip_whites

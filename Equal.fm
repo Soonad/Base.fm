@@ -18,46 +18,41 @@ T Equal<A, a : -A> (b : -A)
 // ========================================================
 
 // Substitution: if a equals b, you can replace a with b
-rewrite(
-    ~A
-  , ~a : -A
-  , ~b : -A
-  , e : Equal(A, a, b)
-  , ~P : A -> Type
-  , x : P(a)
-  ) : P(b)
+rewrite(~A, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(a))
+: P(b)
   case e
   | refl => x
   : P(e.b)
 
 // Symmetry: if a equals b, b equals a
-sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b)) : Equal(A, b, a)
+sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
+: Equal(A, b, a)
   case e
   | refl => refl(~A, ~a)
   : Equal(A, e.b, a)
 
 // Congruence: if a equals b, f(a) equals f(b)
-cong(
-    ~A
-  , ~B
-  , ~a : -A
-  , ~b : -A
-  , ~f : -(A -> B)
-  , e : Equal(A, a, b)
-  ) : Equal(B, (+f)(a), (+f)(b))
+cong(~A, ~B, ~a : -A, ~b : -A, ~f : -(A -> B), e : Equal(A, a, b))
+: Equal(B, (+f)(a), (+f)(b))
   case e
   | refl => refl(~B, ~(+f)(a))
   : Equal(B, (+f)(a), (+f)(e.b))
 
 // Transitivity: if a equals b and b equals c, a equals c
-trans(
-    ~A
-  , ~a : -A
-  , ~b : -A
-  , ~c : -A
-  , ab : Equal(A, a, b)
-  , bc : Equal(A, b, c)
-  ) : Equal(A, a, c)
+trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c))
+: Equal(A, a, c)
   case bc
   | refl => ab
   : Equal(A, a, bc.b)
+
+// Clones an equality
+same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
+: [:Equal(A, a, b), Equal(A, a, b)]
+  case e
+  | refl => [refl(~A, ~a), refl(~A, ~a)]
+  : [: Equal(A, a, e.b), Equal(A, a, e.b)]
+
+// A copy of a value
+Same(A, x : A)
+: Type
+  [y : A, Equal(A, y, x)]
