@@ -1,5 +1,13 @@
+/* IBinTree.fm defines a church-encoded binary tree type
+ * which can be used as a higher function
+ */
+
 import Equal
 import Nat
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
 
 // The inductive hypothesis on perfect binary trees. Erases to Church.
 IBinTree : Type
