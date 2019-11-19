@@ -1,0 +1,88 @@
+/* U32.fm is a temporary shim until we disentangle the OP1 operations
+ * from the JavaScript number type
+ */
+
+import Equal
+
+// ========================================================
+// =                     Definition                       =
+// ========================================================
+
+U32 : Type
+  Number
+
+u32.max : U32; 4294967295
+u32.min : U32; 0
+
+u32.true  : U32; 1
+u32.false : U32; 0
+
+// ========================================================
+// =                     Operations                       =
+// ========================================================
+
+u32op(f : (x : Number, y : Number) -> Number) : U32 -> U32 -> U32
+  (x, y) => f(x .>>>. 0, y .>>>. 0) .>>>. 0
+
+add(x : U32, y : U32) : U32; u32op(.+., x, y)
+sub(x : U32, y : U32) : U32; u32op(.-., x, y)
+mul(x : U32, y : U32) : U32; u32op(.*., x, y)
+div(x : U32, y : U32) : U32; u32op(./., x, y)
+mod(x : U32, y : U32) : U32; u32op(.%., x, y)
+rsh(x : U32, y : U32) : U32; u32op(.>>>., x, y)
+lsh(x : U32, y : U32) : U32; u32op(.<<., x, y)
+and(x : U32, y : U32) : U32; u32op(.&., x, y)
+ or(x : U32, y : U32) : U32; u32op(.|., x, y)
+xor(x : U32, y : U32) : U32; u32op(.^., x, y)
+gth(x : U32, y : U32) : U32; u32op(.>., x, y)
+lth(x : U32, y : U32) : U32; u32op(.<., x, y)
+gte(x : U32, y : U32) : U32; u32op(.<., x, y) .^. 1
+lte(x : U32, y : U32) : U32; u32op(.>., x, y) .^. 1
+ eq(x : U32, y : U32) : U32; u32op(.==., x, y)
+neq(x : U32, y : U32) : U32; u32op(.==., x, y) .^. 1
+
+// ========================================================
+// =                Type-Level Comparison                 =
+// ========================================================
+
+u32.is   : Equal(U32, %1, %1); refl(~U32, ~%1)
+u32.isnt : Equal(U32, %0, %0); refl(~U32, ~%0)
+
+U32Is(x : U32) : Type; Equal(U32, x, 1)
+
+// ========================================================
+// =                   Safe Operations                    =
+// ========================================================
+
+safe.add(a : U32, b : U32, e : U32Is(gte(add(a,b), a))) : U32
+  add(a,b)
+
+safe.sub(a : U32, b : U32, e : U32Is(lte(b,a))) : U32
+  sub(a,b)
+
+safe.mul(a : U32, b : U32, e : U32Is(eq(div(mul(a,b),a),a))) : U32
+  mul(a,b)
+
+safe.div(a : U32, b : U32, e : U32Is(neq(b,0))) : U32
+  div(a,b)
+
+safe.mod(a : U32, b : U32, e : U32Is(neq(b,0))) : U32
+  mod(a,b)
+
+test_add : U32; safe.add(1,2, u32.is)
+test_sub : U32; safe.sub(2,1, u32.is)
+test_mul : U32; safe.mul(3,3, u32.is)
+test_div : U32; safe.div(3,3, u32.is)
+test_mod : U32; safe.mod(3,3, u32.is)
+
+//test_add_overflow : U32; safe.add(u32.max,u32.max, u32.is)
+//test_sub_underflow : U32; safe.sub(1,2, u32.is)
+//test_mul_overflow : U32; safe.mul(u32.max,u32.max, u32.is)
+//test_div_by_zero : U32;   safe.div(3,0, u32.is)
+//test_mod_by_zero : U32;   div(3,0, u32.is)
+
+//// this is actually safe, but by construction rather than by proof
+safe.average(a : U32, b : U32) : U32
+  let x = add(div(a,2),div(b,2))
+  let y = add(mod(a,2),mod(b,2))
+  add(x, div(y,2))

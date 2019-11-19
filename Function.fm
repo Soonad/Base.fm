@@ -1,4 +1,20 @@
+/* Function.fm contains a wrapper and utilities for the
+ * built-in function type (->)
+*/
 import Equal
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
+// A function wrapper
+
+Fun(A,B) : Type
+  A -> B
+
+// ========================================================
+// =                Utilities/Theorems                    =
+// ========================================================
 
 // The identity function
 id(~A, x : A) : A
@@ -16,6 +32,9 @@ comp(~A, ~B, ~C : B -> Type, g : (b : B) -> C(b), f : A -> B, x : A) : C(f(x))
 uncurry2(~A, ~B, ~C, f : A -> B -> C, p : [:A, B]) : C
   get [a, b] = p
   f(a,b)
+
+curry2(~A, ~B, ~C, f : [:A, B] -> C, x : A, y : B) : C
+  f([x,y])
 
 // Flip the term arguments
 flip(~A, ~B, ~C, f : A -> B -> C, y : B, x : A) : C
