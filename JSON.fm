@@ -1,5 +1,12 @@
+/* JSON.fm defines a JavaScript Object Notation type
+ */
+
 import List
 import String
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
 
 T JSON
 | json_null

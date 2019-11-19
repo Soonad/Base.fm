@@ -1,12 +1,23 @@
+/* Vector.fm defines a static-length vector type
+ */
+
 import Equal
 import Fin
 import Nat
 import Unit
 
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
 // A vector is a list with a statically known length
 T Vector<A> (len : -Nat)
 | vnil                                                : Vector(A, zero)
 | vcons(~len : -Nat, head : A, tail : Vector(A, len)) : Vector(A, succ(len))
+
+// ========================================================
+// =                      Operations                      =
+// ========================================================
 
 // Returns the first element of a non-empty vector
 vhead(~A, ~len : -Nat, xs : Vector(A, succ(len))) : A

@@ -1,3 +1,39 @@
+/* Maybe.fm defines an optional value type
+ */
+
+import Bool
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
 T Maybe<A>
 | none
 | some(value : A)
+
+
+// ========================================================
+// =                      Operations                      =
+// ========================================================
+
+maybe(~A, ~B, b : B, f : A -> B, ma : Maybe(A)) : B
+  case ma
+  | none => b
+  | some => f(ma.value)
+  : B
+
+is_some(~A, ma : Maybe(A)) : Bool
+  case ma
+  | none => false
+  | some => true
+  : Bool
+
+is_none(~A, ma : Maybe(A)) : Bool
+  case ma
+  | none => true
+  | some => false
+  : Bool
+
+from_Maybe(~A, x : A, ma : Maybe(A)) : A
+  maybe(~A, ~A, x, (x) => x, ma)
+
