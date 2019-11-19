@@ -1,10 +1,10 @@
 // Inductive bits
 IBits : Type
   ${self}
-  (~P     : IBits -> Type
-  , ibe : ! P(ibe)
-  , ib0 : ! (~bs : -IBits, i : P(bs)) -> P(ib0(bs))
-  , ib1 : ! (~bs : -IBits, i : P(bs)) -> P(ib1(bs))
+  ( ~P  : IBits -> Type,
+    ibe : ! P(ibe),
+    ib0 : ! (~bs : -IBits, i : P(bs)) -> P(ib0(bs)),
+    ib1 : ! (~bs : -IBits, i : P(bs)) -> P(ib1(bs))
   ) -> ! P(self)
 
 // IBits end

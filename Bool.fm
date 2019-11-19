@@ -68,10 +68,20 @@ not_f(b : Bool) : Bool
 // ::::::::::::::
 
 true_isnt_false : Not(Equal(Bool, true, false))
-  (e) => rewrite(~Bool, ~true, ~false, e, ~(x) => (case x | true => Unit | false => Empty : Type), unit)
+  let rewriter = (x) =>
+    case x
+    | true  => Unit
+    | false => Empty
+    : Type
+  (e) => rewrite(~Bool, ~true, ~false, e, ~rewriter, unit)
 
 false_isnt_true : Not(Equal(Bool, false, true))
-  (e) => rewrite(~Bool, ~false, ~true, e, ~(x) => (case x | true => Empty | false => Unit : Type), unit)
+  let rewriter = (x) =>
+    case x
+    | true  => Empty
+    | false => Unit
+    : Type
+  (e) => rewrite(~Bool, ~false, ~true, e, ~rewriter, unit)
 
 different_elem(a : Bool) : [b : Bool ~ Not(Equal(Bool, a, b))]
   case a

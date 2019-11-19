@@ -1,9 +1,9 @@
 // The inductive hypothesis on nats. Erases to Church.
 INat : Type
   ${self}
-  (~P     : INat -> Type
-  , izero : ! P(izero)
-  , isucc : ! (~r : -INat, i : P(r)) -> P(isucc(r))
+  ( ~P    : INat -> Type,
+    izero : ! P(izero),
+    isucc : ! (~r : -INat, i : P(r)) -> P(isucc(r))
   ) -> ! P(self)
 
 // INat successor
@@ -22,7 +22,12 @@ izero : INat
   # izero
 
 // Induction on `INat` is just identity.
-induct(n : INat, ~P : INat -> Type, z : ! P(izero), s : ! (~n : -INat, i : P(n)) -> P(isucc(n))) : !P(n)
+induct(
+  n  : INat,
+  ~P : INat -> Type,
+  z  : ! P(izero),
+  s  : ! (~n : -INat, i : P(n)) -> P(isucc(n))
+) : !P(n)
   (use(n))(~(x) => P(x), z, s)
 
 // Simple induction is recursion.
@@ -89,7 +94,8 @@ imul2(n : INat) : INat
   //dup F = (use(i))(~motive, case_s)
   //# F(refl(~INat, ~base))
 
-////#cong_unstep : {a : INat, b : INat, e : !Equal(INat, %step(a), %step(b))} -> !Equal(INat, %a, %b)
+////#cong_unstep : {a : INat, b : INat, e : !Equal(INat, %step(a), %step(b))}
+// -> !Equal(INat, %a, %b)
   ////// unstep(step(a)) == a
   ////let ae = $unstep_step_is_id(a)
   ////// unstep(step(b)) == b

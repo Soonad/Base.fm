@@ -59,15 +59,27 @@ demo_app : App(DemoAppState)
     + state : DemoAppState
     | mouseclick =>
       case state
-      | demoappstate => demoappstate(state.mousex, state.mousey, state.clicks .+. 1, state.lastkey)
+      | demoappstate => demoappstate(
+        state.mousex,
+        state.mousey,
+        state.clicks .+. 1,
+        state.lastkey)
       : DemoAppState
     | mousemove =>
       case state
-      | demoappstate => demoappstate(event.x, event.y, state.clicks, state.lastkey)
+      | demoappstate => demoappstate(
+        event.x,
+        event.y,
+        state.clicks,
+        state.lastkey)
       : DemoAppState
     | keypress => 
       case state
-      | demoappstate => demoappstate(state.mousex, state.mousey, state.clicks, event.key)
+      | demoappstate => demoappstate(
+        state.mousex,
+        state.mousey,
+        state.clicks,
+        event.key)
       : DemoAppState
     | keydown => state
     | keyup => state

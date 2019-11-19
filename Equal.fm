@@ -3,35 +3,41 @@ T Equal<A, a : -A> (b : -A)
 | refl : Equal(A, a, a)
 
 // Substitution
-rewrite(~A, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(a)) : P(b)
+rewrite(~A, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(a))
+: P(b)
   case e
   | refl => x
   : P(e.b)
 
 // Symmetry
-sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b)) : Equal(A, b, a)
+sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
+: Equal(A, b, a)
   case e
   | refl => refl(~A, ~a)
   : Equal(A, e.b, a)
 
 // Congruence
-cong(~A, ~B, ~a : -A, ~b : -A, ~f : -(A -> B), e : Equal(A, a, b)) : Equal(B, (+f)(a), (+f)(b))
+cong(~A, ~B, ~a : -A, ~b : -A, ~f : -(A -> B), e : Equal(A, a, b))
+: Equal(B, (+f)(a), (+f)(b))
   case e
   | refl => refl(~B, ~(+f)(a))
   : Equal(B, (+f)(a), (+f)(e.b))
 
 // Transitivity
-trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c)) : Equal(A, a, c)
+trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c))
+: Equal(A, a, c)
   case bc
   | refl => ab
   : Equal(A, a, bc.b)
 
 // Clones an equality
-same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b)) : [:Equal(A, a, b), Equal(A, a, b)]
+same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
+: [:Equal(A, a, b), Equal(A, a, b)]
   case e
   | refl => [refl(~A, ~a), refl(~A, ~a)]
   : [: Equal(A, a, e.b), Equal(A, a, e.b)]
 
 // A copy of a value
-Same(A, x : A) : Type
+Same(A, x : A)
+: Type
   [y : A, Equal(A, y, x)]

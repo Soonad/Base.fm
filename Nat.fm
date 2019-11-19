@@ -136,7 +136,8 @@ zero_isnt_succ(~n : -Nat, e : Equal(Nat, zero, succ(n))) : Empty
   succ_isnt_zero(~n, sym(~Nat, ~zero, ~succ(n), e))
 
 // Proofs that `n == m` implies `succ(n) == succ(m)`
-cong_succ(~n : Nat, ~m : Nat, e : Equal(Nat, n, m)) : Equal(Nat, succ(n), succ(m))
+cong_succ(~n : Nat, ~m : Nat, e : Equal(Nat, n, m))
+: Equal(Nat, succ(n), succ(m))
   cong(~Nat, ~Nat, ~n, ~m, ~succ, e)
 
 // :::::::::::

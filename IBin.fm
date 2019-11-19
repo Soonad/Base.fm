@@ -1,9 +1,9 @@
 // The inductive hypothesis on perfect binary trees. Erases to Church.
 IBin : Type
   ${self}
-  ( ~P      : IBin -> Type
-  , ileaf : ! P(ileaf)
-  , inode : ! (~k : -IBin, a : P(k), b : P(k)) -> P(inode(k))
+  ( ~P    : IBin -> Type,
+    ileaf : ! P(ileaf),
+    inode : ! (~k : -IBin, a : P(k), b : P(k)) -> P(inode(k))
   ) -> ! P(self)
 
 inode(k : IBin) : IBin

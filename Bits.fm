@@ -20,6 +20,18 @@ bits.not(bs : Bits) : Bits
 bits.not_not_is_same(bs : Bits) : Equal(Bits, bits.not(bits.not(bs)), bs)
   case bs
   | be => refl(~Bits, ~be)
-  | b0 => cong(~Bits, ~Bits, ~bits.not(bits.not(bs.pred)), ~bs.pred, ~b0, bits.not_not_is_same(bs.pred))
-  | b1 => cong(~Bits, ~Bits, ~bits.not(bits.not(bs.pred)), ~bs.pred, ~b1, bits.not_not_is_same(bs.pred))
+  | b0 => cong(
+    ~Bits,
+    ~Bits,
+    ~bits.not(bits.not(bs.pred)),
+    ~bs.pred,
+    ~b0,
+    bits.not_not_is_same(bs.pred))
+  | b1 => cong(
+    ~Bits,
+    ~Bits,
+    ~bits.not(bits.not(bs.pred)),
+    ~bs.pred,
+    ~b1,
+    bits.not_not_is_same(bs.pred))
   : Equal(Bits, bits.not(bits.not(bs)), bs)

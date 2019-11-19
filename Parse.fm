@@ -50,9 +50,15 @@ match_one(chr : Char) : Parser(Bool)
     | nil  => [nil(~Char), some(~Bool, false)]
     | cons =>
       (if chr .==. str.head:
-        (str.tail : String) => [str.tail, some(~Bool, true)]
+        (str.tail : String) => [
+          str.tail,
+          some(~Bool, true)
+        ]
       else:
-        (str.tail : String) => [cons(~Char, str.head, str.tail), some(~Bool, false)]
+        (str.tail : String) => [
+          cons(~Char, str.head, str.tail),
+          some(~Bool, false)
+        ]
       )(str.tail)
     : [: String, Maybe(Bool)]
     

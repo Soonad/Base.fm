@@ -108,7 +108,8 @@ path_to_querier(~A, ~len : -Nat, path : Path(len)) : Querier(A, len)
 // :::::::::::::::
 
 // Applies a map/reduce operation over an array
-afold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A) : !(Array(A, $ibin_to_nat(t)) -> A)
+afold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A)
+: !(Array(A, $ibin_to_nat(t)) -> A)
   dup id = id
   dup fn = fn
   let imoti = (t) => Array(A, $ibin_to_nat(t)) -> A
@@ -120,7 +121,10 @@ afold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A) : !(Array(A, $ibin
 arange#(t : IBin) : !Array(Number, $ibin_to_nat(t))
   let imoti = (t) => (n : Number) -> Array(Number, $ibin_to_nat(t)) 
   let ileaf = (n) => n
-  let inode = (~k, a, b, n) => [a(n .*. 2), b((n .*. 2) .+. 1)] :: Array(Number, $ibin_to_nat(inode(k)))
+  let inode = (~k, a, b, n) => [
+    a(n .*. 2),
+    b((n .*. 2) .+. 1)
+  ] :: Array(Number, $ibin_to_nat(inode(k)))
   dup start = use(t)(~imoti, #ileaf, #inode)
   # start(0)
 
@@ -155,14 +159,14 @@ array.ex1
   dup qry3 = querier#(~Number, 00000011p) // querier for index 3
   dup qry4 = querier#(~Number, 00000100p) // querier for index 4
   dup qry5 = querier#(~Number, 00000101p) // querier for index 5
-# get [arr, a] = qry0(arr, (x) => [x .+. 10, x]) // var a = arr[0]; arr[0] += 10;
-  get [arr, b] = qry1(arr, (x) => [x, x .*. 10]) // var b = arr[1] * 10;
-  get [arr, c] = qry2(arr, (x) => [x, x])        // var c = arr[2];
-  get [arr, d] = qry3(arr, (x) => [x, x])        // var d = arr[3];
-  get [arr, e] = qry4(arr, (x) => [x, x])        // var e = arr[4];
-  get [arr, f] = qry5(arr, (x) => [x, x])        // var f = arr[5];
-  get [arr, g] = qry0(arr, (x) => [x, x])        // var g = arr[0];
-  get [arr, h] = qry0(arr, (x) => [x, x])        // var h = arr[0];
-  get [arr, i] = qry0(arr, (x) => [x, x])        // var i = arr[0];
-  get [arr, j] = qry0(arr, (x) => [x, x])        // var j = arr[0];
+# get [arr, a] = qry0(arr, (x) => [x .+. 10, x]) // a = arr[0]; arr[0] += 10;
+  get [arr, b] = qry1(arr, (x) => [x, x .*. 10]) // b = arr[1] * 10;
+  get [arr, c] = qry2(arr, (x) => [x, x])        // c = arr[2];
+  get [arr, d] = qry3(arr, (x) => [x, x])        // d = arr[3];
+  get [arr, e] = qry4(arr, (x) => [x, x])        // e = arr[4];
+  get [arr, f] = qry5(arr, (x) => [x, x])        // f = arr[5];
+  get [arr, g] = qry0(arr, (x) => [x, x])        // g = arr[0];
+  get [arr, h] = qry0(arr, (x) => [x, x])        // h = arr[0];
+  get [arr, i] = qry0(arr, (x) => [x, x])        // i = arr[0];
+  get [arr, j] = qry0(arr, (x) => [x, x])        // j = arr[0];
   [a, b, c, d, e, f, g, h, i, j]
