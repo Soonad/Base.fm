@@ -1,3 +1,13 @@
+/* INat.fm defines a church-encoded natural number type
+ * which can be used as a higher function
+ */
+
+import Equal
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
 // The inductive hypothesis on nats. Erases to Church.
 INat : Type
   ${self}
@@ -14,12 +24,17 @@ isucc(r : INat) : INat
   dup irest = (use(r))(~(x) => P(x), #izero, #isucc)
   # isucc(~r, irest)
 
-// INAt zero
+// INat zero
 izero : INat
   new(~INat) (~P, izero, isucc) =>
   dup izero = izero
   dup isucc = isucc
   # izero
+
+
+// ========================================================
+// =                 Utilities/Theorems                   =
+// ========================================================
 
 // Induction on `INat` is just identity.
 induct(

@@ -1,9 +1,30 @@
+/* Fin.fm defines a finitely bounded natural number
+ */
+
 import Nat
 import Empty
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
 
 T Fin (lim : -Nat)
 | fzero(~lim : -Nat)                  : Fin(succ(lim))
 | fsucc(~lim : -Nat, pred : Fin(lim)) : Fin(succ(lim))
+
+// ========================================================
+// =                      Operations                      =
+// ========================================================
+
+fin_inc(~lim : -Nat, fin : Fin(lim)) : Fin(succ(lim))
+  case fin
+  | fzero => fzero(~succ(fin.lim))
+  | fsucc => fsucc(~succ(fin.lim), fin_inc(~fin.lim, fin.pred))
+  : Fin(succ(fin.lim))
+
+// ========================================================
+// =                     Conversion                       =
+// ========================================================
 
 fin_to_nat(~lim : -Nat, fin : Fin(lim)) : Nat
   case fin
@@ -17,11 +38,9 @@ nat_to_fin(n : Nat) : Fin(succ(n))
   | succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
   : Fin(succ(n))
 
-fin_inc(~lim : -Nat, fin : Fin(lim)) : Fin(succ(lim))
-  case fin
-  | fzero => fzero(~succ(fin.lim))
-  | fsucc => fsucc(~succ(fin.lim), fin_inc(~fin.lim, fin.pred))
-  : Fin(succ(fin.lim))
+// ========================================================
+// =                       Theorems                       =
+// ========================================================
 
 no_fin_zero(fin : Fin(zero)) : Empty
   case fin

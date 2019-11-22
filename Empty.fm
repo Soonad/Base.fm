@@ -1,7 +1,22 @@
+/* Empty.fm defines the uninhabited type with no elements
+ */
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
 // The uninhabited type
 T Empty
 
-// From falsehood, everything follows
+// ========================================================
+// =                Utilities/Theorems                    =
+// ========================================================
+
+// Because `Empty` is by definition uninhabited, we can
+// treat a hypothetical element `e : Empty` as a logical
+// contradiction or falsehood
+
+// ex falso quodlibet: from falsehood, anything follows
 absurd(e : Empty, ~P : Type) : P
   case e : P
 

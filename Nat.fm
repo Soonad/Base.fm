@@ -1,3 +1,6 @@
+/* Nat.fm defines a natural number type
+ */
+
 import And
 import Bool
 import Empty
@@ -7,6 +10,10 @@ import IBits
 import INat
 import The
 import Unit
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
 
 T Nat
 | zero
@@ -18,40 +25,6 @@ pred(n : Nat) : Nat
   | zero => zero
   | succ => n.pred
   : Nat
-
-// Addition
-add(n : Nat, m : Nat) : Nat
-  case n
-  + m : Nat
-  | zero => m
-  | succ =>
-    case m
-    + n.pred : Nat
-    | zero => succ(n.pred)
-    | succ => succ(succ(add(n.pred, m.pred)))
-    : Nat
-  : Nat
-
-// Doubles
-double(n : Nat) : Nat
-  case n
-  | zero => zero
-  | succ => succ(succ(double(n.pred)))
-  : Nat
-
-// Converts a native Num to a Nat
-number_to_nat(x : Number) : Nat
-  if x .==. 0:
-    zero
-  else:
-    succ(number_to_nat(x .-. 1))
-
-// Converts a Nat to a native Num
-nat_to_number(n : Nat) : Number
-  case n
-  | zero => 0
-  | succ => 1 .+. nat_to_number(n.pred)
-  : Number
 
 // Returns two copies of the same Nat
 copy_nat(n : Nat) : [:Nat, Nat]
@@ -72,6 +45,31 @@ clone_nat(n : Nat) : [: Same(Nat, n), Same(Nat, n)]
     let sn1_eql = cong(~Nat, ~Nat, ~n1_val, ~n.pred, ~succ, n1_eql)
     [[succ(n0_val), sn0_eql], [succ(n1_val), sn1_eql]]
   : [: Same(Nat, n), Same(Nat, n)]
+
+// ========================================================
+// =                      Operations                      =
+// ========================================================
+
+
+// Addition
+add(n : Nat, m : Nat) : Nat
+  case n
+  + m : Nat
+  | zero => m
+  | succ =>
+    case m
+    + n.pred : Nat
+    | zero => succ(n.pred)
+    | succ => succ(succ(add(n.pred, m.pred)))
+    : Nat
+  : Nat
+
+// Doubles
+double(n : Nat) : Nat
+  case n
+  | zero => zero
+  | succ => succ(succ(double(n.pred)))
+  : Nat
 
 // Helper for the multiplication below.
 mul.go(k : Nat, n : Nat, m : Nat) : Nat
@@ -106,6 +104,29 @@ nat_equals(n : Nat, m : Nat) : Bool
 mul(n : Nat, m : Nat) : Nat
   mul.go(zero, n, m)
 
+// ========================================================
+// =                      Conversion                      =
+// ========================================================
+
+// Converts a native Num to a Nat
+number_to_nat(x : Number) : Nat
+  if x .==. 0:
+    zero
+  else:
+    succ(number_to_nat(x .-. 1))
+
+// Converts a Nat to a native Num
+nat_to_number(n : Nat) : Number
+  case n
+  | zero => 0
+  | succ => 1 .+. nat_to_number(n.pred)
+  : Number
+
+
+// ========================================================
+// =                      Theorems                        =
+// ========================================================
+
 // Converts INat to Nat
 inat_to_nat(n : INat) : !Nat
   use(n)(~(n) => Nat, #zero, #(~i) => succ)
@@ -117,10 +138,6 @@ ibin_to_nat(bin : IBin) : !Nat
 // Converts IBits to Nat
 ibits_to_nat(bits : IBits) : !Nat
   (use(bits))(~(x) => Nat, #zero, #(~i,a) => succ(a), #(~i,a) => succ(a))
-
-// ::::::::::::::
-// :: Theorems ::
-// ::::::::::::::
 
 // Proof that `1 != 0`
 succ_isnt_zero(~n : -Nat, e : Equal(Nat, succ(n), zero)) : Empty
@@ -140,9 +157,9 @@ cong_succ(~n : Nat, ~m : Nat, e : Equal(Nat, n, m))
 : Equal(Nat, succ(n), succ(m))
   cong(~Nat, ~Nat, ~n, ~m, ~succ, e)
 
-// :::::::::::
-// :: Tests ::
-// :::::::::::
+// ========================================================
+// =                       Tests                          =
+// ========================================================
 
 nat.test0 : The(Nat, 6n)
   the(~Nat, add(3n, 3n))
