@@ -1,0 +1,141 @@
+import List
+import Vector
+import Equal
+import Map
+  
+// ::::::::::::::::::::::::::
+// :: Smart-Contract Model ::
+// ::::::::::::::::::::::::::
+
+// This is just a very initial draft, there is a lot of work to do!
+
+// An Ethereum address
+Address : Type
+  Bits
+
+// A Private Key
+PrivateKey : Type
+  Bits
+
+// A amount of Ether, in wei
+Amount : Type
+  Bits
+
+// A signature
+Signature : Type
+  [: Bits, Bits]
+
+// A signature scheme
+T SignatureScheme
+| signaturescheme(
+  sign : (msg : Bits, pvt : PrivateKey) -> Signature,
+  addr : (pvt : PrivateKey) -> Address,
+  auth : (msg : Bits, sig : Signature) -> Address,
+  fact : (msg : Bits, pvt : PrivateKey) ->
+    Equal(Address,
+      auth(msg, sign(msg, pvt)),
+      addr(pvt)))
+
+// An Ethereum transaction
+T Transaction
+| transaction(
+  from   : Address,
+  amount : Amount,
+  data   : Bits)
+
+// The effects of a transaction
+// TODO: should be an IO type
+T EthIO
+| done(
+  cont : EthIO)
+| sstore(
+  key : Bits,
+  val : Bits,
+  nxt : Unit -> EthIO)
+| sload(
+  key : Bits,
+  nxt : Bits -> EthIO)
+| send(
+  adr : Address,
+  val : Amount,
+  nxt : Unit -> EthIO)
+
+// A contract is an initial state and a transaction function
+T Contract
+| contract(init : Storage, call : EthIO)
+
+get_contract_init(ct : Contract) : Storage
+  case ct
+  | contract => ct.init
+  : Storage
+
+get_contract_call(ct : Contract) : EthIO
+  case ct
+  | contract => ct.call
+  : EthIO
+
+// The contract storage
+Storage : Type
+  Map(Bits)
+
+// The contract state is a pair of its balance and state
+State : Type
+  [: Amount, Storage]
+
+// Performs an IO procedure under a State context
+perform_eth_io(call : EthIO, st : State) : [:EthIO, State]
+  case call
+  + st : State
+  | done =>
+    [call.cont, st]
+  | sstore =>
+    get [balance, storage] = st
+    let storage = mset(~Bits, call.key, call.val, storage)
+    perform_eth_io(call.nxt(unit), [balance, storage])
+  | sload =>
+    get [balance, storage] = st
+    get [storage, val] = mqry(~Bits, bits.copy, call.key, storage)
+    let val =
+      case val
+      | none => be
+      | some => val.value
+      : Bits
+    perform_eth_io(call.nxt(val), [balance, storage])
+  | send =>
+    get [balance, storage] = st
+    perform_eth_io(call.nxt(unit), [be, storage])
+  : [:EthIO, State]
+
+// Auxiliar function of `compute`
+compute.go(io : EthIO, st : State, txs : List(Transaction)) : State
+  case txs
+  + st : State
+  | nil  => st
+  | cons =>
+    get [io, st] = perform_eth_io(io, st)
+    compute.go(io, st, txs.tail)
+  : State
+
+// Computes the final state of a contract given a list of transactions
+compute(ct : Contract, txs : List(Transaction)) : State
+  case ct
+  | contract => compute.go(ct.call, [be, ct.init], txs)
+  : State
+
+// :::::::::::::::::::::::::
+// :: Examples & Theorems ::
+// :::::::::::::::::::::::::
+
+// A contract that does nothing
+contract0 : Contract
+  contract(
+    mleaf(~Bits),
+    done(get_contract_call(contract0)))
+
+// A proof that its storage is always empty
+contract0.fact0(txs : List(Transaction))
+: Equal(Storage, snd(compute(contract0,txs)), mleaf(~Bits))
+  case txs
+  | nil  => refl(~Storage, ~mleaf(~Bits))
+  | cons => contract0.fact0(txs.tail)
+  : Equal(Storage, snd(compute(contract0,txs)), mleaf(~Bits))
