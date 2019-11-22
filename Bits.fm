@@ -13,6 +13,19 @@ bits.not(bs : Bits) : Bits
   | b1 => b0(bits.not(bs.pred))
   : Bits
 
+bits.copy(bs : Bits) : [:Bits, Bits]
+  case bs
+  + bits.copy : Bits -> [:Bits, Bits]
+  | be =>
+    [be, be]
+  | b0 =>
+    get [lft, rgt] = bits.copy(bs.pred)
+    [b0(lft), b0(rgt)]
+  | b1 =>
+    get [lft, rgt] = bits.copy(bs.pred)
+    [b1(lft), b1(rgt)]
+  : [:Bits, Bits]
+
 // ::::::::::::::
 // :: Theorems ::
 // ::::::::::::::

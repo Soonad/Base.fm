@@ -1,0 +1,142 @@
+import Bits
+import Maybe
+import Nat
+
+// A Map from Bits to values
+T Map<A>
+| mleaf
+| mnode(val : Maybe(A), lft : Map(A), rgt : Map(A))
+
+// Gets a value
+mget(~A, bits : Bits, map : Map(A)) : Maybe(A)
+  case bits
+  + map : Map(A)
+  + mget(~A) as rec : (bits : Bits, map : Map(A)) -> Maybe(A)
+  | be => case map
+    | mleaf => none(~A)
+    | mnode => map.val
+    : Maybe(A)
+  | b0 => case map
+    | mleaf => none(~A)
+    | mnode => rec(bits.pred, map.lft)
+    : Maybe(A)
+  | b1 => case map
+    | mleaf => none(~A)
+    | mnode => rec(bits.pred, map.rgt)
+    : Maybe(A)
+  : Maybe(A)
+
+// Sets a value
+mset(~A, bits : Bits, val : A, map : Map(A)) : Map(A)
+  case bits
+  + val : A
+  + map : Map(A)
+  + mset(~A) as rec : Bits -> A -> Map(A) -> Map(A)
+  | be => case map
+    + some(~A, val) as some_val : Maybe(A)
+    | mleaf => mnode(~A, some_val, mleaf(~A), mleaf(~A))
+    | mnode => mnode(~A, some_val, map.lft, map.rgt)
+    : Map(A)
+  | b0 => case map
+    + rec(bits.pred, val) as rec : Map(A) -> Map(A)
+    | mleaf => mnode(~A, none(~A), rec(mleaf(~A)), mleaf(~A))
+    | mnode => mnode(~A, map.val, rec(map.lft), map.rgt)
+    : Map(A)
+  | b1 => case map
+    + rec(bits.pred, val) as rec : Map(A) -> Map(A)
+    | mleaf => mnode(~A, none(~A), mleaf(~A), rec(mleaf(~A)))
+    | mnode => mnode(~A, map.val, map.lft, rec(map.rgt))
+    : Map(A)
+  : Map(A)
+
+// Updates a value, return a function of it and the map
+mqry(~A, qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
+  let rec = mqry(~A)
+  case bits
+  + map : Map(A)
+  + rec : (qry : A -> [:A,A], bits : Bits, map : Map(A)) -> [:Map(A), Maybe(A)]
+  + qry : A -> [:A, A]
+  | be => case map
+    | mleaf => [mleaf(~A), none(~A)]
+    | mnode =>
+      case map.val as mval
+      + map.lft : Map(A)
+      + map.rgt : Map(A)
+      | none => 
+        [mnode(~A, none(~A), map.lft, map.rgt), none(~A)]
+      | some =>
+        get [val0, val1] = qry(mval.value)
+        [mnode(~A, some(~A, val0), map.lft, map.rgt), some(~A, val1)]
+      : [:Map(A), Maybe(A)]
+    : [:Map(A), Maybe(A)]
+  | b0 => case map
+    | mleaf => [mleaf(~A), none(~A)]
+    | mnode =>
+      get [lft, val] = rec(qry, bits.pred, map.lft)
+      [mnode(~A, map.val, lft, map.rgt), val]
+    : [:Map(A), Maybe(A)]
+  | b1 => case map
+    | mleaf => [mleaf(~A), none(~A)]
+    | mnode => 
+      get [rgt, val] = rec(qry, bits.pred, map.rgt)
+      [mnode(~A, map.val, map.lft, rgt), val]
+    : [:Map(A), Maybe(A)]
+  : [:Map(A), Maybe(A)]
+
+// ::::::::::::::
+// :: Theorems ::
+// ::::::::::::::
+
+// Getting a stored value returns it
+Map.Fact0(A, bits : Bits, val : A, map : Map(A)) : Type
+  let lft = some(~A, val)
+  let rgt = mget(~A, bits, mset(~A, bits, val, map))
+  Equal(Maybe(A), lft, rgt)
+  
+// Proof
+Map.fact0(~A, bits : Bits, val : A, map : Map(A))
+: Map.Fact0(A, bits, val, map)
+  case bits
+  + map : Map(A)
+  + val : A
+  | be =>
+    case map
+    + val : A
+    | mleaf => refl(~Maybe(A), ~some(~A, val))
+    | mnode => refl(~Maybe(A), ~some(~A, val))
+    : Map.Fact0(A, be, val, map)
+  | b0 =>
+    let rec = Map.fact0(~A, bits.pred, val)
+    case map
+    + rec : (map : Map(A)) -> Map.Fact0(A, bits.pred, val, map)
+    | mleaf => rec(mleaf(~A))
+    | mnode => rec(map.lft)
+    : Map.Fact0(A, b0(bits.pred), val, map)
+  | b1 =>
+    let rec = Map.fact0(~A, bits.pred, val)
+    case map
+    + rec : (map : Map(A)) -> Map.Fact0(A, bits.pred, val, map)
+    | mleaf => rec(mleaf(~A))
+    | mnode => rec(map.rgt)
+    : Map.Fact0(A, b1(bits.pred), val, map)
+  : Map.Fact0(A, bits, val, map)
+
+// ::::::::::::::
+// :: Examples ::
+// ::::::::::::::
+
+Map.ex0 : Maybe(Number)
+  let map = mleaf(~Number)
+  let map = mset(~Number, 1111111101101110b, 1337, map)
+  mget(~Number, 1111111101101110b, map)
+
+Map.ex1 : [:Maybe(Number), :Maybe(Number), Maybe(Number)]
+  let qry     = (a) => [a, a]
+  let map     = mleaf(~Number)
+  let map     = mset(~Number, 10100100b, 10, map)
+  let map     = mset(~Number, 01100010b, 20, map)
+  let map     = mset(~Number, 10111001b, 30, map)
+  get [map,a] = mqry(~Number, qry, 10100100b, map)
+  get [map,b] = mqry(~Number, qry, 01100010b, map)
+  get [map,c] = mqry(~Number, qry, 10111001b, map)
+  [a, b, c]

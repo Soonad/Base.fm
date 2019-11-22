@@ -153,12 +153,12 @@ array.ex0
 // Query uses ~185 rewrites per new index, ~41 rewrites per reused index
 array.ex1
   dup arr  = arange#(t8) // creates range from 0 til 256
-  dup qry0 = querier#(~Number, 00000000p) // querier for index 0
-  dup qry1 = querier#(~Number, 00000001p) // querier for index 1
-  dup qry2 = querier#(~Number, 00000010p) // querier for index 2
-  dup qry3 = querier#(~Number, 00000011p) // querier for index 3
-  dup qry4 = querier#(~Number, 00000100p) // querier for index 4
-  dup qry5 = querier#(~Number, 00000101p) // querier for index 5
+  dup qry0 = querier#(~Number, 00000000B) // querier for index 0
+  dup qry1 = querier#(~Number, 00000001B) // querier for index 1
+  dup qry2 = querier#(~Number, 00000010B) // querier for index 2
+  dup qry3 = querier#(~Number, 00000011B) // querier for index 3
+  dup qry4 = querier#(~Number, 00000100B) // querier for index 4
+  dup qry5 = querier#(~Number, 00000101B) // querier for index 5
 # get [arr, a] = qry0(arr, (x) => [x .+. 10, x]) // a = arr[0]; arr[0] += 10;
   get [arr, b] = qry1(arr, (x) => [x, x .*. 10]) // b = arr[1] * 10;
   get [arr, c] = qry2(arr, (x) => [x, x])        // c = arr[2];

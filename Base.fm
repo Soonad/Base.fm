@@ -12,6 +12,7 @@ import IBits
 import INat
 import JSON
 import List
+import Map
 import Maybe
 import Nat
 import Or
