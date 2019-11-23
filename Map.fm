@@ -1,11 +1,38 @@
 import Bits
 import Maybe
 import Nat
+import List
 
 // A Map from Bits to values
 T Map<A>
 | mleaf
 | mnode(val : Maybe(A), lft : Map(A), rgt : Map(A))
+
+
+mempty(~A) : Map(A)
+  mleaf(~A)
+
+msingleton(~A, x : A) : Map(A)
+  mnode(~A, some(~A,x), mleaf(~A), mleaf(~A))
+
+mfrom_list(~A, xs : List([:Bits, A])) : Map(A)
+  case xs
+  | nil  => mleaf(~A)
+  | cons => get [k,v] = xs.head
+    mset(~A,k,v,mfrom_list(~A,xs.tail))
+  : Map(A)
+
+melems(~A, m : Map(A)) : List(A)
+  case m
+  | mleaf => nil(~A)
+  | mnode => 
+    let rest = concat(~A,melems(~A, m.lft), melems(~A, m.rgt))
+    case m.val as mv
+    + rest : List(A)
+    | none => rest
+    | some => cons(~A,mv.value,rest)
+    : List(A)
+  : List(A)
 
 // Gets a value
 mget(~A, bits : Bits, map : Map(A)) : Maybe(A)
@@ -83,6 +110,8 @@ mqry(~A, qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
     : [:Map(A), Maybe(A)]
   : [:Map(A), Maybe(A)]
 
+
+
 // ::::::::::::::
 // :: Theorems ::
 // ::::::::::::::
@@ -92,7 +121,7 @@ Map.Fact0(A, bits : Bits, val : A, map : Map(A)) : Type
   let lft = some(~A, val)
   let rgt = mget(~A, bits, mset(~A, bits, val, map))
   Equal(Maybe(A), lft, rgt)
-  
+
 // Proof
 Map.fact0(~A, bits : Bits, val : A, map : Map(A))
 : Map.Fact0(A, bits, val, map)
