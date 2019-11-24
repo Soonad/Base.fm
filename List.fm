@@ -112,7 +112,98 @@ list_to_concatenator(~A : Type, xs : List(A)) : Concatenator(A)
 concatenator_to_list(~A, xs : Concatenator(A)) : List(A)
   xs(nil(~A))
 
-// TODO
+// Type level map
+map.typ(~A,~B, f : -(A -> B), xs : List(A)) : -List(B)
+  case xs
+  | nil => nil(~B)
+  | cons => cons(~B,(+f)(xs.head), map.typ(~A,~B,f,xs.tail))
+  : List(B)
+
+// Inductive map
+map.ind(n : INat, ~A, ~B, f : !A -> B) : ! List(A) -> List(B)
+  dup f = f
+  (use(n))(
+    ~(x) => List(A) -> List(B),
+    #(z) => nil(~B),
+    # (~n,rec,xs) =>
+     case xs
+     | nil  => nil(~B)
+     | cons => cons(~B,f(xs.head), rec(xs.tail))
+     : List(B)
+  )
+
+// Boxed map
+map.box(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
+  dup f = f
+  dup r = map.box(~A, ~B, #f)
+  # (xs) => case xs
+    | nil  => nil(~B)
+    | cons => cons(~B, f(xs.head), r(xs.tail))
+    : List(B)
+
+// Type-level right fold
+foldr.typ(~A, ~B, f : -(A -> B -> B), b : B, xs : List(A)) : -B
+  case xs
+  + b : B
+  | nil => %b
+  | cons => (+f)(xs.head, foldr.typ(~A,~B,f,b,xs.tail))
+  : -B
+
+// Inductive right fold
+foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
+  dup f = f
+  dup b = b
+  (use(n))(
+    ~(x) => List(A) -> B,
+    #(z) => b,
+    # (~n,rec,xs) =>
+     case xs
+     | nil  => b
+     | cons => f(xs.head, rec(xs.tail))
+     : B
+  )
+
+// Boxed right fold
+foldr.box(~A,~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
+  dup f = f
+  dup b = b
+  dup rec = foldr.box(~A,~B,#f,#b)
+  # (xs) => case xs
+    | nil  => b
+    | cons => f(xs.head, rec(xs.tail))
+    : B
+
+// Type-level left fold
+foldl.typ(~A, ~B, f : -(B -> A -> B), b : B, xs : List(A)) : -B
+  case xs 
+  + b : B
+  | nil => %b
+  | cons => foldl.typ(~A,~B,f,(+f)(b, xs.head),xs.tail)
+  : -B
+
+// Inductive left-fold
+foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
+  dup f = f
+  (use(n))(
+    ~(x) => B -> List(A) -> B,
+    #(b,z) => b,
+    # (~n,rec,b,xs) =>
+     case xs
+     + b : B
+     | nil  => b
+     | cons => rec(f(b,xs.head),xs.tail)
+     : B
+  )
+
+// Boxed left-fold
+foldl.box(~A,~B, f : !B -> A -> B) : ! B -> List(A) -> B
+  dup f = f
+  dup rec = foldl.box(~A,~B,#f)
+  # (b,xs) => case xs
+    + b : B
+    | nil  => b
+    | cons => rec(f(b,xs.head),xs.tail)
+    : B
 
 //// :::::::::::::::::::::::
 //// :: Fusible functions ::
