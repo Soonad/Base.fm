@@ -112,12 +112,18 @@ list_to_concatenator(~A : Type, xs : List(A)) : Concatenator(A)
 concatenator_to_list(~A, xs : Concatenator(A)) : List(A)
   xs(nil(~A))
 
-// Type level map
-map.typ(~A,~B, f : -(A -> B), xs : List(A)) : -List(B)
-  case xs
-  | nil => nil(~B)
-  | cons => cons(~B,(+f)(xs.head), map.typ(~A,~B,f,xs.tail))
-  : List(B)
+// ========================================================
+// =                    Maps and Folds                    =
+// ========================================================
+
+// Boxed map
+map(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
+  dup f = f
+  dup r = map(~A, ~B, #f)
+  # (xs) => case xs
+    | nil  => nil(~B)
+    | cons => cons(~B, f(xs.head), r(xs.tail))
+    : List(B)
 
 // Inductive map
 map.ind(n : INat, ~A, ~B, f : !A -> B) : ! List(A) -> List(B)
@@ -132,22 +138,15 @@ map.ind(n : INat, ~A, ~B, f : !A -> B) : ! List(A) -> List(B)
      : List(B)
   )
 
-// Boxed map
-map.box(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
+// Right fold
+foldr(~A,~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
   dup f = f
-  dup r = map.box(~A, ~B, #f)
+  dup b = b
+  dup rec = foldr(~A,~B,#f,#b)
   # (xs) => case xs
-    | nil  => nil(~B)
-    | cons => cons(~B, f(xs.head), r(xs.tail))
-    : List(B)
-
-// Type-level right fold
-foldr.typ(~A, ~B, f : -(A -> B -> B), b : B, xs : List(A)) : -B
-  case xs
-  + b : B
-  | nil => %b
-  | cons => (+f)(xs.head, foldr.typ(~A,~B,f,b,xs.tail))
-  : -B
+    | nil  => b
+    | cons => f(xs.head, rec(xs.tail))
+    : B
 
 // Inductive right fold
 foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
@@ -163,23 +162,15 @@ foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
      : B
   )
 
-// Boxed right fold
-foldr.box(~A,~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
+// Boxed left-fold
+foldl(~A,~B, f : !B -> A -> B) : ! B -> List(A) -> B
   dup f = f
-  dup b = b
-  dup rec = foldr.box(~A,~B,#f,#b)
-  # (xs) => case xs
+  dup rec = foldl(~A,~B,#f)
+  # (b,xs) => case xs
+    + b : B
     | nil  => b
-    | cons => f(xs.head, rec(xs.tail))
+    | cons => rec(f(b,xs.head),xs.tail)
     : B
-
-// Type-level left fold
-foldl.typ(~A, ~B, f : -(B -> A -> B), b : B, xs : List(A)) : -B
-  case xs 
-  + b : B
-  | nil => %b
-  | cons => foldl.typ(~A,~B,f,(+f)(b, xs.head),xs.tail)
-  : -B
 
 // Inductive left-fold
 foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
@@ -195,15 +186,55 @@ foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
      : B
   )
 
-// Boxed left-fold
-foldl.box(~A,~B, f : !B -> A -> B) : ! B -> List(A) -> B
+// fold boolean And
+foldAnd(~A,~B, xs : List(Bool)) : Bool
+  case xs
+  | nil  => true
+  | cons => Bool/and(xs.head, foldAnd(~A,~B,xs.tail))
+  : Bool
+
+// fold boolean Or
+foldOr(~A,~B, xs : List(Bool)) : Bool
+  case xs
+  | nil  => false
+  | cons => Bool/or(xs.head, foldOr(~A,~B,xs.tail))
+  : Bool
+
+foldSum(~A,~B, xs : List(Nat)) : Nat
+  case xs
+  | nil  => zero
+  | cons => Nat/add(xs.head, foldSum(~A,~B,xs.tail))
+  : Nat
+
+foldProduct(~A,~B, xs : List(Nat)) : Nat
+  case xs
+  | nil  => zero
+  | cons => Nat/mul(xs.head, foldProduct(~A,~B,xs.tail))
+  : Nat
+
+// ========================================================
+// =                   Infinite Lists                     =
+// ========================================================
+
+repeat(~A, x : !A) : List(!A)
+  dup x = x
+  cons(~!A, #x, repeat(~A, #x))
+
+iterate(~A, f : !A -> A, x : !A) : List(!A)
   dup f = f
-  dup rec = foldl.box(~A,~B,#f)
-  # (b,xs) => case xs
-    + b : B
-    | nil  => b
-    | cons => rec(f(b,xs.head),xs.tail)
-    : B
+  dup x = x
+  cons(~!A, #x, iterate(~A,#f,#f(x)))
+
+replicate(n : INat, ~A, x : !A) : ! List(A)
+  dup x = x
+  (use(n))(
+    ~(y) => List(A),
+    # nil(~A),
+    # (~n,xs) => cons(~A,x,xs)
+  )
+
+
+
 
 //// :::::::::::::::::::::::
 //// :: Fusible functions ::
