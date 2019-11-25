@@ -157,6 +157,10 @@ cong_succ(~n : Nat, ~m : Nat, e : Equal(Nat, n, m))
 : Equal(Nat, succ(n), succ(m))
   cong(~Nat, ~Nat, ~n, ~m, ~succ, e)
 
+cong_pred(~n : -Nat, ~m : -Nat, e : Equal(Nat,succ(n),succ(m)))
+: Equal(Nat,n,m)
+  cong(~Nat, ~Nat, ~%succ(n), ~%succ(m), ~pred, e)
+
 // ========================================================
 // =                       Tests                          =
 // ========================================================

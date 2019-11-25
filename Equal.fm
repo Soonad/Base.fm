@@ -45,6 +45,10 @@ trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c))
   | refl => ab
   : Equal(A, a, bc.b)
 
+trans2(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), cb : Equal(A, c, b))
+: Equal(A, a, c)
+  trans(~A,~a,~b,~c,ab,sym(~A,~c,~b,cb))
+
 // Clones an equality
 same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
 : [:Equal(A, a, b), Equal(A, a, b)]
