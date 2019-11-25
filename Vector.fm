@@ -1,60 +1,79 @@
-/* Vector.fm defines a static-length vector type
- */
+// Vector.fm defines a static-length vector type
+//
 
-import Equal
+import Equal as E
 import Fin
 import Nat
 import Unit
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                    Definition                       ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // A vector is a list with a statically known length
 T Vector<A> (len : -Nat)
-| vnil                                                : Vector(A, zero)
-| vcons(~len : -Nat, head : A, tail : Vector(A, len)) : Vector(A, succ(len))
+| nil : Vector(A, zero)
+| cons(
+    ~len : -Nat,
+    head : A,
+    tail : Vector(A, len)
+  ) : Vector(A, succ(len))
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                    Operations                       ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // Returns the first element of a non-empty vector
-vhead(~A, ~len : -Nat, xs : Vector(A, succ(len))) : A
+head(~A, ~len : -Nat, xs : Vector(A, succ(len))) : A
   case xs
-  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
-  | vnil  => absurd(zero_isnt_succ(~len, e), ~A)
-  | vcons => xs.head
+  + refl(~Nat, ~succ(len))
+    as e : Equal(Nat, xs.len, succ(len))
+  | nil  => absurd(zero_isnt_succ(~len, e), ~A)
+  | cons => xs.head
   : A
 
 // Returns all but the first element of a non-empty vector
-vtail(~A, ~len : -Nat, xs : Vector(A, succ(len))) : Vector(A, len)
+tail(~A, ~len : -Nat, xs : Vector(A, succ(len)))
+: Vector(A, len)
   case xs
-  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
-  | vnil  => absurd(zero_isnt_succ(~len, e), ~Vector(A, zero))
-  | vcons => xs.tail
+  + refl(~Nat, ~succ(len))
+    as e : Equal(Nat, xs.len, succ(len))
+  | nil  =>
+      absurd(
+        zero_isnt_succ(~len, e),
+        ~Vector(A, zero)
+      )
+  | cons => xs.tail
   : Vector(A, pred(xs.len))
 
 // Returns a pair with the head and the tail of a non-empty vector
-vtake(~A, ~len : -Nat, xs : Vector(A, succ(len))) : [:A, Vector(A, len)]
+take(~A, ~len : -Nat, xs : Vector(A, succ(len)))
+: [:A, Vector(A, len)]
   case xs
-  + refl(~Nat, ~succ(len)) as e : Equal(Nat, xs.len, succ(len))
-  | vnil  => absurd(zero_isnt_succ(~len, e), ~[:A, Vector(A, zero)])
-  | vcons => [xs.head, xs.tail]
+  + refl(~Nat, ~succ(len))
+    as e : Equal(Nat, xs.len, succ(len))
+  | nil  =>
+      absurd(
+        zero_isnt_succ(~len, e),
+        ~[:A, Vector(A, zero)]
+      )
+  | cons => [xs.head, xs.tail]
   : [:A, Vector(A, pred(xs.len))]
 
-// Returns the same vector
-vsame(~A, ~len : -Nat, xs : Vector(A, len)) : Vector(A, len)
+// Returns the same vector, unfusible identity
+id_uf(~A, ~len : -Nat, xs : Vector(A, len))
+: Vector(A, len)
   case xs
-  | vnil  => vnil(~A)
-  | vcons => vcons(~A, ~xs.len, xs.head, vsame(~A, ~xs.len, xs.tail))
+  | nil  => nil(~A)
+  | cons =>
+    cons(~A, ~xs.len, xs.head, id_uf(~A, ~xs.len, xs.tail))
   : Vector(A, xs.len)
 
 // Allocates a Vec with given length
-valloc(len : Nat) : Vector(Unit, len)
+alloc(len : Nat) : Vector(Unit, len)
   case len
-  | zero => vnil(~Unit)
-  | succ => vcons(~Unit, ~len.pred, unit, valloc(len.pred))
+  | zero => nil(~Unit)
+  | succ => cons(~Unit, ~len.pred, unit, alloc(len.pred))
   : Vector(Unit, len)
 
 // TODO: range, map, concat, zip, etc.

@@ -2,7 +2,7 @@ import List
 import Vector
 import Equal
 import Map
-  
+
 // ::::::::::::::::::::::::::
 // :: Smart-Contract Model ::
 // ::::::::::::::::::::::::::
@@ -90,11 +90,11 @@ perform_eth_io(call : EthIO, st : State) : [:EthIO, State]
     [call.cont, st]
   | sstore =>
     get [balance, storage] = st
-    let storage = mset(~Bits, call.key, call.val, storage)
+    let storage = set(~Bits, call.key, call.val, storage)
     perform_eth_io(call.nxt(unit), [balance, storage])
   | sload =>
     get [balance, storage] = st
-    get [storage, val] = mqry(~Bits, bits.copy, call.key, storage)
+    get [storage, val] = query(~Bits, bits.copy, call.key, storage)
     let val =
       case val
       | none => be
@@ -129,13 +129,13 @@ compute(ct : Contract, txs : List(Transaction)) : State
 // A contract that does nothing
 contract0 : Contract
   contract(
-    mleaf(~Bits),
+    leaf(~Bits),
     done(get_contract_call(contract0)))
 
 // A proof that its storage is always empty
 contract0.fact0(txs : List(Transaction))
-: Equal(Storage, snd(compute(contract0,txs)), mleaf(~Bits))
+: Equal(Storage, snd(compute(contract0,txs)), leaf(~Bits))
   case txs
-  | nil  => refl(~Storage, ~mleaf(~Bits))
+  | nil  => refl(~Storage, ~leaf(~Bits))
   | cons => contract0.fact0(txs.tail)
-  : Equal(Storage, snd(compute(contract0,txs)), mleaf(~Bits))
+  : Equal(Storage, snd(compute(contract0,txs)), leaf(~Bits))

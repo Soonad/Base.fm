@@ -1,12 +1,12 @@
-/* INat.fm defines a church-encoded natural number type
- * which can be used as a higher function
- */
+// INat.fm defines a church-encoded natural number type
+// which can be used as a higher function
+//
 
 import Equal
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // The inductive hypothesis on nats. Erases to Church.
 INat : Type
@@ -32,9 +32,9 @@ izero : INat
   # izero
 
 
-// ========================================================
-// =                 Utilities/Theorems                   =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                 Utilities/Theorems                  ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // Induction on `INat` is just identity.
 induct(

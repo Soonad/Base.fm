@@ -4,17 +4,17 @@
 import Equal
 import Nat
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T List<A>
 | nil
 | cons(head : A, tail : List(A))
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Operations                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 head(~A, x : A, xs : List(A)) : A
   case xs
@@ -61,7 +61,9 @@ maply(~A, ~B, fs : List(A -> B), xs : List(A)) : List(B)
   | nil  => nil(~B)
   | cons => case xs
     | nil  => nil(~B)
-    | cons => cons(~B, fs.head(xs.head), maply(~A, ~B, fs.tail, xs.tail))
+    | cons =>
+        let h = fs.head(xs.head)
+        cons(~B, h, maply(~A, ~B, fs.tail, xs.tail))
     : List(B)
   : List(B)
 
@@ -97,24 +99,31 @@ Concatenator(A : Type) : Type
   (x : List(A)) -> List(A)
 
 // Concatenates a O(1) concatenator
-concatenate(~A, xs : Concatenator(A), ys : Concatenator(A)) : Concatenator(A)
+concatenate(~A, xs : Concatenator(A), ys : Concatenator(A))
+: Concatenator(A)
   (x) => xs(ys(x))
 
 // Converts a list to a O(1) concatenator
-list_to_concatenator(~A : Type, xs : List(A)) : Concatenator(A)
+list_to_concatenator(~A : Type, xs : List(A))
+: Concatenator(A)
   (x) => case xs
     + x : List(A)
     | nil  => x
-    | cons => cons(~A, xs.head, list_to_concatenator(~A, xs.tail, x))
+    | cons => 
+      cons(
+        ~A,
+        xs.head,
+        list_to_concatenator(~A, xs.tail, x)
+      )
     : List(A)
 
 // Converts a O(1) concatenator to a list
 concatenator_to_list(~A, xs : Concatenator(A)) : List(A)
   xs(nil(~A))
 
-// ========================================================
-// =                    Maps and Folds                    =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                 Maps and Folds                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // Boxed map
 map(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
@@ -126,7 +135,8 @@ map(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
     : List(B)
 
 // Inductive map
-map.ind(n : INat, ~A, ~B, f : !A -> B) : ! List(A) -> List(B)
+map.ind(n : INat, ~A, ~B, f : !A -> B)
+: ! List(A) -> List(B)
   dup f = f
   (use(n))(
     ~(x) => List(A) -> List(B),
@@ -149,7 +159,8 @@ foldr(~A,~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
     : B
 
 // Inductive right fold
-foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
+foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B)
+: ! List(A) -> B
   dup f = f
   dup b = b
   (use(n))(
@@ -173,7 +184,8 @@ foldl(~A,~B, f : !B -> A -> B) : ! B -> List(A) -> B
     : B
 
 // Inductive left-fold
-foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
+foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B)
+: ! B -> List(A) -> B
   dup f = f
   (use(n))(
     ~(x) => B -> List(A) -> B,
@@ -212,9 +224,9 @@ foldProduct(~A,~B, xs : List(Nat)) : Nat
   | cons => Nat/mul(xs.head, foldProduct(~A,~B,xs.tail))
   : Nat
 
-// ========================================================
-// =                   Infinite Lists                     =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                 Infinite Lists                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 repeat(~A, x : !A) : List(!A)
   dup x = x
@@ -232,8 +244,6 @@ replicate(n : INat, ~A, x : !A) : ! List(A)
     # nil(~A),
     # (~n,xs) => cons(~A,x,xs)
   )
-
-
 
 
 //// :::::::::::::::::::::::

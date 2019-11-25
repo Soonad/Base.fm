@@ -1,11 +1,11 @@
-/* String.fm defines a string type as a list of characters
- */
+// String.fm defines a string type as a list of characters
+//
 
 import List
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 Char : Type
   Number

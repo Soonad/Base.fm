@@ -4,21 +4,22 @@
 import Equal
 import Nat
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T Bits
 | be
 | b0(pred : Bits)
 | b1(pred : Bits)
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Operations                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-// Bitwise
-// -------
+// :::::::::::::
+// :: Bitwise ::
+// :::::::::::::
 
 // bitwise negation
 bits.not(x : Bits) : Bits
@@ -111,8 +112,9 @@ bits.lsh(n : Nat, x : Bits) : Bits
     : Bits
   : Bits
 
-// Arithmetic
-// ----------
+// ::::::::::::::::
+// :: Arithmetic ::
+// ::::::::::::::::
 
 // increment
 bits.inc(x : Bits) : Bits
@@ -141,9 +143,9 @@ bits.add(x : Bits, y : Bits) : Bits
     : Bits
   : Bits
 
-// ========================================================
-// =                     Conversion                       =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                    Conversion                       ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 bits_to_nat(x : Bits) : Nat
   case x
@@ -171,15 +173,18 @@ bits.copy(bs : Bits) : [:Bits, Bits]
     [b1(lft), b1(rgt)]
   : [:Bits, Bits]
 
-// ========================================================
-// =                      Theorems                        =
-// ========================================================
+// ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Theorems                       ::
+// ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bits.double_negation(x : Bits) : Equal(Bits, bits.not(bits.not(x)), x)
+bits.double_negation(x : Bits)
+: Equal(Bits, bits.not(bits.not(x)), x)
   case x
   | be => refl(~Bits, ~be)
   | b0 => let nnb = bits.not(bits.not(x.pred))
-    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b0, bits.double_negation(x.pred))
+    let rec = bits.double_negation
+    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b0, rec(x.pred))
   | b1 => let nnb = bits.not(bits.not(x.pred))
-    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b1, bits.double_negation(x.pred))
+    let rec = bits.double_negation
+    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b1, rec(x.pred))
   : Equal(Bits, bits.not(bits.not(x)), x)

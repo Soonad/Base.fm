@@ -1,4 +1,4 @@
-// Inductive bits
+// IBits.fm defines an Inductive bits type
 IBits : Type
   ${self}
   ( ~P  : IBits -> Type,

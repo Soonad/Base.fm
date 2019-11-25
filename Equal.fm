@@ -5,21 +5,26 @@
  * implies `b` is equal to `a` iff `b` reduces to `a`
  */
 
-
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                    Definition                       ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T Equal<A, a : -A> (b : -A)
 | refl : Equal(A, a, a)
 
-// ========================================================
-// =                Utilities/Theorems                    =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                Utilities/Theorems                   ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // Substitution: if a equals b, you can replace a with b
-rewrite(~A, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(a))
-: P(b)
+rewrite(
+  ~A,
+  ~a : -A,
+  ~b : -A,
+  e  : Equal(A, a, b),
+  ~P : A -> Type,
+  x  : P(a)
+) : P(b)
   case e
   | refl => x
   : P(e.b)
@@ -32,14 +37,26 @@ sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
   : Equal(A, e.b, a)
 
 // Congruence: if a equals b, f(a) equals f(b)
-cong(~A, ~B, ~a : -A, ~b : -A, ~f : -(A -> B), e : Equal(A, a, b))
-: Equal(B, (+f)(a), (+f)(b))
+cong(
+  ~A,
+  ~B,
+  ~a : -A,
+  ~b : -A,
+  ~f : -(A -> B),
+  e  : Equal(A, a, b)
+) : Equal(B, (+f)(a), (+f)(b))
   case e
   | refl => refl(~B, ~(+f)(a))
   : Equal(B, (+f)(a), (+f)(e.b))
 
 // Transitivity: if a equals b and b equals c, a equals c
-trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c))
+trans(~A,
+  ~a : -A,
+  ~b : -A,
+  ~c : -A,
+  ab : Equal(A, a, b),
+  bc : Equal(A, b, c)
+)
 : Equal(A, a, c)
   case bc
   | refl => ab

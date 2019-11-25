@@ -4,6 +4,10 @@ import The
 import IBin
 import IBits
 
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 Array(A, n : Nat) : Type
   case n
   | zero => A
@@ -21,24 +25,30 @@ Getter(A, n : Nat) : Type
 get.end(~A) : Getter(A, zero)
   (a) => a
 
-get.lft(~A, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
+get.lft(~A, ~n : -Nat, g : Getter(A, n))
+: Getter(A, succ(n))
   (a) => get [x,y] = a; g(x)
 
-get.rgt(~A, ~n : -Nat, g : Getter(A, n)) : Getter(A, succ(n))
+get.rgt(~A, ~n : -Nat, g : Getter(A, n))
+: Getter(A, succ(n))
   (a) => get [x,y] = a; g(y)
 
-getter#(~A : Type, path : IBits) : !Getter(A, $ibits_to_nat(path))
+getter#(~A : Type, path : IBits)
+: !Getter(A, $ibits_to_nat(path))
   let moti = (path) => Getter(A, $ibits_to_nat(path))
   let ibe  = get.end(~A)
   let ib0  = (~bs) => get.lft(~A, ~$ibits_to_nat(bs))
   let ib1  = (~bs) => get.rgt(~A, ~$ibits_to_nat(bs))
   use(path)(~moti, #ibe, #ib0, #ib1)
-  
-path_to_getter(~A : Type, ~len : -Nat, path : Path(len)) : Getter(A, len)
+
+path_to_getter(~A : Type, ~len : -Nat, path : Path(len)) 
+: Getter(A, len)
   case path
   | pe => get.end(~A)
-  | pl => get.lft(~A, ~path.len, path_to_getter(~A, ~path.len, path.pred))
-  | pr => get.rgt(~A, ~path.len, path_to_getter(~A, ~path.len, path.pred))
+  | pl => let p = path_to_getter(~A, ~path.len, path.pred)
+      get.lft(~A, ~path.len, p)
+  | pr => let p = path_to_getter(~A, ~path.len, path.pred)
+      get.rgt(~A, ~path.len, p)
   : Getter(A, path.len)
 
 // ::::::::::::
@@ -52,24 +62,30 @@ Mutter(A, n : Nat) : Type
 mut.end(~A) : Mutter(A, zero)
   (a, f) => f(a)
 
-mut.lft(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
+mut.lft(~A, ~n : -Nat, g : Mutter(A, n))
+: Mutter(A, succ(n))
   (a, f) => get [x,y] = a; [g(x,f),y]
 
-mut.rgt(~A, ~n : -Nat, g : Mutter(A, n)) : Mutter(A, succ(n))
+mut.rgt(~A, ~n : -Nat, g : Mutter(A, n)) 
+: Mutter(A, succ(n))
   (a, f) => get [x,y] = a; [x,g(y,f)]
 
-mutter#(~A : Type, path : IBits) : !Mutter(A, $ibits_to_nat(path))
+mutter#(~A : Type, path : IBits)
+: !Mutter(A, $ibits_to_nat(path))
   let moti = (path) => Mutter(A, $ibits_to_nat(path))
   let ibe  = mut.end(~A)
   let ib0  = (~bs) => mut.lft(~A, ~$ibits_to_nat(bs))
   let ib1  = (~bs) => mut.rgt(~A, ~$ibits_to_nat(bs))
   use(path)(~moti, #ibe, #ib0, #ib1)
 
-path_to_mutter(~A, ~len : -Nat, path : Path(len)) : Mutter(A, len)
+path_to_mutter(~A, ~len : -Nat, path : Path(len))
+: Mutter(A, len)
   case path
   | pe => mut.end(~A)
-  | pl => mut.lft(~A, ~path.len, path_to_mutter(~A, ~path.len, path.pred))
-  | pr => mut.rgt(~A, ~path.len, path_to_mutter(~A, ~path.len, path.pred))
+  | pl => let p = path_to_mutter(~A, ~path.len, path.pred)
+      mut.lft(~A, ~path.len, p)
+  | pr => let p = path_to_mutter(~A, ~path.len, path.pred)
+      mut.rgt(~A, ~path.len, p)
   : Mutter(A, path.len)
 
 // :::::::::::::
@@ -78,29 +94,35 @@ path_to_mutter(~A, ~len : -Nat, path : Path(len)) : Mutter(A, len)
 
 // Reads a value, replaces it and returns a function of it and the array
 Querier(A, n : Nat) : Type
-  (arr : Array(A, n), query : A -> [:A, A]) -> [: Array(A, n), A]
+  Array(A, n) -> (A -> [:A, A]) -> [: Array(A, n), A]
 
 query.end(~A) : Querier(A, zero)
   (a, q) => q(a)
 
-query.lft(~A, ~n : -Nat, r : Querier(A, n)) : Querier(A, succ(n))
+query.lft(~A, ~n : -Nat, r : Querier(A, n))
+: Querier(A, succ(n))
   (a, q) => get [x,y] = a; get [x,k] = r(x,q); [[x,y],k]
 
-query.rgt(~A, ~n : -Nat, r : Querier(A, n)) : Querier(A, succ(n))
+query.rgt(~A, ~n : -Nat, r : Querier(A, n)) 
+: Querier(A, succ(n))
   (a, q) => get [x,y] = a; get [y,k] = r(y,q); [[x,y],k]
 
-querier#(~A : Type, path : IBits) : !Querier(A, $ibits_to_nat(path))
+querier#(~A : Type, path : IBits)
+: !Querier(A, $ibits_to_nat(path))
   let moti = (path) => Querier(A, $ibits_to_nat(path))
   let ibe  = query.end(~A)
   let ib0  = (~bs) => query.lft(~A, ~$ibits_to_nat(bs))
   let ib1  = (~bs) => query.rgt(~A, ~$ibits_to_nat(bs))
   use(path)(~moti, #ibe, #ib0, #ib1)
 
-path_to_querier(~A, ~len : -Nat, path : Path(len)) : Querier(A, len)
+path_to_querier(~A, ~len : -Nat, path : Path(len)) 
+: Querier(A, len)
   case path
   | pe => query.end(~A)
-  | pl => query.lft(~A, ~path.len, path_to_querier(~A, ~path.len, path.pred))
-  | pr => query.rgt(~A, ~path.len, path_to_querier(~A, ~path.len, path.pred))
+  | pl => let p = path_to_querier(~A, ~path.len, path.pred)
+      query.lft(~A, ~path.len, p)
+  | pr => let p = path_to_querier(~A, ~path.len, path.pred)
+      query.rgt(~A, ~path.len, p)
   : Querier(A, path.len)
 
 // :::::::::::::::
@@ -108,18 +130,20 @@ path_to_querier(~A, ~len : -Nat, path : Path(len)) : Querier(A, len)
 // :::::::::::::::
 
 // Applies a map/reduce operation over an array
-afold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A)
+fold#(t : IBin, ~A : Type, id : !A -> A, fn : ! A -> A -> A)
 : !(Array(A, $ibin_to_nat(t)) -> A)
   dup id = id
   dup fn = fn
   let imoti = (t) => Array(A, $ibin_to_nat(t)) -> A
   let ileaf = (n) => id(n)
-  let inode = (~k, a, b, arr) => get [lft, rgt] = arr; fn(a(lft), b(rgt))
+  let inode = (~k, a, b, arr) => get [lft, rgt] = arr
+    fn(a(lft), b(rgt))
   use(t)(~imoti, #ileaf, #inode)
 
 // Creates a range from 0 to 2^depth(t)
-arange#(t : IBin) : !Array(Number, $ibin_to_nat(t))
-  let imoti = (t) => (n : Number) -> Array(Number, $ibin_to_nat(t)) 
+range#(t : IBin) : !Array(Number, $ibin_to_nat(t))
+  let imoti = (t) => 
+    (n : Number) -> Array(Number, $ibin_to_nat(t))
   let ileaf = (n) => n
   let inode = (~k, a, b, n) => [
     a(n .*. 2),
@@ -129,16 +153,18 @@ arange#(t : IBin) : !Array(Number, $ibin_to_nat(t))
   # start(0)
 
 // Allocates an array with 2^depth(t) identical elements
-alloc#(t : IBin, ~A : Type, value : !A) : !Array(A, $ibin_to_nat(t))
+alloc#(t : IBin, ~A : Type, value : !A)
+: !Array(A, $ibin_to_nat(t))
   dup value = value
-  let imoti = (t) => Array(A, $ibin_to_nat(t)) 
+  let imoti = (t) => Array(A, $ibin_to_nat(t))
   let ileaf = value
-  let inode = (~k, a, b) => [a, b] :: Array(A, $ibin_to_nat(inode(k)))
+  let inode = (~k, a, b) =>
+    [a, b] :: Array(A, $ibin_to_nat(inode(k)))
   use(t)(~imoti, #ileaf, #inode)
 
 // Sums the elements of an array
-asum#(t : IBin) : !Array(Number, $ibin_to_nat(t)) -> Number
-  afold#(t, ~Number, #(x) => x, #.+.)
+sum#(t : IBin) : !Array(Number, $ibin_to_nat(t)) -> Number
+  fold#(t, ~Number, #(x) => x, #.+.)
 
 // :::::::::::
 // :: Tests ::
@@ -147,12 +173,12 @@ asum#(t : IBin) : !Array(Number, $ibin_to_nat(t)) -> Number
 // Summing 256 elements requires 2387 rewrites 
 array.ex0
   dup arr = alloc#(t8, ~Number, #1) // creates range from 0 til 256
-  dup sum = asum#(t8) // creates summing function
+  dup sum = sum#(t8) // creates summing function
 # sum(arr)
 
 // Query uses ~185 rewrites per new index, ~41 rewrites per reused index
 array.ex1
-  dup arr  = arange#(t8) // creates range from 0 til 256
+  dup arr  = range#(t8) // creates range from 0 til 256
   dup qry0 = querier#(~Number, 00000000B) // querier for index 0
   dup qry1 = querier#(~Number, 00000001B) // querier for index 1
   dup qry2 = querier#(~Number, 00000010B) // querier for index 2

@@ -1,26 +1,26 @@
-/* And.fm defines the logical conjunction or product type
- *
- * A value (proof) of type `And(A,B)` contains *both*
- * - a value (proof) of the first type, `A`, *and*...
- * - a value (proof) of the second type, `B`
- */
+// And.fm defines the logical conjunction or product type
+//
+// A value (proof) of type `And(A,B)` contains *both*
+// - a value (proof) of the first type, `A`, *and*...
+// - a value (proof) of the second type, `B`
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T And<A, B>
 | and(lft : A, rgt : B)
 
-// Accessors
-// ---------
+// :::::::::::::::
+// :: Accessors ::
+// :::::::::::::::
 
-and_lft(~A, ~B, and : And(A, B)) : A
+lft(~A, ~B, and : And(A, B)) : A
   case and
   | and => and.lft
   : A
 
-and_rgt(~A, ~B, and : And(A, B)) : B
+rgt(~A, ~B, and : And(A, B)) : B
   case and
   | and => and.rgt
   : B

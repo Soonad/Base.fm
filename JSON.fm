@@ -1,5 +1,5 @@
-/* JSON.fm defines a JavaScript Object Notation type
- */
+// JSON.fm defines a JavaScript Object Notation type
+//
 
 import List
 import String

@@ -3,18 +3,18 @@
 
 import Bool
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T Maybe<A>
 | none
 | some(value : A)
 
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Operations                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 maybe(~A, ~B, b : B, f : A -> B, ma : Maybe(A)) : B
   case ma
@@ -37,27 +37,26 @@ is_none(~A, ma : Maybe(A)) : Bool
 from_Maybe(~A, x : A, ma : Maybe(A)) : A
   maybe(~A, ~A, x, (x) => x, ma)
 
-maybe.map(~A, ~B, f : A -> B, ma : Maybe(A)) : Maybe(B)
+Maybe.map(~A, ~B, f : A -> B, ma : Maybe(A)) : Maybe(B)
   case ma
   | none => none(~B)
   | some => some(~B,f(ma.value))
   : Maybe(B)
 
-maybe.ap(~A, ~B, mf : Maybe(A -> B), ma : Maybe(A)) : Maybe(B)
+Maybe.ap(~A, ~B, mf : Maybe(A -> B), ma : Maybe(A)) : Maybe(B)
   case mf
   | none => none(~B)
-  | some => maybe.map(~A,~B, mf.value, ma)
+  | some => Maybe.map(~A,~B, mf.value, ma)
   : Maybe(B)
 
-maybe.pure(~A): A -> Maybe(A)
+Maybe.pure(~A): A -> Maybe(A)
   some(~A)
 
-maybe.bind(~A, ~B, f : A -> Maybe(B), ma : Maybe(A)) : Maybe(B)
+Maybe.bind(~A, ~B, f : A -> Maybe(B), ma : Maybe(A)) : Maybe(B)
   case ma
   | none => none(~B)
   | some => f(ma.value)
   : Maybe(B)
-
 
 
 

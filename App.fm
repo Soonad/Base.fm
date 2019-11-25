@@ -10,8 +10,15 @@ Prop : Type
 T Doc
 | txt(value : String)
 | num(value : Number)
-| img(size : [:Number, Number], data : [:Number, Number] -> Number)
-| box(tag : String, props : List(Prop), children : List(Doc))
+| img(
+    size : [:Number, Number],
+    data : [:Number, Number] -> Number
+  )
+| box(
+    tag : String,
+    props : List(Prop),
+    children : List(Doc)
+  )
 
 // An event
 T Event

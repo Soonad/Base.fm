@@ -1,14 +1,13 @@
-/* Or.fm defines the logical disjunction or sum type
- *
- * A value (proof) of type `Or(A,B)` contains *either*:
- * - a value (proof) of the first type, `A`, *or*...
- * - a value (proof) of the second type, `B`
- */
+// Or.fm defines the logical disjunction or sum type
+//
+// A value (proof) of type `Or(A,B)` contains *either*:
+// - a value (proof) of the first type, `A`, *or*...
+// - a value (proof) of the second type, `B`
+//
 
-
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// ::                     Definition                      ::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 T Or<A, B>
 | lft(value : A)

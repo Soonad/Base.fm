@@ -22,13 +22,20 @@ demo_app : App(DemoAppState)
 
       box("div", <Prop>{"border": "1px solid black"}, <Doc>[
         // Title
-        box("h2", <Prop>{}, <Doc>[txt("Formality Demo App")]),
+        box("h2",
+          <Prop>{},
+          <Doc>[txt("Formality Demo App")]
+        ),
 
         // Mouse position
         box("h3", <Prop>{}, <Doc>[txt("Mouse position:")]),
         box("ul", <Prop>{}, <Doc>[
-          box("li", <Prop>{}, <Doc>[txt("x:"), num(state.mousex)]),
-          box("li", <Prop>{}, <Doc>[txt("y:"), num(state.mousey)])
+          box("li", <Prop>{},
+              <Doc>[txt("x:"), num(state.mousex)]
+             ),
+          box("li", <Prop>{}, 
+              <Doc>[txt("y:"), num(state.mousey)]
+             )
         ]),
 
         // Click count
