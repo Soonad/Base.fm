@@ -64,6 +64,15 @@ add(n : Nat, m : Nat) : Nat
     : Nat
   : Nat
 
+// Subtraction
+sub(n : Nat, m : Nat) : Nat
+  case m
+  + n : Nat
+  | zero => n
+  | succ => case n
+    | zero => zero
+    | succ => sub(n.pred, m.pred)
+
 // Doubles
 double(n : Nat) : Nat
   case n

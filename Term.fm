@@ -1,0 +1,78 @@
+import Nat
+import String
+
+T Term
+| var(indx : Nat)
+| lam(body : Term -> Term)
+| app(func : Term, argm : Term)
+
+show_nat.go(n : Nat) : (x : String) -> String
+  case n
+  | zero => (x) => cons(_ 'z', x)
+  | succ => (x) => cons(_ 's', show_nat.go(n.pred, x))
+  : String -> String
+
+show_nat(n : Nat) : String
+  show_nat.go(n, nil(_))
+
+show.go(term : Term, dep : Nat) : String -> String
+  case term
+  + dep : Nat
+  | var =>
+    show_nat.go(term.indx)
+  | lam => 
+    get [dep.fst, dep.snd] = copy_nat(dep)
+    (x) =>
+      cons(_ 'λ',
+      show.go(term.body(var(dep.fst)), succ(dep.snd),
+        x))
+  | app => 
+    get [dep.fst, dep.snd] = copy_nat(dep)
+    (x) =>
+      cons(_ '(',
+      show.go(term.func, dep.fst,
+      cons(_ ' ',
+      show.go(term.argm, dep.snd,
+      cons(_ ')',
+        x)))))
+  : String -> String
+
+show(term : Term) : String
+  show.go(term, zero, nil(_))
+
+reduce(term : Term) : Term
+  case term
+  | var => var(term.indx)
+  | lam => lam(term.body)
+  | app => case reduce(term.func) as fn
+    + reduce : Term -> Term
+    + term.argm : Term
+    | var => app(var(fn.indx), reduce(term.argm))
+    | lam => reduce(fn.body(term.argm))
+    | app => app(app(fn.func, fn.argm), reduce(term.argm))
+
+quote.go(term : Term, dep : Nat) : -Term
+  % case reduce(term) as term
+  | var => var(sub(dep, succ(term.indx)))
+  | lam => lam((x) => +quote.go(term.body(var(dep)), succ(dep)))
+  | app => app(+quote.go(term.func, dep), +quote.go(term.argm, dep))
+
+quote(term : Term) : -Term
+  quote.go(term, zero)
+
+t_succ : Term
+  lam((n) => lam((s) => lam((z) => app(s, n))))
+
+t_zero : Term
+  lam((s) => lam((z) => z))
+
+t_n3 : Term
+  app(t_succ, app(t_succ, app(t_succ, t_zero)))
+
+t_double : Term
+  lam((n)=>
+    let case_succ = lam((pred) => app(t_succ, app(t_succ, app(t_double, pred))))
+    let case_zero = t_zero
+    app(app(n, case_succ), case_zero))
+
+term.test %print(show(quote(app(t_double, t_n3))))
