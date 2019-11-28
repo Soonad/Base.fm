@@ -177,7 +177,7 @@ foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
   dup f = f
   (use(n))(
     ~(x) => B -> List(A) -> B,
-    #(b,z) => b,
+    # (b,z) => b,
     # (~n,rec,b,xs) =>
      case xs
      + b : B
@@ -185,32 +185,6 @@ foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
      | cons => rec(f(b,xs.head),xs.tail)
      : B
   )
-
-// fold boolean And
-foldAnd(~A,~B, xs : List(Bool)) : Bool
-  case xs
-  | nil  => true
-  | cons => Bool/and(xs.head, foldAnd(~A,~B,xs.tail))
-  : Bool
-
-// fold boolean Or
-foldOr(~A,~B, xs : List(Bool)) : Bool
-  case xs
-  | nil  => false
-  | cons => Bool/or(xs.head, foldOr(~A,~B,xs.tail))
-  : Bool
-
-foldSum(~A,~B, xs : List(Nat)) : Nat
-  case xs
-  | nil  => zero
-  | cons => Nat/add(xs.head, foldSum(~A,~B,xs.tail))
-  : Nat
-
-foldProduct(~A,~B, xs : List(Nat)) : Nat
-  case xs
-  | nil  => zero
-  | cons => Nat/mul(xs.head, foldProduct(~A,~B,xs.tail))
-  : Nat
 
 // ========================================================
 // =                   Infinite Lists                     =
@@ -232,9 +206,6 @@ replicate(n : INat, ~A, x : !A) : ! List(A)
     # nil(~A),
     # (~n,xs) => cons(~A,x,xs)
   )
-
-
-
 
 //// :::::::::::::::::::::::
 //// :: Fusible functions ::
