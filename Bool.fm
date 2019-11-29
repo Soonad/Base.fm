@@ -19,7 +19,7 @@ T Bool
 // Since bool is a finite datatype, it can be copied freely
 // this function will be implicitly auto-generated in a
 // future version of Formality
-copy(b : Bool) : [:Bool, Bool]
+copy_bool(b : Bool) : [:Bool, Bool]
   case b
   | true  => [true, true]
   | false => [false, false]
