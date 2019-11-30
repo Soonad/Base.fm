@@ -20,24 +20,24 @@ demo_app : App(DemoAppState)
       cpy state.mousex = state.mousex
       cpy state.mousey = state.mousey
 
-      box("div", <Prop>{"border": "1px solid black"}, <Doc>[
+      box("div", <>{"border": "1px solid black"}, <>[
         // Title
-        box("h2", <Prop>{}, <Doc>[txt("Formality Demo App")]),
+        box("h2", <>{}, <>[txt("Formality Demo App")]),
 
         // Mouse position
-        box("h3", <Prop>{}, <Doc>[txt("Mouse position:")]),
-        box("ul", <Prop>{}, <Doc>[
-          box("li", <Prop>{}, <Doc>[txt("x:"), num(state.mousex)]),
-          box("li", <Prop>{}, <Doc>[txt("y:"), num(state.mousey)])
+        box("h3", <>{}, <>[txt("Mouse position:")]),
+        box("ul", <>{}, <>[
+          box("li", <>{}, <>[txt("x:"), num(state.mousex)]),
+          box("li", <>{}, <>[txt("y:"), num(state.mousey)])
         ]),
 
         // Click count
-        box("h3", <Prop>{}, <Doc>[txt("Mouse clicks:")]),
-        box("div", <Prop>{}, <Doc>[num(state.clicks)]),
+        box("h3", <>{}, <>[txt("Mouse clicks:")]),
+        box("div", <>{}, <>[num(state.clicks)]),
 
         // Last key
-        box("h3", <Prop>{}, <Doc>[txt("Last key press:")]),
-        box("div", <Prop>{}, <Doc>[num(state.lastkey)]),
+        box("h3", <>{}, <>[txt("Last key press:")]),
+        box("div", <>{}, <>[num(state.lastkey)]),
 
         // An image
         img([64, 64], (pos) => 
@@ -51,7 +51,6 @@ demo_app : App(DemoAppState)
           let c = c .|. r
           c),
       ])
-    : Doc
 
   // Application interaction
   let update = (event, state) =>
@@ -64,7 +63,6 @@ demo_app : App(DemoAppState)
         state.mousey,
         state.clicks .+. 1,
         state.lastkey)
-      : DemoAppState
     | mousemove =>
       case state
       | demoappstate => demoappstate(
@@ -72,7 +70,6 @@ demo_app : App(DemoAppState)
         event.y,
         state.clicks,
         state.lastkey)
-      : DemoAppState
     | keypress => 
       case state
       | demoappstate => demoappstate(
@@ -80,10 +77,8 @@ demo_app : App(DemoAppState)
         state.mousey,
         state.clicks,
         event.key)
-      : DemoAppState
     | keydown => state
     | keyup => state
-    : DemoAppState
 
   // Builds the application
-  app(~DemoAppState, state, render, update)
+  app(DemoAppState; state, render, update)

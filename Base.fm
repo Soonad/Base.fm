@@ -1,4 +1,6 @@
 import And
+import App
+import DemoApp
 import Bits
 import Bool
 import Empty

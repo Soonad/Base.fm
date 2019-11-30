@@ -1,4 +1,3 @@
-import Array
 import JSON
 import Nat
 import Unit
@@ -30,19 +29,19 @@ T App<A>
 )
 
 // Gets the state
-get_state(~A, app : App(A)) : A
+get_state(A; app : App(A)) : A
   case app
   | app => app.state
   : A
 
 // Renders the state
-get_render(~A, app : App(A)) : A -> Doc
+get_render(A; app : App(A)) : A -> Doc
   case app
   | app => app.render
   : A -> Doc
 
 // Updates the state
-get_update(~A, app : App(A)) : Event -> A -> A
+get_update(A; app : App(A)) : Event -> A -> A
   case app
   | app => app.update
   : Event -> A -> A
