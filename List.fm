@@ -1,304 +1,113 @@
-/* List.fm defines a cons-list type
- */
+// List.fm
+// =======
+// 
+// Linked lists.
 
 import Equal
+import Maybe
 import Nat
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T List<A>
 | nil
 | cons(head : A, tail : List(A))
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
+// Operations
+// ----------
 
-head(~A, x : A, xs : List(A)) : A
+head(A; x : A, xs : List(A)) : A
   case xs
   | nil  => x
   | cons => xs.head
-  : A
 
-tail(~A, xs : List(A)) : List(A)
+tail(A; xs : List(A)) : List(A)
   case xs
-  | nil  => nil(~A)
+  | nil  => nil(_)
   | cons => xs.tail
-  : List(A)
 
-take(~A, x : A, xs : List(A)) : [x : A, List(A)]
+take(A; x : A, xs : List(A)) : [x : A, List(A)]
   case xs
-  | nil  => [x, nil(~A)]
+  | nil  => [x, nil(_)]
   | cons => [xs.head, xs.tail]
   : [x : A, List(A)]
 
-// Returns the same list
-sames(~A, xs : List(A)) : List(A)
+at(A; n : Nat, xs : List(A)) : Maybe(A)
   case xs
-  | nil  => nil(~A)
-  | cons => cons(~A, xs.head, sames(~A, xs.tail))
-  : List(A)
+  + n : Nat
+  | nil  => none(_)
+  | cons => case n
+    | zero => some(_ xs.head)
+    | succ => at(_ n.pred, xs.tail)
+
+// Returns the same list
+sames(A; xs : List(A)) : List(A)
+  case xs
+  | nil  => nil(_)
+  | cons => cons(_ xs.head, sames(_ xs.tail))
 
 // Creates a list with `N` ascending words starting from `idx` 
 range(len : Nat, n : Number) : List(Number)
   case len
-  | zero => nil(~Number)
-  | succ => cons(~Number, n, range(len.pred, n .+. 1))
-  : List(Number)
+  | zero => nil(_)
+  | succ => cons(_ n, range(len.pred, n .+. 1))
 
 // Sums every word in a list
 sum(xs : List(Number)) : Number
   case xs
   | nil  => 0
   | cons => xs.head .+. sum(xs.tail)
-  : Number
 
 // Applies a function to every element of a list
-maply(~A, ~B, fs : List(A -> B), xs : List(A)) : List(B)
+maply(A; B; fs : List(A -> B), xs : List(A)) : List(B)
   case fs
-  | nil  => nil(~B)
+  | nil  => nil(_)
   | cons => case xs
-    | nil  => nil(~B)
-    | cons => cons(~B, fs.head(xs.head), maply(~A, ~B, fs.tail, xs.tail))
-    : List(B)
-  : List(B)
+    | nil  => nil(_)
+    | cons => cons(_
+      fs.head(xs.head),
+      maply(A; B; fs.tail, xs.tail))
 
 // Concatenates two lists
-concat(~A, xs : List(A), ys : List(A)) : List(A)
+concat(A; xs : List(A), ys : List(A)) : List(A)
   case xs
   + ys : List(A)
   | nil  => ys
-  | cons => cons(~A, xs.head, concat(~A, xs.tail, ys))
-  : List(A)
+  | cons => cons(_ xs.head, concat(_ xs.tail, ys))
 
 // Helper for reverse
-reverse.go(~A, xs : List(A), rs : List(A)) : List(A)
+reverse.go(A; xs : List(A), rs : List(A)) : List(A)
   case xs
   + rs : List(A)
   | nil  => rs
-  | cons => reverse.go(~A, xs.tail, cons(~A, xs.head, rs))
-  : List(A)
+  | cons => reverse.go(_ xs.tail, cons(A; xs.head, rs))
 
 // Reverses a list
-reverse(~A, list : List(A)) : List(A)
-  reverse.go(~A, list, nil(~A))
+reverse(A; list : List(A)) : List(A)
+  reverse.go(A; list, nil(_))
 
 // Length of a list
-length(~A, list : List(A)) : Nat
+length(A; list : List(A)) : Nat
   case list
   | nil  => zero
-  | cons => succ(length(~A, list.tail))
-  : Nat
+  | cons => succ(length(A; list.tail))
 
 // O(1) concatenator
-Concatenator(A : Type) : Type
+Concat(A : Type) : Type
   (x : List(A)) -> List(A)
 
 // Concatenates a O(1) concatenator
-concatenate(~A, xs : Concatenator(A), ys : Concatenator(A)) : Concatenator(A)
+concatenate(A; xs : Concat(A), ys : Concat(A)) : Concat(A)
   (x) => xs(ys(x))
 
 // Converts a list to a O(1) concatenator
-list_to_concatenator(~A : Type, xs : List(A)) : Concatenator(A)
+list_to_concat(A; xs : List(A)) : Concat(A)
   (x) => case xs
     + x : List(A)
     | nil  => x
-    | cons => cons(~A, xs.head, list_to_concatenator(~A, xs.tail, x))
-    : List(A)
+    | cons => cons(_ xs.head, list_to_concat(_ xs.tail, x))
 
 // Converts a O(1) concatenator to a list
-concatenator_to_list(~A, xs : Concatenator(A)) : List(A)
-  xs(nil(~A))
-
-// ========================================================
-// =                    Maps and Folds                    =
-// ========================================================
-
-// Boxed map
-map(~A, ~B, f : !A -> B) : ! List(A) -> List(B)
-  dup f = f
-  dup r = map(~A, ~B, #f)
-  # (xs) => case xs
-    | nil  => nil(~B)
-    | cons => cons(~B, f(xs.head), r(xs.tail))
-    : List(B)
-
-// Inductive map
-map.ind(n : INat, ~A, ~B, f : !A -> B) : ! List(A) -> List(B)
-  dup f = f
-  (use(n))(
-    ~(x) => List(A) -> List(B),
-    #(z) => nil(~B),
-    # (~n,rec,xs) =>
-     case xs
-     | nil  => nil(~B)
-     | cons => cons(~B,f(xs.head), rec(xs.tail))
-     : List(B)
-  )
-
-// Right fold
-foldr(~A,~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
-  dup f = f
-  dup b = b
-  dup rec = foldr(~A,~B,#f,#b)
-  # (xs) => case xs
-    | nil  => b
-    | cons => f(xs.head, rec(xs.tail))
-    : B
-
-// Inductive right fold
-foldr.ind(n : INat, ~A, ~B, f : !A -> B -> B, b : !B) : ! List(A) -> B
-  dup f = f
-  dup b = b
-  (use(n))(
-    ~(x) => List(A) -> B,
-    #(z) => b,
-    # (~n,rec,xs) =>
-     case xs
-     | nil  => b
-     | cons => f(xs.head, rec(xs.tail))
-     : B
-  )
-
-// Boxed left-fold
-foldl(~A,~B, f : !B -> A -> B) : ! B -> List(A) -> B
-  dup f = f
-  dup rec = foldl(~A,~B,#f)
-  # (b,xs) => case xs
-    + b : B
-    | nil  => b
-    | cons => rec(f(b,xs.head),xs.tail)
-    : B
-
-// Inductive left-fold
-foldl.ind(n : INat, ~A, ~B, f : !B -> A -> B) : ! B -> List(A) -> B
-  dup f = f
-  (use(n))(
-    ~(x) => B -> List(A) -> B,
-    # (b,z) => b,
-    # (~n,rec,b,xs) =>
-     case xs
-     + b : B
-     | nil  => b
-     | cons => rec(f(b,xs.head),xs.tail)
-     : B
-  )
-
-// ========================================================
-// =                   Infinite Lists                     =
-// ========================================================
-
-repeat(~A, x : !A) : List(!A)
-  dup x = x
-  cons(~!A, #x, repeat(~A, #x))
-
-iterate(~A, f : !A -> A, x : !A) : List(!A)
-  dup f = f
-  dup x = x
-  cons(~!A, #x, iterate(~A,#f,#f(x)))
-
-replicate(n : INat, ~A, x : !A) : ! List(A)
-  dup x = x
-  (use(n))(
-    ~(y) => List(A),
-    # nil(~A),
-    # (~n,xs) => cons(~A,x,xs)
-  )
-
-//// :::::::::::::::::::::::
-//// :: Fusible functions ::
-//// :::::::::::::::::::::::
-
-//#same_f*n : !{~A : Type, halt list : List(A)} -> List(A)
-  //new(~List(A)){~P, cons, nil}
-  //case/List list
-  //| cons => cons(list.head, same_f(~A, list.tail))
-  //| nil  => nil
-  //: P(($same_f.step)(~n, same_f, ~A, list))
-
-//#map_f*n : {~A : Type, ~B : Type, f : !A -> B} -> ! {list : List(A)} -> List(B)
-  //new(~List(B)){~P, cons, nil}
-  //case/List list
-  //| cons => cons(f(list.head), map_f(list.tail))
-  //| nil  => nil
-  //: P(($map_f.step(~A, ~B, #f))(~n, map_f, list))
-//halt:
-  //nil(~B)
-
-//#zipp_f*n : !{~A : Type, ~B : Type, func : List(A -> B), list : List(A)} -> List(B)
-  //new(~List(B)){~P, consf, nilf}
-  //case/List func
-  //+ consf : {head : B, tail : List(B)} -> P(cons(~B, head, tail))
-  //+ nilf  : P(nil(~B))
-  //| cons =>
-    //case/List list
-    //| cons => consf(func.head(list.head), zipp_f(~A, ~B, func.tail, list.tail))
-    //| nil  => nilf
-    //: P(($zipp_f.step)(~n, zipp_f, ~A, ~B, cons(~(A -> B), func.head, func.tail), list))
-  //| nil =>
-    //nilf
-  //: P(($zipp_f.step)(~n, zipp_f, ~A, ~B, func, list))
-//halt:
-  //nil(~B)
-
-//// Examples
-
-//// From 2.7m to 3.8k rewrites by using `same_f` to build the list
-//same_f.example
-  //let list = <Num>[1, 2, 3, 4, 5, 6, 7]
-  //dup same   = same*256
-  //dup same_f = same_f*256
-  //dup list = rec(*10000, ~List(Num), #same_f(~Num), #list)
-  //# same(~Num, list)
-
-//// From 3.3m rewrites to 229k rewrites using map_f
-//map_f.example
-  //let list = <Num>[1, 2, 3, 4, 5, 6, 7, 8]
-  //dup same = same*256
-  //dup map  = map_f*256(~Num, ~Num, #{x} x .+. 1)
-  //dup list = rec(*10000, ~List(Num), #map, #list)
-  //# same(~Num, list)
-
-//// ::::::::::::::
-//// :: Theorems ::
-//// ::::::::::::::
-
-////#map.composition*n :
-  ////!{~A : Type
-  ////, ~B : Type
-  ////, ~C : Type
-  ////, f  : !{:B} -> C
-  ////, g  : !{:A} -> B
-  ////, xs : List(A)
-  ////} -> <map*n(~B, ~C, f)>(<map*n(~A, ~B, g)>(xs)) == <map*n(~A, ~C, #{x}<f>(<g>(x)))>(xs)
-  ////case/List xs
-  ////| cons => 
-    ////cong(~{k} cons(~C, <f>(<g>(xs.head)), k), map.composition(~A, ~B, ~C, f, g, xs.tail))
-  ////| nil  => refl(~nil)
-  ////: <map(step(n), ~B, ~C, f)>(<map(step(n), ~A, ~B, g)>(xs)) == <map(step(n), ~A, ~C, #{x}<f>(<g>(x)))>(xs)
-////halt:
-  ////refl(~nil)
-
-//////!concat.associative*n : 
-//////  !{ ~T : Type
-//////   , xs : List(T)
-//////   , ys : List(T)
-//////   , zs : List(T)
-//////   } -> <concat*n>(~T,xs,<concat*n>(~T,ys,zs)) ==
-//////        <concat*n>(~T,<concat*n>(~T,xs,ys),zs)
-//////  case/List xs
-//////  | cons =>
-//////    cong(
-//////        ~List(C)
-//////      , ~List(C)
-//////      , ~<concat(n, ~T)>(tail, <concat(n, ~T)>(ys, zs))
-//////      , ~<concat(n, ~T)>(<concat(n, ~T)>(tail, ys),zs)
-//////      , ~{t} cons(~T, head, t)
-//////      , ~concat.associative(~T, tail, ys, zs)
-//////      )
-//////  | nil => refl(~nil)
-//////  : <concat(step(n))>(~T,self,concat(step(n),~T,ys,zs)) ==
-//////    <concat(step(n))>(~T,concat(step(n), ~T,self,ys), zs)
-//////  * refl(~xs)
+concat_to_list(A; xs : Concat(A)) : List(A)
+  xs(nil(_))

@@ -1,34 +1,34 @@
 // Inductive bits
 IBits : Type
   ${self}
-  ( ~P  : IBits -> Type,
+  ( P   : IBits -> Type;
     ibe : ! P(ibe),
-    ib0 : ! (~bs : -IBits, i : P(bs)) -> P(ib0(bs)),
-    ib1 : ! (~bs : -IBits, i : P(bs)) -> P(ib1(bs))
+    ib0 : ! (bs : -IBits; i : P(bs)) -> P(ib0(bs)),
+    ib1 : ! (bs : -IBits; i : P(bs)) -> P(ib1(bs))
   ) -> ! P(self)
 
 // IBits end
 ibe : IBits
-  new(~IBits) (~P, ibe, ib0, ib1) =>
+  new(IBits) (P; ibe, ib0, ib1) =>
   dup ibe = ibe
   dup ib0 = ib0
   dup ib1 = ib1
   # ibe
 
 // IBits zero
-ib0(bs : IBits) : IBits
-  new(~IBits) (~P, ibe, ib0, ib1) =>
+ib0(bs: IBits) : IBits
+  new(IBits) (P; ibe, ib0, ib1) =>
   dup ibe = ibe
   dup ib0 = ib0
   dup ib1 = ib1
-  dup ifn = (use(bs))(~(x) => P(x), #ibe, #ib0, #ib1)
-  # ib0(~bs, ifn)
+  dup ifn = (use(bs))((x) => P(x); #ibe, #ib0, #ib1)
+  # ib0(bs; ifn)
 
 // IBits one
-ib1(bs : IBits) : IBits
-  new(~IBits) (~P, ibe, ib0, ib1) =>
+ib1(bs: IBits) : IBits
+  new(IBits) (P; ibe, ib0, ib1) =>
   dup ibe = ibe
   dup ib0 = ib0
   dup ib1 = ib1
-  dup ifn = (use(bs))(~(x) => P(x), #ibe, #ib0, #ib1)
-  # ib1(~bs, ifn)
+  dup ifn = (use(bs))((x) => P(x); #ibe, #ib0, #ib1)
+  # ib1(bs; ifn)

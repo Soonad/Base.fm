@@ -1,49 +1,49 @@
-/* Function.fm contains a wrapper and utilities for the
- * built-in function type (->)
-*/
+// Function.fm
+// ===========
+// 
+// Wrapper and utilities for the built-in function type.
+
 import Equal
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
-// A function wrapper
+// A dependent function
+Function(A: Type, B: A -> Type) : Type
+  (x: A) -> B(x)
 
-Fun(A,B) : Type
-  A -> B
-
-// ========================================================
-// =                Utilities/Theorems                    =
-// ========================================================
+// Operations
+// ----------
 
 // The identity function
-id(~A, x : A) : A
+id(A; x: A) : A
   x
 
 // The constant function always returns the same value
-const(~A : Type, ~B : Type, x : A, y : B) : A
+const(A; B; x: A, y: B) : A
   x
 
 // dependent composition
-comp(~A, ~B, ~C : B -> Type, g : (b : B) -> C(b), f : A -> B, x : A) : C(f(x))
-  g(f(x))
+comp(A; B; C: B -> Type)
+: (g: (b: B) -> C(b), f: A -> B, x: A) -> C(f(x))
+  (g, f, x) => g(f(x))
 
 // uncurry 2-ary function
-uncurry2(~A, ~B, ~C, f : A -> B -> C, p : [:A, B]) : C
+uncurry(A; B; C; f: A -> B -> C, p: [:A, B]) : C
   get [a, b] = p
   f(a,b)
 
-curry2(~A, ~B, ~C, f : [:A, B] -> C, x : A, y : B) : C
+curry(A; B; C; f: [:A, B] -> C, x: A, y: B) : C
   f([x,y])
 
 // Flip the term arguments
-flip(~A, ~B, ~C, f : A -> B -> C, y : B, x : A) : C
-  f(x,y)
+flip(A; B; C; f: A -> B -> C, y: B, x: A) : C
+  f(x, y)
 
 // Applies a function to an argument
-apply(~A, ~B, f : A -> B, x : A) : B
+apply(A; B; f: A -> B, x: A) : B
   f(x)
 
 // Pipes an argument to a function
-pipe(~A, ~B, x : A, f : A -> B) : B
+pipe(A; B; x: A, f: A -> B) : B
   f(x)

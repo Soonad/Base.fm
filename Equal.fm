@@ -1,62 +1,51 @@
-/* Equal.fm defines the propositional equality type
- *
- * A value (proof) of type `Equal(A,a,b)` contains the
- * reflexive constructor that `a` equals itself, which
- * implies `b` is equal to `a` iff `b` reduces to `a`
- */
+// Equal.fm
+// ========
+//
+// The propositional equality type. A value (proof) of type
+// `Equal(A,a,b)` contains the reflexive constructor that
+// `a` equals itself, which implies `b` is equal to `a` iff
+// `b` reduces to `a`. Formality expands the `a == b` syntax
+// to `Equal(?, a, b)`.
 
-
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T Equal<A, a : -A> (b : -A)
 | refl : Equal(A, a, a)
 
-// ========================================================
-// =                Utilities/Theorems                    =
-// ========================================================
+// Functions
+// ---------
 
 // Substitution: if a equals b, you can replace a with b
-rewrite(~A, ~a : -A, ~b : -A, e : Equal(A, a, b), ~P : A -> Type, x : P(a))
-: P(b)
+rewrite(A; a; b; e: a == b, P: A -> Type; x : P(a)) : P(b)
   case e
   | refl => x
   : P(e.b)
 
 // Symmetry: if a equals b, b equals a
-sym(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
-: Equal(A, b, a)
+sym(A; a; b; e: a == b) : b == a
   case e
-  | refl => refl(~A, ~a)
+  | refl => refl(_ a;)
   : Equal(A, e.b, a)
 
 // Congruence: if a equals b, f(a) equals f(b)
-cong(~A, ~B, ~a : -A, ~b : -A, ~f : -(A -> B), e : Equal(A, a, b))
-: Equal(B, (+f)(a), (+f)(b))
+cong(A; B; a; b; f: -(A -> B); e: a == b) : f(a) == f(b)
   case e
-  | refl => refl(~B, ~(+f)(a))
-  : Equal(B, (+f)(a), (+f)(e.b))
+  | refl => refl(_ f(a);)
+  : Equal(B, f(a), f(e.b))
 
 // Transitivity: if a equals b and b equals c, a equals c
-trans(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), bc : Equal(A, b, c))
-: Equal(A, a, c)
+trans(A; a; b; c; ab: a == b, bc: b == c) : a == c
   case bc
   | refl => ab
   : Equal(A, a, bc.b)
 
-trans2(~A, ~a : -A, ~b : -A, ~c : -A, ab : Equal(A, a, b), cb : Equal(A, c, b))
-: Equal(A, a, c)
-  trans(~A,~a,~b,~c,ab,sym(~A,~c,~b,cb))
-
 // Clones an equality
-same(~A, ~a : -A, ~b : -A, e : Equal(A, a, b))
-: [:Equal(A, a, b), Equal(A, a, b)]
+copy_equal(A; a; b; e: a == b) : [: a == b, a == b]
   case e
-  | refl => [refl(~A, ~a), refl(~A, ~a)]
+  | refl => [refl(_ a;), refl(_ a;)]
   : [: Equal(A, a, e.b), Equal(A, a, e.b)]
 
 // A copy of a value
-Same(A, x : A)
-: Type
-  [y : A, Equal(A, y, x)]
+Same(A, x : A) : Type
+  [y : A, y == x]

@@ -1,12 +1,20 @@
+import Maybe
 import Nat
 import String
 
 T Term
 | var(indx : Nat)
-| lam(body : Term -> Term)
+| lam(body : Term)
 | app(func : Term, argm : Term)
 
-show_nat.go(n : Nat) : (x : String) -> String
+T HOAS
+| hvar(indx : Nat)
+| hlam(body : HOAS -> HOAS)
+| happ(func : HOAS, argm : HOAS)
+
+// Stringify
+
+show_nat.go(n : Nat) : String -> String
   case n
   | zero => (x) => cons(_ 'z', x)
   | succ => (x) => cons(_ 's', show_nat.go(n.pred, x))
@@ -15,64 +23,79 @@ show_nat.go(n : Nat) : (x : String) -> String
 show_nat(n : Nat) : String
   show_nat.go(n, nil(_))
 
-show.go(term : Term, dep : Nat) : String -> String
+show_term.go(term : Term, dep : Nat) : String -> String
   case term
   + dep : Nat
   | var =>
     show_nat.go(term.indx)
-  | lam => 
+  | lam =>
     get [dep.fst, dep.snd] = copy_nat(dep)
-    (x) =>
-      cons(_ 'λ',
-      show.go(term.body(var(dep.fst)), succ(dep.snd),
-        x))
+    let lamb = cons(_ 'λ')
+    let body = show_term.go(term.body, succ(dep.snd))
+    (x) => lamb(body(x))
   | app => 
     get [dep.fst, dep.snd] = copy_nat(dep)
-    (x) =>
-      cons(_ '(',
-      show.go(term.func, dep.fst,
-      cons(_ ' ',
-      show.go(term.argm, dep.snd,
-      cons(_ ')',
-        x)))))
+    let lpar = cons(_ '(')
+    let func = show_term.go(term.func, dep.fst)
+    let spac = cons(_ ' ')
+    let argm = show_term.go(term.argm, dep.snd)
+    let rpar = cons(_ ')')
+    (x) => lpar(func(spac(argm(rpar(x)))))
   : String -> String
 
-show(term : Term) : String
-  show.go(term, zero, nil(_))
+show_term(term : Term) : String
+  show_term.go(term, zero, nil(_))
 
-reduce(term : Term) : Term
+// Reduction
+
+reduce.go(hoas : HOAS) : HOAS
+  case hoas
+  | hvar => hvar(hoas.indx)
+  | hlam => hlam(hoas.body)
+  | happ => case reduce.go(hoas.func) as fn
+    + reduce.go : HOAS -> HOAS
+    + hoas.argm : HOAS
+    | hvar => happ(hvar(fn.indx), reduce.go(hoas.argm))
+    | hlam => reduce.go(fn.body(hoas.argm))
+    | happ => happ(happ(fn.func, fn.argm), reduce.go(hoas.argm))
+
+reduce.quote(hoas : HOAS, dep : Nat) : -Term
+  % case reduce.go(hoas) as hoas
+  | hvar => var(sub(dep, succ(hoas.indx)))
+  | hlam => lam(reduce.quote(hoas.body(hvar(dep)), succ(dep)))
+  | happ => app(reduce.quote(hoas.func, dep), reduce.quote(hoas.argm, dep))
+
+reduce.unquote(term : Term, ctx : List(HOAS)) : -HOAS
   case term
-  | var => var(term.indx)
-  | lam => lam(term.body)
-  | app => case reduce(term.func) as fn
-    + reduce : Term -> Term
-    + term.argm : Term
-    | var => app(var(fn.indx), reduce(term.argm))
-    | lam => reduce(fn.body(term.argm))
-    | app => app(app(fn.func, fn.argm), reduce(term.argm))
+  | var => case at(_ term.indx, ctx) as got
+    | none => hvar(term.indx)
+    | some => got.value
+  | lam => hlam((x) => reduce.unquote(term.body, cons(_ x, ctx)))
+  | app => happ(reduce.unquote(term.func, ctx), reduce.unquote(term.argm, ctx))
 
-quote.go(term : Term, dep : Nat) : -Term
-  % case reduce(term) as term
-  | var => var(sub(dep, succ(term.indx)))
-  | lam => lam((x) => +quote.go(term.body(var(dep)), succ(dep)))
-  | app => app(+quote.go(term.func, dep), +quote.go(term.argm, dep))
+reduce(term : Term) : -Term
+  reduce.quote(reduce.unquote(term, nil(_)), zero)
 
-quote(term : Term) : -Term
-  quote.go(term, zero)
+main reduce
 
-t_succ : Term
-  lam((n) => lam((s) => lam((z) => app(s, n))))
+//t_succ : Term
+  //lam((n) => lam((s) => lam((z) => app(s, n))))
 
-t_zero : Term
-  lam((s) => lam((z) => z))
+//t_zero : Term
+  //lam((s) => lam((z) => z))
 
-t_n3 : Term
-  app(t_succ, app(t_succ, app(t_succ, t_zero)))
+//t_n3 : Term
+  //app(t_succ, app(t_succ, app(t_succ, t_zero)))
 
-t_double : Term
-  lam((n)=>
-    let case_succ = lam((pred) => app(t_succ, app(t_succ, app(t_double, pred))))
-    let case_zero = t_zero
-    app(app(n, case_succ), case_zero))
+//t_double : Term
+  //lam((n)=>
+    //let case_succ = lam((pred) => app(t_succ, app(t_succ, app(t_double, pred))))
+    //let case_zero = t_zero
+    //app(app(n, case_succ), case_zero))
 
-term.test %print(show(quote(app(t_double, t_n3))))
+//t_two : Term
+  //lam((s) => lam((z) => app(s, app(s, z))))
+
+//term.test %print(show(quote(app(t_two, t_two))))
+
+////main term.test

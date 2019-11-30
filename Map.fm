@@ -5,167 +5,159 @@ import List
 
 // A Map from Bits to values
 T Map<A>
-| mleaf
-| mnode(val : Maybe(A), lft : Map(A), rgt : Map(A))
+| empty
+| multi(val: Maybe(A), lft: Map(A), rgt: Map(A))
 
-
-mempty(~A) : Map(A)
-  mleaf(~A)
-
-msingleton(~A, x : A) : Map(A)
-  mnode(~A, some(~A,x), mleaf(~A), mleaf(~A))
-
-mfrom_list(~A, xs : List([:Bits, A])) : Map(A)
-  case xs
-  | nil  => mleaf(~A)
-  | cons => get [k,v] = xs.head
-    mset(~A,k,v,mfrom_list(~A,xs.tail))
-  : Map(A)
-
-melems(~A, m : Map(A)) : List(A)
-  case m
-  | mleaf => nil(~A)
-  | mnode => 
-    let rest = concat(~A,melems(~A, m.lft), melems(~A, m.rgt))
-    case m.val as mv
-    + rest : List(A)
-    | none => rest
-    | some => cons(~A,mv.value,rest)
-    : List(A)
-  : List(A)
+singleton_map(A; x: A) : Map(A)
+  multi(A; some(_ x), empty(_), empty(_))
 
 // Gets a value
-mget(~A, bits : Bits, map : Map(A)) : Maybe(A)
+lookup(A; bits: Bits, map: Map(A)) : Maybe(A)
   case bits
-  + map : Map(A)
-  + mget(~A) as rec : (bits : Bits, map : Map(A)) -> Maybe(A)
+  + map    : Map(A)
+  + lookup : (A; bits: Bits, map: Map(A)) -> Maybe(A)
   | be => case map
-    | mleaf => none(~A)
-    | mnode => map.val
-    : Maybe(A)
+    | empty => none(_)
+    | multi => map.val
   | b0 => case map
-    | mleaf => none(~A)
-    | mnode => rec(bits.pred, map.lft)
-    : Maybe(A)
+    | empty => none(_)
+    | multi => lookup(_ bits.pred, map.lft)
   | b1 => case map
-    | mleaf => none(~A)
-    | mnode => rec(bits.pred, map.rgt)
-    : Maybe(A)
-  : Maybe(A)
+    | empty => none(_)
+    | multi => lookup(_ bits.pred, map.rgt)
 
 // Sets a value
-mset(~A, bits : Bits, val : A, map : Map(A)) : Map(A)
+insert(A; bits: Bits, val: A, map: Map(A)) : Map(A)
   case bits
-  + val : A
-  + map : Map(A)
-  + mset(~A) as rec : Bits -> A -> Map(A) -> Map(A)
+  + val: A
+  + map: Map(A)
+  + insert: (A: Type;) -> Bits -> A -> Map(A) -> Map(A)
   | be => case map
-    + some(~A, val) as some_val : Maybe(A)
-    | mleaf => mnode(~A, some_val, mleaf(~A), mleaf(~A))
-    | mnode => mnode(~A, some_val, map.lft, map.rgt)
-    : Map(A)
+    + some(A; val) as val : Maybe(A)
+    | empty => multi(_ val, empty(_), empty(_))
+    | multi => multi(_ val, map.lft, map.rgt)
   | b0 => case map
-    + rec(bits.pred, val) as rec : Map(A) -> Map(A)
-    | mleaf => mnode(~A, none(~A), rec(mleaf(~A)), mleaf(~A))
-    | mnode => mnode(~A, map.val, rec(map.lft), map.rgt)
-    : Map(A)
+    + insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
+    | empty => multi(_ none(_), insert(empty(_)), empty(_))
+    | multi => multi(_ map.val, insert(map.lft), map.rgt)
   | b1 => case map
-    + rec(bits.pred, val) as rec : Map(A) -> Map(A)
-    | mleaf => mnode(~A, none(~A), mleaf(~A), rec(mleaf(~A)))
-    | mnode => mnode(~A, map.val, map.lft, rec(map.rgt))
-    : Map(A)
-  : Map(A)
+    + insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
+    | empty => multi(_ none(_), empty(_), insert(empty(_)))
+    | multi => multi(_ map.val, map.lft, insert(map.rgt))
 
-// Updates a value, return a function of it and the map
-mqry(~A, qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
-  let rec = mqry(~A)
+list_to_map(A; xs : List([:Bits, A])) : Map(A)
+  case xs
+  | nil  => empty(_)
+  | cons =>
+    get [k,v] = xs.head
+    insert(_ k, v, list_to_map(_ xs.tail))
+
+map_elements(A; map : Map(A)) : List(A)
+  case map
+  | empty => nil(_)
+  | multi => 
+    let lft = map_elements(_ map.lft) 
+    let rgt = map_elements(_ map.rgt)
+    let all = concat(_ lft, rgt)
+    case map.val as val
+    + all : List(A)
+    | none => all
+    | some => cons(_ val.value, all)
+
+//// Updates a value, return a function of it and the map
+query(A; qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
+  let rec = query(A;)
   case bits
   + map : Map(A)
-  + rec : (qry : A -> [:A,A], bits : Bits, map : Map(A)) -> [:Map(A), Maybe(A)]
+  + rec : (qry : A -> [:A,A], bits : Bits, map : Map(A))
+    -> [:Map(A), Maybe(A)]
   + qry : A -> [:A, A]
   | be => case map
-    | mleaf => [mleaf(~A), none(~A)]
-    | mnode =>
+    | empty =>
+      [empty(_), none(_)]
+    | multi =>
       case map.val as mval
       + map.lft : Map(A)
       + map.rgt : Map(A)
       | none => 
-        [mnode(~A, none(~A), map.lft, map.rgt), none(~A)]
+        let map = multi(_ none(_), map.lft, map.rgt)
+        let val = none(_)
+        [map, val]
       | some =>
         get [val0, val1] = qry(mval.value)
-        [mnode(~A, some(~A, val0), map.lft, map.rgt), some(~A, val1)]
+        let map = multi(_ some(_ val0), map.lft, map.rgt)
+        let val = some(_ val1)
+        [map, val]
       : [:Map(A), Maybe(A)]
     : [:Map(A), Maybe(A)]
   | b0 => case map
-    | mleaf => [mleaf(~A), none(~A)]
-    | mnode =>
+    | empty => [empty(_), none(_)]
+    | multi =>
       get [lft, val] = rec(qry, bits.pred, map.lft)
-      [mnode(~A, map.val, lft, map.rgt), val]
+      let map = multi(_ map.val, lft, map.rgt)
+      [map, val]
     : [:Map(A), Maybe(A)]
   | b1 => case map
-    | mleaf => [mleaf(~A), none(~A)]
-    | mnode => 
+    | empty => [empty(_), none(_)]
+    | multi => 
       get [rgt, val] = rec(qry, bits.pred, map.rgt)
-      [mnode(~A, map.val, map.lft, rgt), val]
+      let map = multi(_ map.val, map.lft, rgt)
+      [map, val]
     : [:Map(A), Maybe(A)]
-  : [:Map(A), Maybe(A)]
 
-
-
-// ::::::::::::::
-// :: Theorems ::
-// ::::::::::::::
+// Theorems
+// --------
 
 // Getting a stored value returns it
-Map.Fact0(A, bits : Bits, val : A, map : Map(A)) : Type
-  let lft = some(~A, val)
-  let rgt = mget(~A, bits, mset(~A, bits, val, map))
+LookupInsert(A, bits: Bits, val: A, map: Map(A)) : Type
+  let lft = some(_ val)
+  let rgt = lookup(_ bits, insert(_ bits, val, map))
   Equal(Maybe(A), lft, rgt)
 
 // Proof
-Map.fact0(~A, bits : Bits, val : A, map : Map(A))
-: Map.Fact0(A, bits, val, map)
+lookup_insert(A; bits : Bits, val : A, map : Map(A))
+: LookupInsert(A, bits, val, map)
   case bits
   + map : Map(A)
   + val : A
   | be =>
     case map
     + val : A
-    | mleaf => refl(~Maybe(A), ~some(~A, val))
-    | mnode => refl(~Maybe(A), ~some(~A, val))
-    : Map.Fact0(A, be, val, map)
+    | empty => refl(_ some(A; val);)
+    | multi => refl(_ some(A; val);)
+    : LookupInsert(A, be, val, map)
   | b0 =>
-    let rec = Map.fact0(~A, bits.pred, val)
+    let rec = lookup_insert(A; bits.pred, val)
     case map
-    + rec : (map : Map(A)) -> Map.Fact0(A, bits.pred, val, map)
-    | mleaf => rec(mleaf(~A))
-    | mnode => rec(map.lft)
-    : Map.Fact0(A, b0(bits.pred), val, map)
+    + rec : (map : Map(A))
+      -> LookupInsert(A, bits.pred, val, map)
+    | empty => rec(empty(_))
+    | multi => rec(map.lft)
+    : LookupInsert(A, b0(bits.pred), val, map)
   | b1 =>
-    let rec = Map.fact0(~A, bits.pred, val)
+    let rec = lookup_insert(A; bits.pred, val)
     case map
-    + rec : (map : Map(A)) -> Map.Fact0(A, bits.pred, val, map)
-    | mleaf => rec(mleaf(~A))
-    | mnode => rec(map.rgt)
-    : Map.Fact0(A, b1(bits.pred), val, map)
-  : Map.Fact0(A, bits, val, map)
+    + rec : (map : Map(A))
+      -> LookupInsert(A, bits.pred, val, map)
+    | empty => rec(empty(_))
+    | multi => rec(map.rgt)
+    : LookupInsert(A, b1(bits.pred), val, map)
+  : LookupInsert(A, bits, val, map)
 
-// ::::::::::::::
-// :: Examples ::
-// ::::::::::::::
+// Examples
+// --------
 
-Map.ex0 : Maybe(Number)
-  let map = mleaf(~Number)
-  let map = mset(~Number, 1111111101101110b, 1337, map)
-  mget(~Number, 1111111101101110b, map)
+map_example0 : Maybe(Number)
+  let map = empty(_)
+  let map = insert(_ 1111111101101110b, 1337, map)
+  lookup(_ 1111111101101110b, map)
 
-Map.ex1 : [:Maybe(Number), :Maybe(Number), Maybe(Number)]
+map_example1 : [:Maybe(Number), Maybe(Number)]
   let qry     = (a) => [a, a]
-  let map     = mleaf(~Number)
-  let map     = mset(~Number, 10100100b, 10, map)
-  let map     = mset(~Number, 01100010b, 20, map)
-  let map     = mset(~Number, 10111001b, 30, map)
-  get [map,a] = mqry(~Number, qry, 10100100b, map)
-  get [map,b] = mqry(~Number, qry, 01100010b, map)
-  get [map,c] = mqry(~Number, qry, 10111001b, map)
-  [a, b, c]
+  let map     = empty(_)
+  let map     = insert(_ 10100100b, 10, map)
+  let map     = insert(_ 01100010b, 20, map)
+  let map     = insert(_ 10111001b, 30, map)
+  get [map,a] = query(Number; qry, 10100100b, map)
+  get [map,b] = query(Number; qry, 01100010b, map)
+  [a, b]

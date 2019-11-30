@@ -1,17 +1,21 @@
-/* String.fm defines a string type as a list of characters
- */
+// String.fm
+// =========
+// 
+// A list of Unicode characters.
 
 import List
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 Char : Type
   Number
 
 String : Type
   List(Char)
+
+// Operations
+// ----------
 
 Output : Type
   [tag : Number, String]
@@ -21,5 +25,5 @@ print(str : String) : Output
 
 string.test : Output
   let str = "Hello, world!"
-  let str = reverse(~Char, str)
+  let str = reverse(_ str)
   print(str)

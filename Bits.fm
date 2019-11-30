@@ -1,185 +1,152 @@
-/* Bits.fm defines a bitstream or binary sequence
- */
+// Bits.fm
+// =======
+// 
+// Defines a bitstream, or binary sequence.
 
 import Equal
 import Nat
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T Bits
 | be
 | b0(pred : Bits)
 | b1(pred : Bits)
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
-
-// Bitwise
-// -------
-
-// bitwise negation
-bits.not(x : Bits) : Bits
-  case x
-  | be => be
-  | b0 => b1(bits.not(x.pred))
-  | b1 => b0(bits.not(x.pred))
-  : Bits
-
-// bitwise conjunction
-bits.and(x : Bits, y : Bits) : Bits
-  case x
-  + y : Bits
-  | be => be
-  | b0 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b0(bits.and(x.pred, y.pred))
-    | b1 => b0(bits.and(x.pred, y.pred))
-    : Bits
-  | b1 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b0(bits.and(x.pred, y.pred))
-    | b1 => b1(bits.and(x.pred, y.pred))
-    : Bits
-  : Bits
-
-// bitwise disjunction
-bits.or(x : Bits, y : Bits) : Bits
-  case x
-  + y : Bits
-  | be => be
-  | b0 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b0(bits.or(x.pred, y.pred))
-    | b1 => b1(bits.or(x.pred, y.pred))
-    : Bits
-  | b1 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b1(bits.or(x.pred, y.pred))
-    | b1 => b1(bits.or(x.pred, y.pred))
-    : Bits
-  : Bits
-
-// bitwise exclusive disjunction
-bits.xor(x : Bits, y : Bits) : Bits
-  case x
-  + y : Bits
-  | be => be
-  | b0 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b0(bits.xor(x.pred, y.pred))
-    | b1 => b1(bits.xor(x.pred, y.pred))
-    : Bits
-  | b1 => case y
-    + x.pred : Bits
-    | be => be
-    | b0 => b1(bits.xor(x.pred, y.pred))
-    | b1 => b0(bits.xor(x.pred, y.pred))
-    : Bits
-  : Bits
-
-// bitwise right shift
-bits.rsh(n : Nat, x : Bits) : Bits
-  case n
-  + x : Bits
-  | zero => x
-  | succ => case x
-    + n.pred : Nat
-    | be => be
-    | b0 => bits.rsh(n.pred, x.pred)
-    | b1 => bits.rsh(n.pred, x.pred)
-    : Bits
-  : Bits
-
-// bitwise left shift
-bits.lsh(n : Nat, x : Bits) : Bits
-  case n
-  + x : Bits
-  | zero => x
-  | succ => case x
-    + n.pred : Nat
-    | be => be
-    | b0 => bits.lsh(n.pred, b0(b0(x.pred)))
-    | b1 => bits.lsh(n.pred, b0(b1(x.pred)))
-    : Bits
-  : Bits
-
-// Arithmetic
+// Functions
 // ----------
 
-// increment
-bits.inc(x : Bits) : Bits
+// Bitwise negation
+not_bits(x: Bits) : Bits
+  case x
+  | be => be
+  | b0 => b1(not_bits(x.pred))
+  | b1 => b0(not_bits(x.pred))
+  : Bits
+
+// Bitwise conjunction
+and_bits(x: Bits, y: Bits) : Bits
+  case x
+  + y : Bits
+  | be => be
+  | b0 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b0(and_bits(x.pred, y.pred))
+    | b1 => b0(and_bits(x.pred, y.pred))
+  | b1 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b0(and_bits(x.pred, y.pred))
+    | b1 => b1(and_bits(x.pred, y.pred))
+
+// Bitwise disjunction
+or_bits(x: Bits, y: Bits) : Bits
+  case x
+  + y : Bits
+  | be => be
+  | b0 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b0(or_bits(x.pred, y.pred))
+    | b1 => b1(or_bits(x.pred, y.pred))
+  | b1 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b1(or_bits(x.pred, y.pred))
+    | b1 => b1(or_bits(x.pred, y.pred))
+
+// Bitwise exclusive disjunction
+xor_bits(x: Bits, y: Bits) : Bits
+  case x
+  + y : Bits
+  | be => be
+  | b0 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b0(xor_bits(x.pred, y.pred))
+    | b1 => b1(xor_bits(x.pred, y.pred))
+  | b1 => case y
+    + x.pred : Bits
+    | be => be
+    | b0 => b1(xor_bits(x.pred, y.pred))
+    | b1 => b0(xor_bits(x.pred, y.pred))
+
+// Bitwise right shift
+right_shift_bits(n: Nat, x: Bits) : Bits
+  case n
+  + x : Bits
+  | zero => x
+  | succ => case x
+    + n.pred : Nat
+    | be => be
+    | b0 => right_shift_bits(n.pred, x.pred)
+    | b1 => right_shift_bits(n.pred, x.pred)
+
+// Bitwise left shift
+left_shift_bits(n: Nat, x: Bits) : Bits
+  case n
+  + x : Bits
+  | zero => x
+  | succ => case x
+    + n.pred : Nat
+    | be => be
+    | b0 => left_shift_bits(n.pred, b0(b0(x.pred)))
+    | b1 => left_shift_bits(n.pred, b0(b1(x.pred)))
+
+// Increment
+inc_bits(x: Bits) : Bits
   case x
   | be => b1(be)
   | b0 => b1(x.pred)
-  | b1 => b0(bits.inc(x.pred))
-  : Bits
+  | b1 => b0(inc_bits(x.pred))
 
-// addition
-bits.add(x : Bits, y : Bits) : Bits
+// Addition
+add_bits(x: Bits, y: Bits) : Bits
   case x
   + y : Bits
   | be => be
   | b0 => case y
     + x.pred : Bits
     | be => be
-    | b0 => b0(bits.add(x.pred, y.pred))
-    | b1 => b1(bits.add(x.pred, y.pred))
-    : Bits
+    | b0 => b0(add_bits(x.pred, y.pred))
+    | b1 => b1(add_bits(x.pred, y.pred))
   | b1 => case y
     + x.pred : Bits
     | be => be
-    | b0 => b1(bits.add(x.pred, y.pred))
-    | b1 => b0(bits.inc(bits.add(x.pred, y.pred)))
-    : Bits
-  : Bits
+    | b0 => b1(add_bits(x.pred, y.pred))
+    | b1 => b0(inc_bits(add_bits(x.pred, y.pred)))
 
-// ========================================================
-// =                     Conversion                       =
-// ========================================================
-
-bits_to_nat(x : Bits) : Nat
+bits_to_nat(x: Bits) : Nat
   case x
   | be => zero
   | b0 => double(bits_to_nat(x.pred))
   | b1 => succ(double(bits_to_nat(x.pred)))
-  : Nat
 
-nat_to_bits(n : Nat) : Bits
+nat_to_bits(n: Nat) : Bits
   case n
   | zero => be
-  | succ => bits.inc(nat_to_bits(n.pred))
-  : Bits
+  | succ => inc_bits(nat_to_bits(n.pred))
 
-bits.copy(bs : Bits) : [:Bits, Bits]
+copy_bits(bs: Bits) : [:Bits, Bits]
   case bs
-  + bits.copy : Bits -> [:Bits, Bits]
+  + copy_bits : Bits -> [:Bits, Bits]
   | be =>
     [be, be]
   | b0 =>
-    get [lft, rgt] = bits.copy(bs.pred)
+    get [lft, rgt] = copy_bits(bs.pred)
     [b0(lft), b0(rgt)]
   | b1 =>
-    get [lft, rgt] = bits.copy(bs.pred)
+    get [lft, rgt] = copy_bits(bs.pred)
     [b1(lft), b1(rgt)]
-  : [:Bits, Bits]
 
-// ========================================================
-// =                      Theorems                        =
-// ========================================================
+// Theorems
+// --------
 
-bits.double_negation(x : Bits) : Equal(Bits, bits.not(bits.not(x)), x)
+double_negation_bits(x: Bits) : not_bits(not_bits(x)) == x
   case x
-  | be => refl(~Bits, ~be)
-  | b0 => let nnb = bits.not(bits.not(x.pred))
-    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b0, bits.double_negation(x.pred))
-  | b1 => let nnb = bits.not(bits.not(x.pred))
-    cong(~Bits, ~Bits, ~nnb, ~x.pred, ~b1, bits.double_negation(x.pred))
-  : Equal(Bits, bits.not(bits.not(x)), x)
+  | be => refl(__)
+  | b0 => cong(_____ double_negation_bits(x.pred))
+  | b1 => cong(_____ double_negation_bits(x.pred))
+  : not_bits(not_bits(x)) == x

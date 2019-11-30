@@ -1,65 +1,56 @@
-/* Maybe.fm defines an optional value type
- */
+// Maybe.fm
+// ========
+// 
+// Optional values. A value of type `Maybe(A)` can either be
+// a value of type `A`, or nothing at all. Maybe captures
+// the idea of "nullable" values, and functions that can
+// fail to produce a result.
 
 import Bool
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T Maybe<A>
 | none
 | some(value : A)
 
+// Operations
+// ----------
 
-// ========================================================
-// =                      Operations                      =
-// ========================================================
-
-maybe(~A, ~B, b : B, f : A -> B, ma : Maybe(A)) : B
-  case ma
+maybe(A; B; b : B, f : A -> B, mb : Maybe(A)) : B
+  case mb
   | none => b
-  | some => f(ma.value)
-  : B
+  | some => f(mb.value)
 
-is_some(~A, ma : Maybe(A)) : Bool
-  case ma
+is_some(A; mb : Maybe(A)) : Bool
+  case mb
   | none => false
   | some => true
-  : Bool
 
-is_none(~A, ma : Maybe(A)) : Bool
-  case ma
+is_none(A; mb : Maybe(A)) : Bool
+  case mb
   | none => true
   | some => false
-  : Bool
 
-from_Maybe(~A, x : A, ma : Maybe(A)) : A
-  maybe(~A, ~A, x, (x) => x, ma)
+with_default(A; x : A, mb : Maybe(A)) : A
+  maybe(__ x, (x) => x, mb)
 
-maybe.map(~A, ~B, f : A -> B, ma : Maybe(A)) : Maybe(B)
-  case ma
-  | none => none(~B)
-  | some => some(~B,f(ma.value))
-  : Maybe(B)
+map_maybe(A; B; f : A -> B, mb : Maybe(A)) : Maybe(B)
+  case mb
+  | none => none(_)
+  | some => some(_ f(mb.value))
 
-maybe.ap(~A, ~B, mf : Maybe(A -> B), ma : Maybe(A)) : Maybe(B)
+apply_maybe(A; B; mf: Maybe(A -> B), mb : Maybe(A))
+: Maybe(B)
   case mf
-  | none => none(~B)
-  | some => maybe.map(~A,~B, mf.value, ma)
-  : Maybe(B)
+  | none => none(_)
+  | some => map_maybe(A; B; mf.value, mb)
 
-maybe.pure(~A): A -> Maybe(A)
-  some(~A)
+pure_maybe(A;): A -> Maybe(A)
+  some(A;)
 
-maybe.bind(~A, ~B, f : A -> Maybe(B), ma : Maybe(A)) : Maybe(B)
-  case ma
-  | none => none(~B)
-  | some => f(ma.value)
-  : Maybe(B)
-
-
-
-
-
-
+bind_maybe(A; B; f: A -> Maybe(B), mb: Maybe(A)) : Maybe(B)
+  case mb
+  | none => none(_)
+  | some => f(mb.value)

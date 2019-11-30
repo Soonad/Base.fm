@@ -67,9 +67,9 @@ parse_exact(chr : Char) : Parser(Unit)
   do<Unit>
     bind val : Char = next
     if chr .==. val:
-      return(~Unit, unit)
+      return(_ unit)
     else:
-      throw(~Unit)
+      throw(_)
 
 // Skip whitespaces
 skip_whites : Parser(Unit)
@@ -77,7 +77,7 @@ skip_whites : Parser(Unit)
     bind found_white : Bool = match_one(' ')
     case found_white
     | true  => skip_whites
-    | false => return(~Unit, unit)
+    | false => return(_ unit)
     : Parser(Unit)
 
 // Parses a nat on the form SSS...Z
@@ -86,9 +86,9 @@ parse_nat : Parser(Nat)
     bind chr : Char = next
     if chr .==. 'S': do<Nat>
       bind pred : Nat = parse_nat
-      return(~Nat, succ(pred))
+      return(_ succ(pred))
     else:
-      return(~Nat, zero)
+      return(_ zero)
 
 // Parses a nat tuple on the form [SSS...Z,SSS...Z]
 parse_nats : Parser([:Nat, Nat])
@@ -98,10 +98,8 @@ parse_nats : Parser([:Nat, Nat])
     bind skip : Unit = parse_exact(',')
     bind nat1 : Nat  = parse_nat
     bind skip : Unit = parse_exact(']')
-    return(~[:Nat, Nat], [nat0, nat1])
+    return(_ [nat0, nat1])
 
 // Evaluates a parser
 run_parser(~A, parser : Parser(A), str : String) : Maybe(A)
   snd(parser(str))
-
-main skip_whites

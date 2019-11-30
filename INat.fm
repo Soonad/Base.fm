@@ -1,63 +1,63 @@
-/* INat.fm defines a church-encoded natural number type
- * which can be used as a higher function
- */
+// INat.fm
+// =======
+
+// Defines a church-encoded natural number type which can be
+// used as a higher function.
 
 import Equal
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 // The inductive hypothesis on nats. Erases to Church.
 INat : Type
   ${self}
-  ( ~P    : INat -> Type,
+  ( P     : INat -> Type;
     izero : ! P(izero),
-    isucc : ! (~r : -INat, i : P(r)) -> P(isucc(r))
+    isucc : ! (r : -INat; i : P(r)) -> P(isucc(r))
   ) -> ! P(self)
 
 // INat successor
 isucc(r : INat) : INat
-  new(~INat) (~P, izero, isucc) =>
+  new(INat) (P; izero, isucc) =>
   dup izero = izero
   dup isucc = isucc
-  dup irest = (use(r))(~(x) => P(x), #izero, #isucc)
-  # isucc(~r, irest)
+  dup irest = (use(r))((x) => P(x); #izero, #isucc)
+  # isucc(r; irest)
 
 // INat zero
 izero : INat
-  new(~INat) (~P, izero, isucc) =>
+  new(INat) (P; izero, isucc) =>
   dup izero = izero
   dup isucc = isucc
   # izero
 
 
-// ========================================================
-// =                 Utilities/Theorems                   =
-// ========================================================
+// Operations
+// ----------
 
 // Induction on `INat` is just identity.
 induct(
-  n  : INat,
-  ~P : INat -> Type,
-  z  : ! P(izero),
-  s  : ! (~n : -INat, i : P(n)) -> P(isucc(n))
+  n: INat,
+  P: INat -> Type;
+  z: !P(izero),
+  s: !(n : -INat; i : P(n)) -> P(isucc(n))
 ) : !P(n)
-  (use(n))(~(x) => P(x), z, s)
+  (use(n))((x) => P(x); z, s)
 
 // Simple induction is recursion.
-recurse(n : INat, ~P : Type, z : ! P, s : ! P -> P) : !P
+recurse(n: INat, P: Type; z: ! P, s: ! P -> P) : !P
   dup s = s
-  (use(n))(~(x) => P, z, #(~i) => s)
+  (use(n))((x) => P; z, #(i;) => s)
 
 // Doubles an INat.
-imul2(n : INat) : INat
-  new(~INat) (~P, b, s) =>
+imul2(n: INat) : INat
+  new(INat) (P; b, s) =>
   dup b = b
   dup s = s
   let t = (n) => P(imul2(n))
-  let s = (~n, i) => s(~isucc(imul2(n)), s(~imul2(n), i))
-  (use(n))(~t, #b, #s)
+  let s = (n; i) => s(isucc(imul2(n)); s(imul2(n); i))
+  (use(n))(t; #b, #s)
 
 //// Adds two INats.
 //plus : {a : INat, b : INat} -> INat

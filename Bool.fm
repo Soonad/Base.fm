@@ -1,153 +1,136 @@
-/* Bool.fm defines the boolean datatype
- *
- * A Bool represents a binary logical truth-value
- * (i.e. true or false) at the term level.
- */
+// Bool.fm
+// =======
+// 
+// A Bool represents a binary logical truth-value, i.e.,
+// it can be either true or false. 
 
 import Empty
 import Equal
 import Unit
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T Bool
 | true
 | false
 
+// Operations
+// ----------
+
 // Since bool is a finite datatype, it can be copied freely
 // this function will be implicitly auto-generated in a
 // future version of Formality
-copy(b : Bool) : [:Bool, Bool]
+copy(b: Bool) : [:Bool, Bool]
   case b
   | true  => [true, true]
   | false => [false, false]
-  : [:Bool, Bool]
 
-// ========================================================
-// =                    Operations                        =
-// ========================================================
-
-// negation
-not(b : Bool) : Bool
+// Negation
+not(b: Bool) : Bool
   case b
   | true  => false
   | false => true
-  : Bool
 
-// conjunction
-and(a : Bool, b : Bool) : Bool
+// Conjunction
+and(a: Bool, b: Bool) : Bool
   case a
   | true  => b
   | false => false
-  : Bool
 
-// disjuction
-or(a : Bool, b : Bool) : Bool
+// Disjuction
+or(a: Bool, b: Bool) : Bool
   case a
   | true  => true
   | false => b
-  : Bool
 
-// conjuction complement
-nand(a : Bool, b : Bool) : Bool
+// Conjuction complement
+nand(a: Bool, b: Bool) : Bool
   case a
   | true  => not(b)
   | false => true
-  : Bool
 
-// disjunction complement
-nor(a : Bool, b : Bool) : Bool
+// Disjunction complement
+nor(a: Bool, b: Bool) : Bool
   case a
   | true  => false
   | false => not(b)
-  : Bool
 
-// exclusive or
-xor(a : Bool, b : Bool) : Bool
+// Exclusive or
+xor(a: Bool, b: Bool) : Bool
   case a
   + b : Bool
-  | true  => case b
-    | true  => false
-    | false => true
-    : Bool
-  | false => case b
-    | true  => true
-    | false => false
-    : Bool
-  : Bool
+  | true  => not(b)
+  | false => b
 
-// logical equality
-xnor(a : Bool, b : Bool) : Bool
+// Logical equality
+xnor(a: Bool, b: Bool) : Bool
   case a
   + b : Bool
-  | true  => case b
-    | true  => true
-    | false => false
-    : Bool
-  | false => case b
-    | true  => false
-    | false => true
-    : Bool
-  : Bool
+  | true  => b
+  | false => not(b)
 
-// Not with runtime fusion
-not_f(b : Bool) : Bool
-  new(~Bool) (~P, true, false) =>
+// not, with runtime fusion
+not_f(b: Bool) : Bool
+  new(Bool) (P; true, false) =>
     case b
     | true  => false
     | false => true
     : P(not_f(b))
 
-// ========================================================
-// =                  Utilities/Theorems                  =
-// ========================================================
+// Theorems
+// --------
 
-// true isn't false, since from a proof that true is false
-// we can generate an element of Empty
-true_isnt_false : Not(Equal(Bool, true, false))
-  // We define a proposition `P` such that `unit :: P(true)`
-  let P = (x) => case x | true => Unit | false => Empty : Type
-  (e) => rewrite(~Bool, ~true, ~false, e, ~P, unit)
-  // with `e : Equal(Bool, true, false)` we rewrite to `unit :: P(false)`
+// From `true == false` we can derive `Empty`. Proof:
+// 1. Define a predicate `P` such that:
+//    - `P(true)`  returns Unit
+//    - `P(false)` returns Empty
+// 2. Note that `unit :: P(true)`
+// 3. But `true == false`, so `unit :: P(false)`
+// 4. Thus, `unit :: Empty`
+true_isnt_false : true != false
+  let P = (x: Bool) => case x
+    | true  => Unit
+    | false => Empty
+  (e) => unit :: rewrite P(.) with e
 
-// the symmetry of true_isnt_false
-false_isnt_true : Not(Equal(Bool, false, true))
-  let P = (x) => case x | true => Empty | false => Unit : Type
-  (e) => rewrite(~Bool, ~false, ~true, e, ~P, unit)
+// The symmetry of true_isnt_false
+false_isnt_true : false != true
+  let P = (x: Bool) => case x
+    | true  => Empty
+    | false => Unit
+  (e) => unit :: rewrite P(.) with e
 
-// produce a provably different bool than the input
-different_elem(a : Bool) : [b : Bool ~ Not(Equal(Bool, a, b))]
+// A bool that is provably different from the input
+different_elem(a : Bool) : [b : Bool ~ a != b]
   case a
   | true  => [false ~ true_isnt_false]
   | false => [true  ~ false_isnt_true]
-  : [b : Bool ~ Not(Equal(Bool, a, b))]
 
-// Demorgan's Laws: !(a || b) == !a && !b
-demorgan_0(a : Bool, b : Bool) : Equal(Bool, not(or(a,b)), and(not(a), not(b)))
+// Demorgan's Law: !(a || b) == !a && !b
+demorgan_0(a, b) : not(or(a,b)) == and(not(a),not(b))
   case a
   + b : Bool
   | true => case b
-    | true  => refl(~Bool, ~false)
-    | false => refl(~Bool, ~false)
-    : Equal(Bool, not(or(true,b)), and(not(true), not(b)))
+    | true  => refl(__)
+    | false => refl(__)
+    : not(or(true,b)) == and(not(true), not(b))
   | false => case b
-    | true  => refl(~Bool, ~false)
-    | false => refl(~Bool, ~true)
-    : Equal(Bool, not(or(false,b)), and(not(false), not(b)))
-  : Equal(Bool, not(or(a,b)), and(not(a), not(b)))
+    | true  => refl(__)
+    | false => refl(__)
+    : not(or(false,b)) == and(not(false), not(b))
+  : not(or(a,b)) == and(not(a), not(b))
 
-// Demorgan's Laws: !(a && b) == !a || !b
-demorgan_1(a : Bool, b : Bool) : Equal(Bool, not(and(a,b)), or(not(a), not(b)))
+// Demorgan's Law: !(a && b) == !a || !b
+demorgan_1(a, b) : not(and(a,b)) == or(not(a), not(b))
   case a
   + b : Bool
   | true => case b
-    | true  => refl(~Bool, ~false)
-    | false => refl(~Bool, ~true)
-    : Equal(Bool, not(and(true,b)), or(not(true), not(b)))
+    | true  => refl(__)
+    | false => refl(__)
+    : not(and(true,b)) == or(not(true), not(b))
   | false => case b
-    | true  => refl(~Bool, ~true)
-    | false => refl(~Bool, ~true)
-    : Equal(Bool, not(and(false,b)), or(not(false), not(b)))
-  : Equal(Bool, not(and(a,b)), or(not(a), not(b)))
+    | true  => refl(__)
+    | false => refl(__)
+    : not(and(false,b)) == or(not(false), not(b))
+  : not(and(a,b)) == or(not(a), not(b))

@@ -1,12 +1,14 @@
-/* JSON.fm defines a JavaScript Object Notation type
- */
+// JSON.fm
+// =======
+// 
+// A JavaScript Object Notation type. This type is used for
+// interop with host languages.
 
 import List
 import String
 
-// ========================================================
-// =                    Definition                        =
-// ========================================================
+// Definition
+// ----------
 
 T JSON
 | json_null
