@@ -17,6 +17,9 @@ word_to_bits(n : -Nat, w : Word(n)) : Bits
   | w1 => b1(word_to_bits(w.len,w.pred))
   : Bits
 
+word_to_nat(n : -Nat, w : Word(n)) : Nat
+  bits_to_nat(word_to_bits(n,w))
+
 bits_to_word(l : Nat, b : Bits) : Word(l)
   get [x, y] = clone_nat(l)
   get [n, ne] = x
@@ -43,6 +46,9 @@ bits_to_word(l : Nat, b : Bits) : Word(l)
     let bs = rewrite(~Nat,~%succ(n.pred),~%l,ne2,~P, bs)
     bs
   : Word(l)
+
+nat_to_word(l : Nat, n : Nat) : Word(l)
+  bits_to_word(l, nat_to_bits(n))
 
 Word8 : Type; Word(8n)
 
@@ -133,3 +139,99 @@ word.inc(n : -Nat, x : Word(n)) : [:Word(n), Bool]
       let w = w0(~x.len,w)
       [rewrite(~Nat,~%succ(x.len),~%n,e,~P,w), b]
   : [:Word(n), Bool]
+
+// n + 1 == l && m + 1 == l => n = m
+pred_trans(
+  ~n : -Nat,
+  ~m : -Nat,
+  ~l : -Nat,
+  nl : Equal(Nat, %succ(n), l),
+  ml : Equal(Nat, %succ(m), l)
+) : Equal(Nat,n,m)
+  cong_pred(~n,~m,trans2(~Nat,~%succ(n),~l,~%succ(m),nl,ml))
+
+word.adder(n : -Nat, c : Bool, x : Word(n), y : Word(n)) : [:Word(n), Bool]
+  case x
+  + y : Word(n)
+  + refl(__) as ex : Equal(Nat,x.len,n)
+  + c : Bool
+  | we => [rewrite(___ ex,_ we), c]
+  | w0 => 
+    case y
+    + c : Bool
+    + ex : Equal(Nat,succ(x.len),n)
+    + refl(__) as ey : Equal(Nat,y.len,n)
+    | we => [rewrite(___ ey,_ we), c]
+    | w0 =>
+      get [x1, x2] = same(___ ex)
+      let yp = rewrite(___ pred_trans(___ ey,x1),_ y.pred)
+      get [w,b] = word.adder(x.len,false,x.pred,yp)
+      let w = case c
+        + w : Word(x.len)
+        | true  => w1(_ w)
+        | false => w0(_ w)
+        : Word(succ(x.len))
+      [rewrite(___ x2,_ w), b]
+    | w1 => 
+      get [x1, x2] = same(___ ex)
+      let yp = rewrite(___ pred_trans(___ ey,x1),_ y.pred)
+      get [c1, c2] = copy_bool(c)
+      get [w,b] = word.adder(x.len,c1,x.pred,yp)
+      let w = case c2
+        + w : Word(x.len)
+        | true  => w0(_ w)
+        | false => w1(_ w)
+        : Word(succ(x.len))
+      [rewrite(___ x2,_ w), b]
+    : [:Word(n), Bool]
+  | w1 =>
+    case y
+    + c : Bool
+    + ex : Equal(Nat,succ(x.len),n)
+    + refl(__) as ey : Equal(Nat,y.len,n)
+    | we => [rewrite(___ ey,_ we), c]
+    | w0 =>
+      get [x1, x2] = same(___ ex)
+      let yp = rewrite(___ pred_trans(___ ey,x1),_ y.pred)
+      get [c1, c2] = copy_bool(c)
+      get [w,b] = word.adder(x.len,c1,x.pred,yp)
+      let w = case c2
+        + w : Word(x.len)
+        | true  => w0(_ w)
+        | false => w1(_ w)
+        : Word(succ(x.len))
+      [rewrite(___ x2,_ w), b]
+    | w1 =>
+      get [x1, x2] = same(___ ex)
+      let yp = rewrite(___ pred_trans(___ ey,x1),_ y.pred)
+      get [w,b] = word.adder(x.len,true,x.pred,yp)
+      let w = case c
+        + w : Word(x.len)
+        | true  => w1(_ w)
+        | false => w0(_ w)
+        : Word(succ(x.len))
+      [rewrite(___ x2,_ w), b]
+    : [:Word(n), Bool]
+  : [:Word(n), Bool]
+
+word.add(n : -Nat, x : Word(n), y : Word(n)) : Word(n)
+  fst(word.adder(n, false, x, y))
+
+w_7 : Word(4n)
+  w1(_ w1(_ w1(_ w0(_ we))))
+
+word.add_test : The([:Number, Bool],[14,false])
+  get [x,b] = word.adder(4n, false, w_7, w_7)
+  let x = bits_to_nat(word_to_bits(4n,x))
+  the(~[:Number, Bool], [nat_to_number(x), b])
+
+word.add_test2 : The([:Number, Bool],[14,true])
+  get [x,b] = word.adder(4n, false, w_15, w_15)
+  let x = bits_to_nat(word_to_bits(4n,x))
+  the(~[:Number, Bool], [nat_to_number(x), b])
+
+word.add_test3 : The([:Number, Bool],[0,true])
+  let w8 = nat_to_word(4n, 8n)
+  get [x,b] = word.adder(4n, false, w8, w8)
+  let x = word_to_nat(4n,x)
+  the(~[:Number, Bool], [nat_to_number(x), b])
