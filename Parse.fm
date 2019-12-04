@@ -59,8 +59,6 @@ match_one(chr: Char) : Parser(Bool)
           some(_ false)
         ])(str.head, str.tail)
     : [: String, Maybe(Bool)]
-
-main match_one
     
 // Parses exactly this character
 parse_exact(chr: Char) : Parser(Unit)
