@@ -9,7 +9,13 @@ T DemoAppState
   lastkey : Number
 )
 
+foo
+  let x = 7
+  x
+
 demo_app : App(DemoAppState)
+  let x = 8
+
   // Application state
   let state = demoappstate(0, 0, 0, 0)
 

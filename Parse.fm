@@ -60,46 +60,41 @@ match_one(chr: Char) : Parser(Bool)
         ])(str.head, str.tail)
     : [: String, Maybe(Bool)]
 
-main match_one
-    
 // Parses exactly this character
-parse_exact(chr: Char) : Parser(Unit)
-  do<Unit>
-    bind val : Char = next
-    if chr .==. val then
-      return(_ unit)
-    else
-      throw(_)
+parse_exact(chr: Char) : Parser(Unit) {
+  var val = next;
+  if chr .==. val then {
+    return unit;
+  } else {
+    throw;
+  }
+}
 
 // Skip whitespaces
-skip_whites : Parser(Unit)
-  do<Unit>
-    bind found_white : Bool = match_one(' ')
-    case found_white
-    | true  => skip_whites
-    | false => return(_ unit)
-    : Parser(Unit)
+skip_whites : Parser(Unit) {
+  var found_white = match_one(' ');
+  case found_white
+  | true  => skip_whites
+  | false => { return unit; }
+}
 
 // Parses a nat on the form SSS...Z
-parse_nat : Parser(Nat)
-  do<Nat>
-    bind chr : Char = next
-    if chr .==. 'S' then do<Nat>
-      bind pred : Nat = parse_nat
-      return(_ succ(pred))
-    else
-      return(_ zero)
+parse_nat : Parser(Nat) {
+  var chr = next;
+  if chr .==. 'S' then {
+    var pred = parse_nat;
+    return succ(pred);
+  } else {
+    return zero;
+  }
+}
 
 // Parses a nat tuple on the form [SSS...Z,SSS...Z]
-parse_nats : Parser([:Nat, Nat])
-  do<[:Nat, Nat]>
-    bind skip : Unit = parse_exact('[')
-    bind nat0 : Nat  = parse_nat
-    bind skip : Unit = parse_exact(',')
-    bind nat1 : Nat  = parse_nat
-    bind skip : Unit = parse_exact(']')
-    return(_ [nat0, nat1])
-
-// Evaluates a parser
-run_parser(A; parser : Parser(A), str : String) : Maybe(A)
-  snd(parser(str))
+parse_nats : Parser([:Nat, Nat]) {
+  parse_exact('[');
+  var nat0 = parse_nat;
+  parse_exact(',');
+  var nat1 = parse_nat;
+  parse_exact(']');
+  return [nat0, nat1];
+}
