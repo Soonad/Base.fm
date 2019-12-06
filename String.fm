@@ -3,13 +3,14 @@
 // 
 // A list of Unicode characters.
 
+import Bits
 import List
 
 // Definition
 // ----------
 
 Char : Type
-  Number
+  Bits
 
 String : Type
   List(Char)
@@ -18,10 +19,10 @@ String : Type
 // ----------
 
 Output : Type
-  [tag : Number, String]
+  String
 
 print(str : String) : Output
-  [0x53484f57, str]
+  str
 
 string.test : Output
   let str = "Hello, world!"

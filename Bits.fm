@@ -5,6 +5,7 @@
 
 import Equal
 import Nat
+import Pair
 
 // Definition
 // ----------
@@ -129,24 +130,39 @@ nat_to_bits(n: Nat) : Bits
   | zero => be
   | succ => inc_bits(nat_to_bits(n.pred))
 
-copy_bits(bs: Bits) : [:Bits, Bits]
+copy_bits(bs: Bits) : And(Bits, Bits)
   case bs
-  + copy_bits : Bits -> [:Bits, Bits]
+  + copy_bits : Bits -> And(Bits, Bits)
   | be =>
-    [be, be]
-  | b0 =>
-    get [lft, rgt] = copy_bits(bs.pred)
-    [b0(lft), b0(rgt)]
-  | b1 =>
-    get [lft, rgt] = copy_bits(bs.pred)
-    [b1(lft), b1(rgt)]
+    pair(__ be, be)
+  | b0 => case copy_bits(bs.pred) as pred
+    | pair => pair(__ b0(pred.fst), b0(pred.snd))
+  | b1 => case copy_bits(bs.pred) as pred
+    | pair => pair(__ b1(pred.fst), b1(pred.snd))
+
+equal_bits(as: Bits, bs: Bits) : Bool
+  case as
+  + bs : Bits
+  + equal_bits : Bits -> Bits -> Bool
+  | be => case bs
+    | be => true
+    | b0 => false
+    | b1 => false
+  | b0 => case bs
+    | be => false
+    | b0 => equal_bits(as.pred, bs.pred)
+    | b1 => false
+  | b1 => case bs
+    | be => false
+    | b0 => false
+    | b1 => equal_bits(as.pred, bs.pred)
 
 // Theorems
 // --------
 
 double_negation_bits(x: Bits) : not_bits(not_bits(x)) == x
   case x
-  | be => refl(__)
-  | b0 => cong(_____ double_negation_bits(x.pred))
-  | b1 => cong(_____ double_negation_bits(x.pred))
+  | be => equal(__)
+  | b0 => apply(_____ double_negation_bits(x.pred))
+  | b1 => apply(_____ double_negation_bits(x.pred))
   : not_bits(not_bits(x)) == x

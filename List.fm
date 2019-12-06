@@ -27,11 +27,10 @@ tail(A; xs : List(A)) : List(A)
   | nil  => nil(_)
   | cons => xs.tail
 
-take(A; x : A, xs : List(A)) : [x : A, List(A)]
+take(A; x : A, xs : List(A)) : Pair(A, List(A))
   case xs
-  | nil  => [x, nil(_)]
-  | cons => [xs.head, xs.tail]
-  : [x : A, List(A)]
+  | nil  => pair(__ x, nil(_))
+  | cons => pair(__ xs.head, xs.tail)
 
 at(A; n : Nat, xs : List(A)) : Maybe(A)
   case xs
@@ -47,27 +46,15 @@ sames(A; xs : List(A)) : List(A)
   | nil  => nil(_)
   | cons => cons(_ xs.head, sames(_ xs.tail))
 
-// Creates a list with `N` ascending words starting from `idx` 
-range(len : Nat, n : Number) : List(Number)
-  case len
-  | zero => nil(_)
-  | succ => cons(_ n, range(len.pred, n .+. 1))
-
-// Sums every word in a list
-sum(xs : List(Number)) : Number
-  case xs
-  | nil  => 0
-  | cons => xs.head .+. sum(xs.tail)
-
 // Applies a function to every element of a list
-maply(A; B; fs : List(A -> B), xs : List(A)) : List(B)
+ziply(A; B; fs : List(A -> B), xs : List(A)) : List(B)
   case fs
   | nil  => nil(_)
   | cons => case xs
     | nil  => nil(_)
     | cons => cons(_
       fs.head(xs.head),
-      maply(A; B; fs.tail, xs.tail))
+      ziply(A; B; fs.tail, xs.tail))
 
 // Concatenates two lists
 concat(A; xs : List(A), ys : List(A)) : List(A)

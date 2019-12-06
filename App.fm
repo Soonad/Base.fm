@@ -1,24 +1,30 @@
-import JSON
 import Nat
+import Pair
+import String
 import Unit
 
 Prop : Type
-  [:String, String]
+  Pair(String, String)
 
 // Doc is a renderable document
 T Doc
 | txt(value : String)
-| num(value : Number)
-| img(size : [:Number, Number], data : [:Number, Number] -> Number)
-| box(tag : String, props : List(Prop), children : List(Doc))
+| num(value : Bits)
+| img(
+  size : Pair(Bits, Bits),
+  data : Pair(Bits, Bits) -> Bits)
+| box(
+  tag : String,
+  props : List(Prop),
+  children : List(Doc))
 
 // An event
 T Event
-| mouseclick(x : Number, y : Number)
-| mousemove(x : Number, y : Number)
-| keypress(key : Number)
-| keydown(key : Number)
-| keyup(key : Number)
+| mouseclick(x : Bits, y : Bits)
+| mousemove(x : Bits, y : Bits)
+| keypress(key : Bits)
+| keydown(key : Bits)
+| keyup(key : Bits)
 
 // App is an interactive application
 T App<A>

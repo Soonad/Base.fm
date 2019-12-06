@@ -4,6 +4,7 @@
 // Wrapper and utilities for the built-in function type.
 
 import Equal
+import Pair
 
 // Definition
 // ----------
@@ -29,21 +30,25 @@ comp(A; B; C: B -> Type)
   (g, f, x) => g(f(x))
 
 // uncurry 2-ary function
-uncurry(A; B; C; f: A -> B -> C, p: [:A, B]) : C
-  get [a, b] = p
-  f(a,b)
+uncurry(A; B; C; f: A -> B -> C, p: Pair(A, B)) : C
+  case p
+  | pair => f(p.fst, p.snd)
 
-curry(A; B; C; f: [:A, B] -> C, x: A, y: B) : C
-  f([x,y])
+curry(A; B; C; f: Pair(A,B) -> C, x: A, y: B) : C
+  f(pair(__ x,y))
 
 // Flip the term arguments
 flip(A; B; C; f: A -> B -> C, y: B, x: A) : C
   f(x, y)
 
 // Applies a function to an argument
-apply(A; B; f: A -> B, x: A) : B
+call(A; B; f: A -> B, x: A) : B
   f(x)
 
 // Pipes an argument to a function
 pipe(A; B; x: A, f: A -> B) : B
   f(x)
+
+// Makes the function operate on unrestrict terms
+negf(A; B; f : A -> B) : (-A) -> (-B)
+  (x) => <f(+x)>

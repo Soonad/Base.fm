@@ -1,14 +1,18 @@
-// Or.fm
-// =====
+// Either.fm
+// =========
 // 
 // The logical disjunction or sum type.
-// A value (proof) of type `Or(A,B)` contains either:
+// A value (proof) of type `Either(A,B)` contains either:
 // - a value (proof) of the first type, `A`
 // - a value (proof) of the second type, `B`
 
 // Definition
 // ----------
 
-T Or<A, B>
+T Either<A, B>
 | lft(value : A)
 | rgt(value : B)
+
+// Or is a logical synonym for Either
+Or(A, B) : Type
+  Either(A, B)

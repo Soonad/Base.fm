@@ -45,12 +45,14 @@ insert(A; bits: Bits, val: A, map: Map(A)) : Map(A)
     | empty => multi(_ none(_), empty(_), insert(empty(_)))
     | multi => multi(_ map.val, map.lft, insert(map.rgt))
 
-list_to_map(A; xs : List([:Bits, A])) : Map(A)
+list_to_map(A; xs : List(Pair(Bits, A))) : Map(A)
   case xs
   | nil  => empty(_)
-  | cons =>
-    get [k,v] = xs.head
-    insert(_ k, v, list_to_map(_ xs.tail))
+  | cons => case xs.head as kv
+    | pair => insert(_
+      kv.fst,
+      kv.snd,
+      list_to_map(_ xs.tail))
 
 map_elements(A; map : Map(A)) : List(A)
   case map
@@ -64,17 +66,18 @@ map_elements(A; map : Map(A)) : List(A)
     | none => all
     | some => cons(_ val.value, all)
 
-//// Updates a value, return a function of it and the map
-query(A; qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
+// Updates a value, return a function of it and the map
+query(A; qry: A -> Pair(A,A), bits: Bits, map: Map(A))
+: Pair(Map(A), Maybe(A))
   let rec = query(A;)
   case bits
   + map : Map(A)
-  + rec : (qry : A -> [:A,A], bits : Bits, map : Map(A))
-    -> [:Map(A), Maybe(A)]
-  + qry : A -> [:A, A]
+  + rec : (qry : A -> Pair(A,A), bits : Bits, map : Map(A))
+    -> Pair(Map(A), Maybe(A))
+  + qry : A -> Pair(A, A)
   | be => case map
     | empty =>
-      [empty(_), none(_)]
+      pair(__ empty(_), none(_))
     | multi =>
       case map.val as mval
       + map.lft : Map(A)
@@ -82,28 +85,28 @@ query(A; qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
       | none => 
         let map = multi(_ none(_), map.lft, map.rgt)
         let val = none(_)
-        [map, val]
-      | some =>
-        get [val0, val1] = qry(mval.value)
-        let map = multi(_ some(_ val0), map.lft, map.rgt)
-        let val = some(_ val1)
-        [map, val]
-      : [:Map(A), Maybe(A)]
-    : [:Map(A), Maybe(A)]
+        pair(__ map, val)
+      | some => case qry(mval.value) as v
+        | pair => 
+          let map = multi(_ some(_ v.fst), map.lft, map.rgt)
+          let val = some(_ v.snd)
+          pair(__ map, val)
+      : Pair(Map(A), Maybe(A))
+    : Pair(Map(A), Maybe(A))
   | b0 => case map
-    | empty => [empty(_), none(_)]
-    | multi =>
-      get [lft, val] = rec(qry, bits.pred, map.lft)
-      let map = multi(_ map.val, lft, map.rgt)
-      [map, val]
-    : [:Map(A), Maybe(A)]
+    | empty => pair(__ empty(_), none(_))
+    | multi => case rec(qry, bits.pred, map.lft) as p
+      | pair =>
+        let map = multi(_ map.val, p.fst, map.rgt)
+        pair(__ map, p.snd)
+    : Pair(Map(A), Maybe(A))
   | b1 => case map
-    | empty => [empty(_), none(_)]
-    | multi => 
-      get [rgt, val] = rec(qry, bits.pred, map.rgt)
-      let map = multi(_ map.val, map.lft, rgt)
-      [map, val]
-    : [:Map(A), Maybe(A)]
+    | empty => pair(__ empty(_), none(_))
+    | multi => case rec(qry, bits.pred, map.rgt) as p
+      | pair =>
+        let map = multi(_ map.val, map.lft, p.fst)
+        pair(__ map, p.snd)
+    : Pair(Map(A), Maybe(A))
 
 // Theorems
 // --------
@@ -112,7 +115,7 @@ query(A; qry : A -> [:A,A], bits : Bits, map : Map(A)) : [:Map(A), Maybe(A)]
 LookupInsert(A, bits: Bits, val: A, map: Map(A)) : Type
   let lft = some(_ val)
   let rgt = lookup(_ bits, insert(_ bits, val, map))
-  Equal(Maybe(A), lft, rgt)
+  Equal(Maybe(A), <lft>, <rgt>)
 
 // Proof
 lookup_insert(A; bits : Bits, val : A, map : Map(A))
@@ -123,8 +126,8 @@ lookup_insert(A; bits : Bits, val : A, map : Map(A))
   | be =>
     case map
     + val : A
-    | empty => refl(_ some(A; val);)
-    | multi => refl(_ some(A; val);)
+    | empty => equal(_ <some(A; val)>;)
+    | multi => equal(_ <some(A; val)>;)
     : LookupInsert(A, be, val, map)
   | b0 =>
     let rec = lookup_insert(A; bits.pred, val)
@@ -147,17 +150,17 @@ lookup_insert(A; bits : Bits, val : A, map : Map(A))
 // Examples
 // --------
 
-map_example0 : Maybe(Number)
+map_example0 : Maybe(Bits)
   let map = empty(_)
-  let map = insert(_ 1111111101101110b, 1337, map)
+  let map = insert(_ 1111111101101110b, 100b, map)
   lookup(_ 1111111101101110b, map)
 
-map_example1 : [:Maybe(Number), Maybe(Number)]
-  let qry     = (a) => [a, a]
+map_example1 : Pair(Maybe(Bits), Maybe(Bits))
+  let qry     = (a) => copy_bits(a)
   let map     = empty(_)
-  let map     = insert(_ 10100100b, 10, map)
-  let map     = insert(_ 01100010b, 20, map)
-  let map     = insert(_ 10111001b, 30, map)
-  get [map,a] = query(Number; qry, 10100100b, map)
-  get [map,b] = query(Number; qry, 01100010b, map)
-  [a, b]
+  let map     = insert(_ 10100100b, 101b, map)
+  let map     = insert(_ 01100010b, 111b, map)
+  let map     = insert(_ 10111001b, 010b, map)
+  case query(Bits; qry, 10100100b, map) as q0
+  | pair => case query(Bits; qry, 01100010b, q0.fst) as q1
+    | pair => pair(__ q0.snd, q1.snd)

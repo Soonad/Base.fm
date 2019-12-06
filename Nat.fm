@@ -3,7 +3,6 @@
 // 
 // Natural numbers.
 
-import And
 import Bool
 import Empty
 import Equal
@@ -27,26 +26,25 @@ pred(n: Nat) : Nat
   | succ => n.pred
 
 // Copies a Nat
-copy_nat(n: Nat) : [:Nat, Nat]
+copy_nat(n: Nat) : Pair(Nat, Nat)
   case n
-  | zero => [zero, zero]
-  | succ =>
-    get [n0, n1] = copy_nat(n.pred)
-    [succ(n0), succ(n1)]
+  | zero => pair(__ zero, zero)
+  | succ => case copy_nat(n.pred) as pred
+    | pair => pair(__ succ(pred.fst), succ(pred.snd))
 
 // Copies a Nat with proof
-clone_nat(n: Nat) : [: Same(Nat, n), Same(Nat, n)]
-  case n
-  | zero => 
-    [[zero, refl(__)], [zero, refl(__)]]
-  | succ =>
-    get [n0_cpy, n1_cpy] = clone_nat(n.pred)
-    get [n0_val, n0_eql] = n0_cpy
-    get [n1_val, n1_eql] = n1_cpy
-    let sn0_eql = cong(_____ n0_eql)
-    let sn1_eql = cong(_____ n1_eql)
-    [[succ(n0_val), sn0_eql], [succ(n1_val), sn1_eql]]
-  : [: Same(Nat, n), Same(Nat, n)]
+//clone_nat(n: Nat) : [: Same(Nat, n), Same(Nat, n)]
+  //case n
+  //| zero => 
+    //[[zero, refl(__)], [zero, refl(__)]]
+  //| succ =>
+    //get [n0_cpy, n1_cpy] = clone_nat(n.pred)
+    //get [n0_val, n0_eql] = n0_cpy
+    //get [n1_val, n1_eql] = n1_cpy
+    //let sn0_eql = cong(_____ n0_eql)
+    //let sn1_eql = cong(_____ n1_eql)
+    //[[succ(n0_val), sn0_eql], [succ(n1_val), sn1_eql]]
+  //: [: Same(Nat, n), Same(Nat, n)]
 
 // Addition
 add(n: Nat, m: Nat) : Nat
@@ -90,7 +88,7 @@ mul(n: Nat, m: Nat) : Nat
   mul.go(zero, n, m)
 
 // Equality test
-nat_equals(n: Nat, m: Nat) : Bool
+nat_equal(n: Nat, m: Nat) : Bool
   case n
   + m: Nat
   | zero => case m
@@ -98,41 +96,30 @@ nat_equals(n: Nat, m: Nat) : Bool
     | succ => false
   | succ => case m
     | zero => false
-    | succ => nat_equals(n.pred, m.pred)
-
-// Converts a native Num to a Nat
-number_to_nat(x: Number) : Nat
-  if x .==. 0
-  then zero
-  else succ(number_to_nat(x .-. 1))
-
-// Converts a Nat to a native Num
-nat_to_number(n: Nat) : Number
-  case n
-  | zero => 0
-  | succ => 1 .+. nat_to_number(n.pred)
-  : Number
+    | succ => nat_equal(n.pred, m.pred)
 
 // Theorems
 // --------
 
 // Proof that `1 != 0`
-succ_isnt_zero(n: -Nat;) : succ(n) != zero
-  let P = (n: Nat) => case n
+succ_isnt_zero(n : -Nat;) : succ(+n) != zero
+  let P = (n: -Nat) =>
+    case +n as n
     | zero => Empty
     | succ => Unit
   (e) => unit :: rewrite P(.) with e
 
 // Proof that `0 != 1`
-zero_isnt_succ(n: -Nat;): zero != succ(n)
-  let P = (n: Nat) => case n
+zero_isnt_succ(n: -Nat;): zero != succ(+n)
+  let P = (n: -Nat) =>
+    case +n as n
     | zero => Unit
     | succ => Empty
   (e) => unit :: rewrite P(.) with e
 
 // Proof that `n == m` implies `succ(n) == succ(m)`
-cong_succ(n: -Nat; m: -Nat; e: n == m) : succ(n) == succ(m)
-  cong(_____ e)
+apply_succ(n: -Nat; m; e: n == m) : succ(+n) == succ(+m)
+  apply(_____ e)
 
 // Tests
 // -----
@@ -142,6 +129,3 @@ nat.test0: The(Nat, 6n)
 
 nat.test1: The(Nat, 6n)
   the(_ mul(2n, 3n))
-
-nat.test2: The(Number, 6)
-  the(_ nat_to_number(6n))

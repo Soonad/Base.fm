@@ -6,7 +6,9 @@
 
 import Empty
 import Equal
+import Pair
 import Unit
+import Subset
 
 // Definition
 // ----------
@@ -21,10 +23,10 @@ T Bool
 // Since bool is a finite datatype, it can be copied freely
 // this function will be implicitly auto-generated in a
 // future version of Formality
-copy_bool(b : Bool) : [:Bool, Bool]
+copy_bool(b : Bool) : Pair(Bool, Bool)
   case b
-  | true  => [true, true]
-  | false => [false, false]
+  | true  => pair(__ true, true)
+  | false => pair(__ false, false)
 
 // Negation
 not(b: Bool) : Bool
@@ -89,35 +91,38 @@ not_f(b: Bool) : Bool
 // 3. But `true == false`, so `unit :: P(false)`
 // 4. Thus, `unit :: Empty`
 true_isnt_false : true != false
-  let P = (x: Bool) => case x
+  let P = (x: -Bool) =>
+    case +x as x
     | true  => Unit
     | false => Empty
   (e) => unit :: rewrite P(.) with e
 
 // The symmetry of true_isnt_false
 false_isnt_true : false != true
-  let P = (x: Bool) => case x
+  let P = (x: -Bool) =>
+    case +x as x
     | true  => Empty
     | false => Unit
   (e) => unit :: rewrite P(.) with e
 
 // A bool that is provably different from the input
-different_elem(a : Bool) : [b : Bool ~ a != b]
+different_elem(a : Bool) : Bool .such_that. (b) => a != b
   case a
-  | true  => [false ~ true_isnt_false]
-  | false => [true  ~ false_isnt_true]
+  | true  => subset(_ (b) => ? != b; ?, true_isnt_false;)
+  | false => subset(_ (b) => ? != b; ?, false_isnt_true;)
+  : Bool .such_that. (b) => a != b
 
 // Demorgan's Law: !(a || b) == !a && !b
 demorgan_0(a, b) : not(or(a,b)) == and(not(a),not(b))
   case a
   + b : Bool
   | true => case b
-    | true  => refl(__)
-    | false => refl(__)
+    | true  => equal(__)
+    | false => equal(__)
     : not(or(true,b)) == and(not(true), not(b))
   | false => case b
-    | true  => refl(__)
-    | false => refl(__)
+    | true  => equal(__)
+    | false => equal(__)
     : not(or(false,b)) == and(not(false), not(b))
   : not(or(a,b)) == and(not(a), not(b))
 
@@ -126,11 +131,11 @@ demorgan_1(a, b) : not(and(a,b)) == or(not(a), not(b))
   case a
   + b : Bool
   | true => case b
-    | true  => refl(__)
-    | false => refl(__)
+    | true  => equal(__)
+    | false => equal(__)
     : not(and(true,b)) == or(not(true), not(b))
   | false => case b
-    | true  => refl(__)
-    | false => refl(__)
+    | true  => equal(__)
+    | false => equal(__)
     : not(and(false,b)) == or(not(false), not(b))
   : not(and(a,b)) == or(not(a), not(b))
