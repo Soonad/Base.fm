@@ -41,11 +41,11 @@ trans(A; a; b; c; ab: a == b, bc: b == c) : a == c
   : Equal(A, a, bc.b)
 
 // Clones an equality
-copy_equal(A; a; b; e: a == b) : [: a == b, a == b]
-  case e
-  | refl => [refl(_ a;), refl(_ a;)]
-  : [: Equal(A, a, e.b), Equal(A, a, e.b)]
+//copy_equal(A; a; b; e: a == b) : [: a == b, a == b]
+  //case e
+  //| refl => [refl(_ a;), refl(_ a;)]
+  //: [: Equal(A, a, e.b), Equal(A, a, e.b)]
 
 // A copy of a value
-Same(A, x : A) : Type
-  [y : A, y == x]
+//Same(A, x : A) : Type
+  //[y : A, y == x]

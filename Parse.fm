@@ -63,9 +63,9 @@ match_one(chr: Char) : Parser(Bool)
 // Parses exactly this character
 parse_exact(chr: Char) : Parser(Unit) {
   var val = next;
-  if chr .==. val then {
+  if chr .==. val then #{
     return unit;
-  } else {
+  } else #{
     throw;
   }
 }
