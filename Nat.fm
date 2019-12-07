@@ -33,18 +33,22 @@ copy_nat(n: Nat) : Pair(Nat, Nat)
     | pair => pair(__ succ(pred.fst), succ(pred.snd))
 
 // Copies a Nat with proof
-//clone_nat(n: Nat) : [: Same(Nat, n), Same(Nat, n)]
-  //case n
-  //| zero => 
-    //[[zero, refl(__)], [zero, refl(__)]]
-  //| succ =>
-    //get [n0_cpy, n1_cpy] = clone_nat(n.pred)
-    //get [n0_val, n0_eql] = n0_cpy
-    //get [n1_val, n1_eql] = n1_cpy
-    //let sn0_eql = cong(_____ n0_eql)
-    //let sn1_eql = cong(_____ n1_eql)
-    //[[succ(n0_val), sn0_eql], [succ(n1_val), sn1_eql]]
-  //: [: Same(Nat, n), Same(Nat, n)]
+clone_nat(n: Nat) : Pair(Same(Nat, n), Same(Nat,n))
+  case n
+  | zero => pair(__ sigma(__ zero, equal(__)),sigma(__ zero, equal(__)))
+  | succ =>
+    case clone_nat(n.pred) as ns | pair =>
+    case ns.fst as ns1 | sigma =>
+    case ns.snd as ns2 | sigma =>
+    let e1 = apply(_____ ns1.snd)
+    let s1 = sigma(__ succ(ns1.fst), e1)
+    let e2 = apply(_____ ns2.snd)
+    let s2 = sigma(__ succ(ns2.fst), e2)
+    pair(__ s1, s2)
+    : Pair(Same(Nat,succ(n.pred)), Same(Nat,succ(n.pred)))
+    : Pair(Same(Nat,succ(n.pred)), Same(Nat,succ(n.pred)))
+    : Pair(Same(Nat,succ(n.pred)), Same(Nat,succ(n.pred)))
+  : Pair(Same(Nat,n), Same(Nat,n))
 
 // Addition
 add(n: Nat, m: Nat) : Nat

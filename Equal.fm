@@ -9,6 +9,9 @@
 // ~~ is sugar for Equal(A, a, b)
 // == is sugar for Equal(A, <a>, <b>)
 
+import Sigma
+import Pair
+
 // Definition
 // ----------
 
@@ -42,12 +45,12 @@ chain(A; a; b; c; ab: a ~~ b, bc: b ~~ c) : a ~~ c
   | equal => ab
   : Equal(A, a, bc.b)
 
-//// Clones an equality
-////copy_equal(A; a; b; e: a == b) : [: a == b, a == b]
-  ////case e
-  ////| equal => [equal(_ a;), equal(_ a;)]
-  ////: [: Equal(A, a, e.b), Equal(A, a, e.b)]
+// Clones an equality
+copy_equal(A; a; b; e: a == b) : Pair(a == b, a == b)
+  case e
+  | equal => pair(__ equal(__), equal(__))
+  : Pair(Equal(A,<a>,+<e.b>), Equal(A,<a>,+<e.b>))
 
-//// A copy of a value
-////Same(A, x : A) : Type
-  ////[y : A, y == x]
+// A copy of a value
+Same(A, x : A) : Type
+  Sigma(A, (y : A) => Equal(A,<x>,<y>))
