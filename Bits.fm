@@ -1,6 +1,6 @@
 // Bits.fm
 // =======
-// 
+//
 // Defines a bitstream, or binary sequence.
 
 import Equal
