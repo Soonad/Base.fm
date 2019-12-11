@@ -1,0 +1,49 @@
+// The inductive hypothesis on perfect binary trees. Erases to Church.
+IBin : Type
+  ${self}
+  ( P     : IBin -> Type;
+    ileaf : P(ileaf),
+    inode : (k : IBin; a : P(k), b : P(k)) -> P(inode(k))
+  ) -> P(self)
+
+inode(k: IBin) : IBin
+  new(IBin) (P; ileaf, inode) =>
+  let endfold = (use(k))((x) => P(x); ileaf, inode)
+  inode(k; endfold, endfold)
+
+ileaf : IBin
+  new(IBin) (P; ileaf, inode) => ileaf
+
+t0  : IBin; ileaf
+t1  : IBin; inode(t0)
+t2  : IBin; inode(t1)
+t3  : IBin; inode(t2)
+t4  : IBin; inode(t3)
+t5  : IBin; inode(t4)
+t6  : IBin; inode(t5)
+t7  : IBin; inode(t6)
+t8  : IBin; inode(t7)
+t9  : IBin; inode(t8)
+t10 : IBin; inode(t9)
+t11 : IBin; inode(t10)
+t12 : IBin; inode(t11)
+t13 : IBin; inode(t12)
+t14 : IBin; inode(t13)
+t15 : IBin; inode(t14)
+t16 : IBin; inode(t15)
+t17 : IBin; inode(t16)
+t18 : IBin; inode(t17)
+t19 : IBin; inode(t18)
+t20 : IBin; inode(t19)
+t21 : IBin; inode(t20)
+t22 : IBin; inode(t21)
+t23 : IBin; inode(t22)
+t24 : IBin; inode(t23)
+t25 : IBin; inode(t24)
+t26 : IBin; inode(t25)
+t27 : IBin; inode(t26)
+t28 : IBin; inode(t27)
+t29 : IBin; inode(t28)
+t30 : IBin; inode(t29)
+t31 : IBin; inode(t30)
+t32 : IBin; inode(t31)
