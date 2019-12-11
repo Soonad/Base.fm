@@ -92,7 +92,7 @@ not_f(b: Bool) : Bool
 // 4. Thus, `unit :: Empty`
 true_isnt_false : true != false
   let P = (x: Bool) =>
-    case x as x
+    case x
     | true  => Unit
     | false => Empty
   (e) => unit :: rewrite P(.) with e
@@ -100,7 +100,7 @@ true_isnt_false : true != false
 // The symmetry of true_isnt_false
 false_isnt_true : false != true
   let P = (x: Bool) =>
-    case x as x
+    case x
     | true  => Empty
     | false => Unit
   (e) => unit :: rewrite P(.) with e

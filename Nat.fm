@@ -6,6 +6,7 @@
 import Bool
 import Empty
 import Equal
+import Pair
 import The
 import Unit
 
@@ -15,6 +16,11 @@ import Unit
 T Nat
 | zero
 | succ(pred: Nat)
+
+T Comparison
+| less_than
+| equal_to
+| greater_than
 
 // Functions
 // ---------
@@ -85,16 +91,23 @@ mul.go(k: Nat, n: Nat, m: Nat) : Nat
 mul(n: Nat, m: Nat) : Nat
   mul.go(zero, n, m)
 
-// Equality test
-nat_equal(n: Nat, m: Nat) : Bool
+// Comparison
+nat_compare(n: Nat, m: Nat) : Comparison
   case n
   + m: Nat
   | zero => case m
-    | zero => true
-    | succ => false
+    | zero => equal_to
+    | succ => less_than
   | succ => case m
-    | zero => false
-    | succ => nat_equal(n.pred, m.pred)
+    | zero => greater_than
+    | succ => nat_compare(n.pred, m.pred)
+
+// Equality
+nat_equal(n: Nat, m: Nat) : Bool
+  case nat_compare(n, m) as cmp
+  | less_than    => false
+  | equal_to     => true
+  | greater_than => false
 
 // Theorems
 // --------
