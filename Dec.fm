@@ -1,0 +1,47 @@
+import Nat
+
+T Dec
+| de
+| d0(pred : Dec)
+| d1(pred : Dec)
+| d2(pred : Dec)
+| d3(pred : Dec)
+| d4(pred : Dec)
+| d5(pred : Dec)
+| d6(pred : Dec)
+| d7(pred : Dec)
+| d8(pred : Dec)
+| d9(pred : Dec)
+
+incDec(x: Dec) : Dec
+  case x
+  | de => d1(de)
+  | d0 => d1(x.pred)
+  | d1 => d2(x.pred)
+  | d2 => d3(x.pred)
+  | d3 => d4(x.pred)
+  | d4 => d5(x.pred)
+  | d5 => d6(x.pred)
+  | d6 => d7(x.pred)
+  | d7 => d8(x.pred)
+  | d8 => d9(x.pred)
+  | d9 => d0(incDec(x.pred))
+
+decToNat(x: Dec) : Nat
+  case x
+  | de => zero
+  | d0 => mul(10n, decToNat(x.pred))
+  | d1 => add(1n, mul(10n, decToNat(x.pred)))
+  | d2 => add(2n, mul(10n, decToNat(x.pred)))
+  | d3 => add(3n, mul(10n, decToNat(x.pred)))
+  | d4 => add(4n, mul(10n, decToNat(x.pred)))
+  | d5 => add(5n, mul(10n, decToNat(x.pred)))
+  | d6 => add(6n, mul(10n, decToNat(x.pred)))
+  | d7 => add(7n, mul(10n, decToNat(x.pred)))
+  | d8 => add(8n, mul(10n, decToNat(x.pred)))
+  | d9 => add(9n, mul(10n, decToNat(x.pred)))
+
+natToDec(x: Nat) : Dec
+  case x
+  | zero => de
+  | succ => incDec(natToDec(x.pred))

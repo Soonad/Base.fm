@@ -132,6 +132,10 @@ zero_isnt_succ(n: Nat;): zero != succ(n)
 apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
   apply(_____ e)
 
+// Proof that `succ(n) == succ(m)` implies `n == m`
+apply_pred(n: Nat; m; e: succ(n) == succ(m)) : n == m
+  apply(____ pred; e)
+
 // Tests
 // -----
 
