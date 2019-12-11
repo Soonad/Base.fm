@@ -48,7 +48,3 @@ call(A; B; f: A -> B, x: A) : B
 // Pipes an argument to a function
 pipe(A; B; x: A, f: A -> B) : B
   f(x)
-
-// Makes the function operate on unrestrict terms
-negf(A; B; f : A -> B) : (-A) -> (-B)
-  (x) => <f(+x)>

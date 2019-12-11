@@ -6,6 +6,7 @@
 import Bool
 import Empty
 import Equal
+import Pair
 import The
 import Unit
 
@@ -15,6 +16,11 @@ import Unit
 T Nat
 | zero
 | succ(pred: Nat)
+
+T Comparison
+| less_than
+| equal_to
+| greater_than
 
 // Functions
 // ---------
@@ -31,20 +37,6 @@ copy_nat(n: Nat) : Pair(Nat, Nat)
   | zero => pair(__ zero, zero)
   | succ => case copy_nat(n.pred) as pred
     | pair => pair(__ succ(pred.fst), succ(pred.snd))
-
-// Copies a Nat with proof
-//clone_nat(n: Nat) : [: Same(Nat, n), Same(Nat, n)]
-  //case n
-  //| zero => 
-    //[[zero, refl(__)], [zero, refl(__)]]
-  //| succ =>
-    //get [n0_cpy, n1_cpy] = clone_nat(n.pred)
-    //get [n0_val, n0_eql] = n0_cpy
-    //get [n1_val, n1_eql] = n1_cpy
-    //let sn0_eql = cong(_____ n0_eql)
-    //let sn1_eql = cong(_____ n1_eql)
-    //[[succ(n0_val), sn0_eql], [succ(n1_val), sn1_eql]]
-  //: [: Same(Nat, n), Same(Nat, n)]
 
 // Addition
 add(n: Nat, m: Nat) : Nat
@@ -87,38 +79,45 @@ mul.go(k: Nat, n: Nat, m: Nat) : Nat
 mul(n: Nat, m: Nat) : Nat
   mul.go(zero, n, m)
 
-// Equality test
-nat_equal(n: Nat, m: Nat) : Bool
+// Comparison
+nat_compare(n: Nat, m: Nat) : Comparison
   case n
   + m: Nat
   | zero => case m
-    | zero => true
-    | succ => false
+    | zero => equal_to
+    | succ => less_than
   | succ => case m
-    | zero => false
-    | succ => nat_equal(n.pred, m.pred)
+    | zero => greater_than
+    | succ => nat_compare(n.pred, m.pred)
+
+// Equality
+nat_equal(n: Nat, m: Nat) : Bool
+  case nat_compare(n, m) as cmp
+  | less_than    => false
+  | equal_to     => true
+  | greater_than => false
 
 // Theorems
 // --------
 
 // Proof that `1 != 0`
-succ_isnt_zero(n : -Nat;) : succ(+n) != zero
-  let P = (n: -Nat) =>
-    case +n as n
+succ_isnt_zero(n : Nat;) : succ(n) != zero
+  let P = (n: Nat) =>
+    case n
     | zero => Empty
     | succ => Unit
   (e) => unit :: rewrite P(.) with e
 
 // Proof that `0 != 1`
-zero_isnt_succ(n: -Nat;): zero != succ(+n)
-  let P = (n: -Nat) =>
-    case +n as n
+zero_isnt_succ(n: Nat;): zero != succ(n)
+  let P = (n: Nat) =>
+    case n
     | zero => Unit
     | succ => Empty
   (e) => unit :: rewrite P(.) with e
 
 // Proof that `n == m` implies `succ(n) == succ(m)`
-apply_succ(n: -Nat; m; e: n == m) : succ(+n) == succ(+m)
+apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
   apply(_____ e)
 
 // Tests

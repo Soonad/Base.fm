@@ -115,7 +115,7 @@ query(A; qry: A -> Pair(A,A), bits: Bits, map: Map(A))
 LookupInsert(A, bits: Bits, val: A, map: Map(A)) : Type
   let lft = some(_ val)
   let rgt = lookup(_ bits, insert(_ bits, val, map))
-  Equal(Maybe(A), <lft>, <rgt>)
+  Equal(Maybe(A), lft, rgt)
 
 // Proof
 lookup_insert(A; bits : Bits, val : A, map : Map(A))
@@ -126,8 +126,8 @@ lookup_insert(A; bits : Bits, val : A, map : Map(A))
   | be =>
     case map
     + val : A
-    | empty => equal(_ <some(A; val)>;)
-    | multi => equal(_ <some(A; val)>;)
+    | empty => equal(_ some(A; val);)
+    | multi => equal(_ some(A; val);)
     : LookupInsert(A, be, val, map)
   | b0 =>
     let rec = lookup_insert(A; bits.pred, val)
