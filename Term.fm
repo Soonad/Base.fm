@@ -198,23 +198,33 @@ subst(term : Term, val : Term, dep : Nat) : Term
     let name = term.name
     hol(name)
 
-//reduce(term : Term, defs : Defs) : Term
-  //case term
-  //| typ => typ
-  //| ref => ref(term.name)
-  //| var => var(term.indx)
-  //| all => all(term.bind, term.body)
-  //| lam => lam(term.bind, term.body)
-  //| app => case reduce(term.func) as func
-    //+ term.argm : Term
-    //| typ => app(typ, term.argm)
-    //| ref => app(ref(func.name), term.argm)
-    //| var => app(var(func.indx), term.argm)
-    //| all => app(all(func.bind, func.body), term.argm)
-    //| lam => subst(func.body, term.argm, 0n)
-    //| app => app(app(func.func, func.argm), term.argm)
-    //| slf => app(slf(func.typ), term.argm)
-    //| neo => app(
+reduce(term : Term, defs : Defs) : Term
+  case term
+  | typ => typ
+  | ref => ref(term.name)
+  | var => var(term.indx)
+  | all => all(term.bind, term.body)
+  | lam => lam(term.bind, term.body)
+  | app => case reduce(term.func, defs) as func
+    + term.argm : Term
+    | typ => app(typ, term.argm)
+    | ref => app(ref(func.name), term.argm)
+    | var => app(var(func.indx), term.argm)
+    | all => app(all(func.bind, func.body), term.argm)
+    | lam => subst(func.body, term.argm, 0n)
+    | app => app(app(func.func, func.argm), term.argm)
+    | slf => app(slf(func.type), term.argm)
+    | neo => app(neo(func.type, func.expr), term.argm)
+    | usi => app(usi(func.expr), term.argm)
+    | ann => app(ann(func.type, func.expr, func.done), term.argm)
+    | lug => app(lug(func.msge, func.expr), term.argm)
+    | hol => app(hol(func.name), term.argm)
+  | slf => slf(term.type)
+  | neo => neo(term.type, term.expr)
+  | usi => usi(term.expr)
+  | ann => ann(term.type, term.expr, term.done)
+  | lug => lug(term.msge, term.expr)
+  | hol => hol(term.name)
 
 //T HOAS
 //| hvar(indx : Nat)
