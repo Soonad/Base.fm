@@ -1,0 +1,59 @@
+/* Vector.fm defines a static-length vector type
+ */
+
+import Equal
+import Fin
+import Nat
+import Unit
+
+// ========================================================
+// =                    Definition                        =
+// ========================================================
+
+// A vector is a list with a statically known length
+T Vector<A> (len : Nat)
+| vnil                                              : Vector(A, zero)
+| vcons(len : Nat; head : A, tail : Vector(A, len)) : Vector(A, succ(len))
+
+// ========================================================
+// =                      Operations                      =
+// ========================================================
+
+// Returns the first element of a non-empty vector
+vhead(A; len : Nat; xs : Vector(A, succ(len))) : A
+  case xs
+  + equal(__) as e : xs.len == succ(len)
+  | vnil  => absurd(zero_isnt_succ(_ e), A;)
+  | vcons => xs.head
+
+// Returns all but the first element of a non-empty vector
+vtail(A; len : Nat; xs : Vector(A, succ(len))) : Vector(A, len)
+  case xs
+  + equal(__) as e : xs.len == succ(len)
+  | vnil  => absurd(zero_isnt_succ(_ e), Vector(A, zero);)
+  | vcons => xs.tail
+  : Vector(A, pred(xs.len))
+
+// Returns a pair with the head and the tail of a non-empty vector
+vtake(A; len : Nat; xs : Vector(A, succ(len))) : #{A, Vector(A, len)}
+  case xs
+  + equal(__) as e : xs.len == succ(len)
+  | vnil  => absurd(zero_isnt_succ(_ e), #{A, Vector(A, zero)};)
+  | vcons => #[xs.head, xs.tail]
+  : #{A, Vector(A, pred(xs.len))}
+
+// Returns the same vector
+vsame(A; len : Nat; xs : Vector(A, len)) : Vector(A, len)
+  case xs
+  | vnil  => vnil(_)
+  | vcons => vcons(__ xs.head, vsame(__ xs.tail))
+  : Vector(A, xs.len)
+
+// Allocates a Vec with given length
+valloc(len : Nat) : Vector(Unit, len)
+  case len
+  | zero => vnil(_)
+  | succ => vcons(_ _ unit, valloc(len.pred))
+  : Vector(Unit, len)
+
+// TODO: range, map, concat, zip, etc.

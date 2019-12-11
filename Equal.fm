@@ -5,8 +5,11 @@
 // `Equal(A,a,b)` contains the reflexive constructor that
 // `a` equals itself, which implies `b` is equal to `a` iff
 // `b` reduces to `a`.
-// 
+//
 // == is sugar for Equal(A, a, b)
+
+import Pair
+import Sigma
 
 // Definition
 // ----------
@@ -40,3 +43,11 @@ chain(A; a; b; c; ab: a == b, bc: b == c) : a == c
   case bc
   | equal => ab
   : Equal(A, a, bc.b)
+
+copy_equal(A; a; b; e: a == b) : #{a == b, a == b}
+  case e
+  | equal => #[equal(__), equal(__)]
+  : Pair(Equal(A,a,e.b), Equal(A,a,e.b))
+
+Same(A, x : A) : Type
+  Sigma(A, (y : A) => Equal(A,x,y))

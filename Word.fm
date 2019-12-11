@@ -1,0 +1,193 @@
+// Word.fm defines a bitstream with static length
+
+import Nat
+import Equal
+import Bits
+import The
+
+T Word (len : Nat)
+| we                              : Word(zero)
+| w0(len : Nat, pred : Word(len)) : Word(succ(len))
+| w1(len : Nat, pred : Word(len)) : Word(succ(len))
+
+wordToBits(n : Nat, w : Word(n)) : Bits
+  case w
+  | we => be
+  | w0 => b0(wordToBits(w.len,w.pred))
+  | w1 => b1(wordToBits(w.len,w.pred))
+  : Bits
+
+wordToNat(n : Nat, w : Word(n)) : Nat
+  bits_to_nat(word_to_bits(n,w))
+
+bitsToWord(l : Nat, b : Bits) : Word(l)
+  get #[x, y] = clone_nat(l)
+  get #[n, ne] = x
+  get #[m, me] = y
+  case n
+  + ne : l == n
+  + m  : Nat
+  + me : l == m
+  | zero => rewrite(___ mirror(___ ne), (x) => Word(x); we)
+  | succ =>
+    let bs = case b
+      + m : Nat
+      | be => w0(?, bitsToWord(pred(m), be))
+      | b0 => w0(?, bitsToWord(pred(m),b.pred))
+      | b1 => w1(?, bitsToWord(pred(m),b.pred))
+      : Word(succ(pred(m)))
+    get #[ne1,ne2] = copy_equal(Nat;l;succ(n.pred);ne)
+    let mn = apply(_____ chain(____ mirror(___ me),ne1))
+    let bs = rewrite(___ mn,(x) => Word(succ(x));bs)
+    rewrite(___ mirror(___ ne2),Word;bs)
+  : Word(l)
+
+natToWord(l: Nat, n: Nat) : Word(l)
+  bitsToWord(l, nat_to_bits(n))
+
+
+word.not(n: Nat, x: Word(n)) : Word(n)
+  case x
+  + equal(__) as e : x.len == n
+  | we => rewrite(___ e, Word; we)
+  | w0 => rewrite(___ e, Word; w1(x.len,word.not(x.len,x.pred)))
+  | w1 => rewrite(___ e, Word; w0(x.len,word.not(x.len,x.pred)))
+  : Word(n)
+
+
+word.and(n: Nat, x: Word(n), y: Word(n)) : Word(n)
+  case x
+  + y : Word(n)
+  + equal(__) as ex : x.len == n
+  | we => rewrite(___ ex, Word; we)
+  | w0 =>
+    case y
+    + ex : succ(x.len) == n
+    + equal(__) as ey : y.len == n
+    | we => rewrite(___ ey, Word; we)
+    | w0 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let xy = chain(____ ey, mirror(___ x1))
+      let yp = rewrite(___ apply(____ pred; xy), Word; y.pred)
+      rewrite(___ x2,Word; w0(x.len,word.and(x.len,x.pred,yp)))
+    | w1 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let xy = chain(____ ey, mirror(___ x1))
+      let yp = rewrite(___ apply(____ pred; xy), Word; y.pred)
+      rewrite(___ x2,Word; w0(x.len,word.and(x.len,x.pred,yp)))
+  | w1 =>
+    case y
+    + ex : succ(x.len) == n
+    + equal(__) as ey : y.len == n
+    | we => rewrite(___ ey, Word; we)
+    | w0 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let xy = chain(____ ey, mirror(___ x1))
+      let yp = rewrite(___ apply(____ pred; xy), Word; y.pred)
+      rewrite(___ x2,Word; w0(x.len,word.and(x.len,x.pred,yp)))
+    | w1 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let xy = chain(____ ey, mirror(___ x1))
+      let yp = rewrite(___ apply(____ pred; xy), Word; y.pred)
+      rewrite(___ x2,Word; w1(x.len,word.and(x.len,x.pred,yp)))
+  : Word(n)
+
+word.and2(n: Nat, x: Word(n), y: Word(n)) : Word(n)
+  let x = wordToBits(n,x)
+  let y = wordToBits(n,y)
+  bitsToWord(n,and_bits(x,y))
+
+word.inc(n: Nat, x : Word(n)) : #{Word(n), Bool}
+  case x
+  + equal(__) as e : x.len == n
+  | we => #[rewrite(___ e,Word;we), true]
+  | w0 => #[rewrite(___ e,Word; w1(x.len,x.pred)), false]
+  | w1 =>
+      get #[w, b] = word.inc(x.len,x.pred)
+      #[rewrite(___ e,Word; w0(x.len,w)), b]
+  : #{Word(n), Bool}
+
+// n + 1 == l && m + 1 == l => n = m
+pred_chain(n: Nat; m: Nat; l: Nat; nl: succ(n) == l, ml: succ(m) == l) : n == m
+  apply(____ pred; chain(____ nl, mirror(___ ml)))
+
+word.adder(n: Nat, c: Bool, x: Word(n), y: Word(n)) : #{Word(n), Bool}
+  case x
+  + y : Word(n)
+  + equal(__) as ex : x.len == n
+  + c : Bool
+  | we => #[rewrite(___ ex,_ we), c]
+  | w0 =>
+    case y
+    + c : Bool
+    + ex : succ(x.len) == n
+    + equal(__) as ey : Equal(Nat,y.len,n)
+    | we => #[rewrite(___ ey,_ we), c]
+    | w0 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let yp = rewrite(___ pred_chain(___ ey,x1),_ y.pred)
+      get #[w,b] = word.adder(x.len,false,x.pred,yp)
+      let w = case c
+        + w : Word(x.len)
+        | true  => w1(?,w)
+        | false => w0(?,w)
+      #[rewrite(___ x2,_ w), b]
+    | w1 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let yp = rewrite(___ pred_chain(___ ey,x1),_ y.pred)
+      get #[c1, c2] = copy_bool(c)
+      get #[w,b] = word.adder(x.len,c1,x.pred,yp)
+      let w = case c2
+        + w : Word(x.len)
+        | true  => w0(?, w)
+        | false => w1(?, w)
+      #[rewrite(___ x2,_ w), b]
+  | w1 =>
+    case y
+    + c : Bool
+    + ex : succ(x.len) == n
+    + equal(__) as ey : Equal(Nat,y.len,n)
+    | we => #[rewrite(___ ey,_ we), c]
+    | w0 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let yp = rewrite(___ pred_chain(___ ey,x1),_ y.pred)
+      get #[c1, c2] = copy_bool(c)
+      get #[w,b] = word.adder(x.len,c1,x.pred,yp)
+      let w = case c2
+        + w : Word(x.len)
+        | true  => w1(?,w)
+        | false => w0(?,w)
+      #[rewrite(___ x2,_ w), b]
+    | w1 =>
+      get #[x1, x2] = copy_equal(___ ex)
+      let yp = rewrite(___ pred_chain(___ ey,x1),_ y.pred)
+      get #[w,b] = word.adder(x.len,true,x.pred,yp)
+      let w = case c
+        + w : Word(x.len)
+        | true  => w0(?, w)
+        | false => w1(?, w)
+        : Word(succ(x.len))
+      #[rewrite(___ x2,_ w), b]
+  : #{Word(n), Bool}
+
+word.add(n: Nat, x: Word(n), y: Word(n)) : Word(n)
+  pair_fst(__ word.adder(n, false, x, y))
+
+----w_7 : Word(4n)
+----  w1(_ w1(_ w1(_ w0(_ we))))
+----
+----word.add_test : The([:Number, Bool],[14,false])
+----  get [x,b] = word.adder(4n, false, w_7, w_7)
+----  let x = bits_to_nat(word_to_bits(4n,x))
+----  the(~[:Number, Bool], [nat_to_number(x), b])
+----
+----word.add_test2 : The([:Number, Bool],[14,true])
+----  get [x,b] = word.adder(4n, false, w_15, w_15)
+----  let x = bits_to_nat(word_to_bits(4n,x))
+----  the(~[:Number, Bool], [nat_to_number(x), b])
+----
+----word.add_test3 : The([:Number, Bool],[0,true])
+----  let w8 = nat_to_word(4n, 8n)
+----  get [x,b] = word.adder(4n, false, w8, w8)
+----  let x = word_to_nat(4n,x)
+----  the(~[:Number, Bool], [nat_to_number(x), b])

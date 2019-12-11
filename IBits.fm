@@ -1,0 +1,24 @@
+// Inductive bits
+IBits : Type
+  ${self}
+  ( P   : IBits -> Type;
+    ibe : P(ibe),
+    ib0 : (bs : IBits; i : P(bs)) -> P(ib0(bs)),
+    ib1 : (bs : IBits; i : P(bs)) -> P(ib1(bs))
+  ) -> P(self)
+
+// IBits end
+ibe : IBits
+  new(IBits) (P; ibe, ib0, ib1) => ibe
+
+// IBits zero
+ib0(bs: IBits) : IBits
+  new(IBits) (P; ibe, ib0, ib1) =>
+  let ifn = (use(bs))((x) => P(x); ibe, ib0, ib1)
+  ib0(bs; ifn)
+
+// IBits one
+ib1(bs: IBits) : IBits
+  new(IBits) (P; ibe, ib0, ib1) =>
+  let ifn = (use(bs))((x) => P(x); ibe, ib0, ib1)
+  ib1(bs; ifn)

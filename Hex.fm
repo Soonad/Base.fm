@@ -1,0 +1,66 @@
+import Nat
+
+T Hex
+| xe
+| x0(pred : Hex)
+| x1(pred : Hex)
+| x2(pred : Hex)
+| x3(pred : Hex)
+| x4(pred : Hex)
+| x5(pred : Hex)
+| x6(pred : Hex)
+| x7(pred : Hex)
+| x8(pred : Hex)
+| x9(pred : Hex)
+| xA(pred : Hex)
+| xB(pred : Hex)
+| xC(pred : Hex)
+| xD(pred : Hex)
+| xE(pred : Hex)
+| xF(pred : Hex)
+
+incHex(x: Hex) : Hex
+  case x
+  | xe => x1(xe)
+  | x0 => x1(x.pred)
+  | x1 => x2(x.pred)
+  | x2 => x3(x.pred)
+  | x3 => x4(x.pred)
+  | x4 => x5(x.pred)
+  | x5 => x6(x.pred)
+  | x6 => x7(x.pred)
+  | x7 => x8(x.pred)
+  | x8 => x9(x.pred)
+  | x9 => xA(x.pred)
+  | xA => xB(x.pred)
+  | xB => xC(x.pred)
+  | xC => xD(x.pred)
+  | xD => xE(x.pred)
+  | xE => xF(x.pred)
+  | xF => x0(incHex(x.pred))
+
+hexToNat(x: Hex) : Nat
+  case x
+  | xe => zero
+  | x0 => mul(10n, hexToNat(x.pred))
+  | x1 => add(1n, mul(10n, hexToNat(x.pred)))
+  | x2 => add(2n, mul(10n, hexToNat(x.pred)))
+  | x3 => add(3n, mul(10n, hexToNat(x.pred)))
+  | x4 => add(4n, mul(10n, hexToNat(x.pred)))
+  | x5 => add(5n, mul(10n, hexToNat(x.pred)))
+  | x6 => add(6n, mul(10n, hexToNat(x.pred)))
+  | x7 => add(7n, mul(10n, hexToNat(x.pred)))
+  | x8 => add(8n, mul(10n, hexToNat(x.pred)))
+  | x9 => add(9n, mul(10n, hexToNat(x.pred)))
+  | xA => add(10n, mul(10n, hexToNat(x.pred)))
+  | xB => add(11n, mul(10n, hexToNat(x.pred)))
+  | xC => add(12n, mul(10n, hexToNat(x.pred)))
+  | xD => add(13n, mul(10n, hexToNat(x.pred)))
+  | xE => add(14n, mul(10n, hexToNat(x.pred)))
+  | xF => add(15n, mul(10n, hexToNat(x.pred)))
+
+natToHex(x: Nat) : Hex
+  case x
+  | zero => xe
+  | succ => incHex(natToHex(x.pred))
+

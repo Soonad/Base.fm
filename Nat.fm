@@ -32,11 +32,23 @@ pred(n: Nat) : Nat
   | succ => n.pred
 
 // Copies a Nat
-copy_nat(n: Nat) : Pair(Nat, Nat)
+copy_nat(n: Nat) : #{Nat, Nat}
   case n
-  | zero => pair(__ zero, zero)
+  | zero => #[zero, zero]
   | succ => case copy_nat(n.pred) as pred
-    | pair => pair(__ succ(pred.fst), succ(pred.snd))
+    | pair => #[succ(pred.fst), succ(pred.snd)]
+
+clone_nat(n: Nat) : #{Same(Nat,n),Same(Nat,n)}
+  case n
+  | zero => #[sigma(__ zero, equal(__)),sigma(__ zero, equal(__))]
+  | succ =>
+      get #[n1,n2] = clone_nat(n.pred)
+      get #[n1v,n1e] = n1
+      get #[n2v,n2e] = n2
+      let e1 = apply(_____ n1e)
+      let e2 = apply(_____ n2e)
+      #[sigma(__ succ(n1v), e1), sigma(__ succ(n2v), e2)]
+  : Pair(Same(Nat,n), Same(Nat,n))
 
 // Addition
 add(n: Nat, m: Nat) : Nat
@@ -119,6 +131,10 @@ zero_isnt_succ(n: Nat;): zero != succ(n)
 // Proof that `n == m` implies `succ(n) == succ(m)`
 apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
   apply(_____ e)
+
+// Proof that `succ(n) == succ(m)` implies `n == m`
+apply_pred(n: Nat; m; e: succ(n) == succ(m)) : n == m
+  apply(____ pred; e)
 
 // Tests
 // -----

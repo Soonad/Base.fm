@@ -8,34 +8,34 @@ import Empty
 // =                    Definition                        =
 // ========================================================
 
-T Fin (lim : -Nat)
-| fzero(~lim : -Nat)                  : Fin(succ(lim))
-| fsucc(~lim : -Nat, pred : Fin(lim)) : Fin(succ(lim))
+T Fin (lim : Nat)
+| fzero(lim : Nat;)                 : Fin(succ(lim))
+| fsucc(lim : Nat; pred : Fin(lim)) : Fin(succ(lim))
 
 // ========================================================
 // =                      Operations                      =
 // ========================================================
 
-fin_inc(~lim : -Nat, fin : Fin(lim)) : Fin(succ(lim))
+fin_inc(lim : Nat; fin : Fin(lim)) : Fin(succ(lim))
   case fin
-  | fzero => fzero(~succ(fin.lim))
-  | fsucc => fsucc(~succ(fin.lim), fin_inc(~fin.lim, fin.pred))
+  | fzero => fzero(succ(fin.lim);)
+  | fsucc => fsucc(succ(fin.lim); fin_inc(fin.lim; fin.pred))
   : Fin(succ(fin.lim))
 
 // ========================================================
 // =                     Conversion                       =
 // ========================================================
 
-fin_to_nat(~lim : -Nat, fin : Fin(lim)) : Nat
+fin_to_nat(lim : Nat; fin : Fin(lim)) : Nat
   case fin
   | fzero => zero
-  | fsucc => succ(fin_to_nat(~fin.lim, fin.pred))
+  | fsucc => succ(fin_to_nat(fin.lim; fin.pred))
   : Nat
 
 nat_to_fin(n : Nat) : Fin(succ(n))
   case n
-  | zero => fzero(~zero)
-  | succ => fsucc(~succ(n.pred), nat_to_fin(n.pred))
+  | zero => fzero(zero;)
+  | succ => fsucc(succ(n.pred); nat_to_fin(n.pred))
   : Fin(succ(n))
 
 // ========================================================
@@ -44,7 +44,7 @@ nat_to_fin(n : Nat) : Fin(succ(n))
 
 no_fin_zero(fin : Fin(zero)) : Empty
   case fin
-  + refl(~Nat, ~zero) as e : Equal(Nat, fin.lim, zero)
-  | fzero => succ_isnt_zero(~fin.lim, e)
-  | fsucc => succ_isnt_zero(~fin.lim, e)
+  + equal(Nat; zero;) as e : Equal(Nat, fin.lim, zero)
+  | fzero => succ_isnt_zero(fin.lim; e)
+  | fsucc => succ_isnt_zero(fin.lim; e)
   : Empty

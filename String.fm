@@ -5,6 +5,8 @@
 
 import Bits
 import List
+import Dec
+import Hex
 
 // Definition
 // ----------
@@ -28,3 +30,45 @@ string.test : Output
   let str = "Hello, world!"
   let str = reverse(_ str)
   print(str)
+
+printBits(x: Bits) : String
+  case x
+  | be => nil(_)
+  | b0 => cons(_ 110000b, printBits(x.pred))
+  | b1 => cons(_ 110001b, printBits(x.pred))
+
+printDec(x: Dec) : String
+  case x
+  | de => nil(_)
+  | d0 => cons(_ 110000b, printDec(x.pred))
+  | d1 => cons(_ 110001b, printDec(x.pred))
+  | d2 => cons(_ 110010b, printDec(x.pred))
+  | d3 => cons(_ 110011b, printDec(x.pred))
+  | d4 => cons(_ 110100b, printDec(x.pred))
+  | d5 => cons(_ 110101b, printDec(x.pred))
+  | d6 => cons(_ 110110b, printDec(x.pred))
+  | d7 => cons(_ 110111b, printDec(x.pred))
+  | d8 => cons(_ 111000b, printDec(x.pred))
+  | d9 => cons(_ 111001b, printDec(x.pred))
+
+printHex(x: Hex) : String
+  case x
+  | xe => nil(_)
+  | x0 => cons(_ 110000b, printDec(x.pred))
+  | x1 => cons(_ 110001b, printDec(x.pred))
+  | x2 => cons(_ 110010b, printDec(x.pred))
+  | x3 => cons(_ 110011b, printDec(x.pred))
+  | x4 => cons(_ 110100b, printDec(x.pred))
+  | x5 => cons(_ 110101b, printDec(x.pred))
+  | x6 => cons(_ 110110b, printDec(x.pred))
+  | x7 => cons(_ 110111b, printDec(x.pred))
+  | x8 => cons(_ 111000b, printDec(x.pred))
+  | x9 => cons(_ 111001b, printDec(x.pred))
+  | xA => cons(_ 100001b, printDec(x.pred))
+  | xB => cons(_ 100010b, printDec(x.pred))
+  | xC => cons(_ 100011b, printDec(x.pred))
+  | xD => cons(_ 100100b, printDec(x.pred))
+  | xE => cons(_ 100101b, printDec(x.pred))
+  | xF => cons(_ 100110b, printDec(x.pred))
+
+

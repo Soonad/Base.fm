@@ -13,24 +13,17 @@ import Equal
 INat : Type
   ${self}
   ( P     : INat -> Type;
-    izero : ! P(izero),
-    isucc : ! (r : -INat; i : P(r)) -> P(isucc(r))
-  ) -> ! P(self)
+    izero : P(izero),
+    isucc : (r : INat; i : P(r)) -> P(isucc(r))
+  ) -> P(self)
 
 // INat successor
 isucc(r : INat) : INat
-  new(INat) (P; izero, isucc) =>
-  dup izero = izero
-  dup isucc = isucc
-  dup irest = (use(r))((x) => P(x); #izero, #isucc)
-  # isucc(r; irest)
+  new(INat) (P; izero, isucc) => isucc(r; (use(r))((x) => P(x); izero, isucc))
 
 // INat zero
 izero : INat
-  new(INat) (P; izero, isucc) =>
-  dup izero = izero
-  dup isucc = isucc
-  # izero
+  new(INat) (P; izero, isucc) => izero
 
 
 // Operations
@@ -40,24 +33,21 @@ izero : INat
 induct(
   n: INat,
   P: INat -> Type;
-  z: !P(izero),
-  s: !(n : -INat; i : P(n)) -> P(isucc(n))
-) : !P(n)
+  z: P(izero),
+  s: (n : INat; i : P(n)) -> P(isucc(n))
+) : P(n)
   (use(n))((x) => P(x); z, s)
 
 // Simple induction is recursion.
-recurse(n: INat, P: Type; z: ! P, s: ! P -> P) : !P
-  dup s = s
-  (use(n))((x) => P; z, #(i;) => s)
+recurse(n: INat, P: Type; z: P, s: P -> P) : P
+  (use(n))((x) => P; z, (i;) => s)
 
 // Doubles an INat.
 imul2(n: INat) : INat
   new(INat) (P; b, s) =>
-  dup b = b
-  dup s = s
   let t = (n) => P(imul2(n))
   let s = (n; i) => s(isucc(imul2(n)); s(imul2(n); i))
-  (use(n))(t; #b, #s)
+  (use(n))(t; b, s)
 
 //// Adds two INats.
 //plus : {a : INat, b : INat} -> INat

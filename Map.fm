@@ -164,3 +164,5 @@ map_example1 : Pair(Maybe(Bits), Maybe(Bits))
   case query(Bits; qry, 10100100b, map) as q0
   | pair => case query(Bits; qry, 01100010b, q0.fst) as q1
     | pair => pair(__ q0.snd, q1.snd)
+
+

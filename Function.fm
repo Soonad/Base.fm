@@ -1,6 +1,6 @@
 // Function.fm
 // ===========
-// 
+//
 // Wrapper and utilities for the built-in function type.
 
 import Equal
