@@ -1,6 +1,6 @@
 // Nat.fm
 // ======
-// 
+//
 // Natural numbers.
 
 import Bool
@@ -47,6 +47,13 @@ add(n: Nat, m: Nat) : Nat
     + n.pred : Nat
     | zero => succ(n.pred)
     | succ => succ(succ(add(n.pred, m.pred)))
+
+// Left-hand addition
+addl(n: Nat, m: Nat) : Nat
+  case n
+  + m : Nat
+  | zero => m
+  | succ => succ(addl(n.pred, m))
 
 // Subtraction
 sub(n: Nat, m: Nat) : Nat
