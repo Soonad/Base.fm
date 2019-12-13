@@ -127,6 +127,70 @@ zero_isnt_succ(n: Nat;): zero != succ(n)
 apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
   apply(_____ e)
 
+addl.succ(n: Nat, m: Nat) : succ(addl(n,m)) == addl(n,succ(m))
+  case n
+  + m : Nat
+  | zero => equal(__)
+  | succ => apply(____ succ; addl.succ(n.pred,m))
+  : succ(addl(n,m)) == addl(n,succ(m))
+
+addl.commute(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
+  case n
+  + m : Nat
+  | zero =>
+    case m
+    | zero => equal(__)
+    | succ => apply(____ succ; addl.commute(zero,m.pred))
+    : addl(zero,m) == addl(m,zero)
+  | succ => 
+    let e = apply(____ succ; addl.commute(n.pred,m))
+    rewrite(___ addl.succ(m,n.pred), Equal(Nat,addl(succ(n.pred),m)); e)
+  : addl(n,m) == addl(m,n)
+
+add.commute(n: Nat, m: Nat) : add(n,m) == add(m,n)
+  case n
+  + m : Nat
+  | zero =>
+    case m
+    | zero => equal(__)
+    | succ => equal(__)
+    : add(zero,m) == add(m,zero)
+  | succ =>
+    case m
+    | zero => equal(__)
+    | succ => apply(____ (x) => succ(succ(x)); add.commute(n.pred,m.pred))
+    : add(succ(n.pred),m) == add(m,succ(n.pred))
+  : add(n,m) == add(m,n)
+
+addl.succ_succ(n: Nat, m: Nat) : succ(succ(addl(n,m))) == addl(succ(n),succ(m))
+  case n
+  + m : Nat
+  | zero => equal(__)
+  | succ => apply(____ succ; addl.succ_succ(n.pred,m))
+  : succ(succ(addl(n,m))) == addl(succ(n),succ(m))
+
+add.addl(n: Nat, m: Nat) : add(n,m) == addl(n,m)
+  case n
+  + m : Nat
+  | zero =>
+    case m
+    | zero => equal(__)
+    | succ => equal(__)
+    : add(zero,m) == addl(zero,m)
+  | succ =>
+    case m
+    | zero => 
+      let P = (x) => Equal(Nat,x,addl(zero,succ(n.pred)))
+      let e = rewrite(___ add.commute(zero,succ(n.pred)),P; equal(__))
+      let addl_zn = addl.commute(zero,succ(n.pred))
+      rewrite(___ addl_zn,Equal(Nat,add(succ(n.pred),zero)); e)
+    | succ => 
+      let e = apply(____ (x) => succ(succ(x)); add.addl(n.pred,m.pred))
+      let addl_ss = addl.succ_succ(n.pred,m.pred)
+      rewrite(___ addl_ss, Equal(Nat,succ(succ(add(n.pred,m.pred)))); e)
+    : add(succ(n.pred),m) == addl(succ(n.pred),m)
+  : add(n,m) == addl(n,m)
+
 // Tests
 // -----
 
