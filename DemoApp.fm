@@ -3,17 +3,15 @@ import App
 // A demo App that displays screen coordinates
 T DemoAppState
 | demoappstate(
-  mousex  : Bits,
-  mousey  : Bits,
-  clicks  : Bits,
-  lastkey : Bits
+  mousex  : Number,
+  mousey  : Number,
+  clicks  : Number,
+  lastkey : Number
 )
 
 demo_app : App(DemoAppState)
-  let x = 8
-
   // Application state
-  let state = demoappstate(be, be, be, be)
+  let state = demoappstate(0, 0, 0, 0)
 
   // Application interface
   let render = (state) =>
@@ -39,16 +37,16 @@ demo_app : App(DemoAppState)
         box("div", {}, [num(state.lastkey)]),
 
         // An image
-        //img([64, 64], (pos) => 
-          //get [x,y] = pos
-          //let r = ((x .*. 8 .+. state.mousex) .%. 256) .|. 0
-          //let g = ((y .*. 8 .+. state.mousey) .%. 256) .|. 0
-          //let b = 128
-          //let c = 0xFF000000
-          //let c = c .|. (b .<<. 16)
-          //let c = c .|. (g .<<. 8)
-          //let c = c .|. r
-          //c),
+        img(#[64, 64], (pos) => 
+          get #[x,y] = pos
+          let r = ((x .*. 8 .+. state.mousex) .%. 256) .|. 0
+          let g = ((y .*. 8 .+. state.mousey) .%. 256) .|. 0
+          let b = 128
+          let c = 0xFF000000
+          let c = c .|. (b .<<. 16)
+          let c = c .|. (g .<<. 8)
+          let c = c .|. r
+          c),
       ])
 
   // Application interaction
@@ -60,7 +58,7 @@ demo_app : App(DemoAppState)
       | demoappstate => demoappstate(
         state.mousex,
         state.mousey,
-        inc_bits(state.clicks),
+        state.clicks .+. 1,
         state.lastkey)
     | mousemove =>
       case state

@@ -9,10 +9,10 @@ Prop : Type
 // Doc is a renderable document
 T Doc
 | txt(value : String)
-| num(value : Bits)
+| num(value : Number)
 | img(
-  size : Pair(Bits, Bits),
-  data : Pair(Bits, Bits) -> Bits)
+  size : Pair(Number, Number),
+  data : Pair(Number, Number) -> Number)
 | box(
   tag : String,
   props : List(Prop),
@@ -20,11 +20,11 @@ T Doc
 
 // An event
 T Event
-| mouseclick(x : Bits, y : Bits)
-| mousemove(x : Bits, y : Bits)
-| keypress(key : Bits)
-| keydown(key : Bits)
-| keyup(key : Bits)
+| mouseclick(x : Number, y : Number)
+| mousemove(x : Number, y : Number)
+| keypress(key : Number)
+| keydown(key : Number)
+| keyup(key : Number)
 
 // App is an interactive application
 T App<A>

@@ -10,6 +10,7 @@ import List
 import Map
 import Maybe
 import Nat
+import Number
 import Pair
 import Parse
 import Sigma

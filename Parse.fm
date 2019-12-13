@@ -1,5 +1,6 @@
 import Maybe
 import Nat
+import Number
 import String
 import Unit
 
@@ -29,10 +30,9 @@ peek : Parser(Char)
   (str) =>
     case str
     | nil  => pair(__ nil(_), none(_))
-    | cons => case copy_bits(str.head) as str.head
-      | pair => pair(__ 
-        cons(_ str.head.fst, str.tail),
-        some(_ str.head.snd))
+    | cons => pair(__ 
+      cons(_ str.head, str.tail),
+      some(_ str.head))
     : Pair(String, Maybe(Char))
 
 // Parses one character if possible
@@ -48,19 +48,18 @@ match_one(chr: Char) : Parser(Bool)
   (str) =>
     case str
     | nil  => pair(__ nil(_), some(_ false))
-    | cons => case copy_bits(str.head) as str.head
-      | pair => case equal_bits(chr, str.head.fst) as eq
-        + str.tail : String
-        | true  => pair(__ str.tail, some(_ true))
-        | false => pair(__
-          cons(_ str.head.snd, str.tail),
-          some(_ false))
+    | cons => case num_equal(chr, str.head) as eq
+      + str.tail : String
+      | true  => pair(__ str.tail, some(_ true))
+      | false => pair(__
+        cons(_ str.head, str.tail),
+        some(_ false))
 
 // Parses exactly this character
 parse_exact(chr: Char) : Parser(Unit)
   do {
     var val = next;
-    case equal_bits(chr, val) as eq
+    case num_equal(chr, val) as eq
     | true  => do { return unit; }
     | false => do { throw; }
   }
@@ -78,7 +77,7 @@ skip_whites : Parser(Unit)
 parse_nat : Parser(Nat)
   do {
     var chr = next;
-    case equal_bits(chr, 'S') as eq
+    case num_equal(chr, 'S') as eq
     | true => do {
       var pred = parse_nat;
       return succ(pred);
@@ -98,3 +97,4 @@ parse_nats : Parser(Pair(Nat, Nat))
     parse_exact(']');
     return pair(__ nat0, nat1);
   }
+

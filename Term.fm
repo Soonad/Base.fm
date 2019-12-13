@@ -100,7 +100,7 @@ show_term.go(term : Term, dep : Nat) : String -> String
     (x) => txt0(msge(txt1(expr(x))))
   | hol =>
     // TODO: Name -> String
-    let txt0 = txt("?hol")
+    let txt0 = txt("?")
     (x) => txt0(x)
   : String -> String
 
@@ -198,33 +198,44 @@ subst(term : Term, val : Term, dep : Nat) : Term
     let name = term.name
     hol(name)
 
-reduce(term : Term, defs : Defs) : Term
+reduce(term : Term) : Term
   case term
+  + reduce : Term -> Term
   | typ => typ
   | ref => ref(term.name)
   | var => var(term.indx)
-  | all => all(term.bind, term.body)
-  | lam => lam(term.bind, term.body)
-  | app => case reduce(term.func, defs) as func
+  | all => all(reduce(term.bind), reduce(term.body))
+  | lam => lam(hol(be), reduce(term.body))
+  | app => case reduce(term.func) as func
     + term.argm : Term
-    | typ => app(typ, term.argm)
-    | ref => app(ref(func.name), term.argm)
-    | var => app(var(func.indx), term.argm)
-    | all => app(all(func.bind, func.body), term.argm)
-    | lam => subst(func.body, term.argm, 0n)
-    | app => app(app(func.func, func.argm), term.argm)
-    | slf => app(slf(func.type), term.argm)
-    | neo => app(neo(func.type, func.expr), term.argm)
-    | usi => app(usi(func.expr), term.argm)
-    | ann => app(ann(func.type, func.expr, func.done), term.argm)
-    | lug => app(lug(func.msge, func.expr), term.argm)
-    | hol => app(hol(func.name), term.argm)
-  | slf => slf(term.type)
-  | neo => neo(term.type, term.expr)
-  | usi => usi(term.expr)
-  | ann => ann(term.type, term.expr, term.done)
-  | lug => lug(term.msge, term.expr)
+    + reduce : Term -> Term
+    | typ => app(typ, reduce(term.argm))
+    | ref => app(ref(func.name), reduce(term.argm))
+    | var => app(var(func.indx), reduce(term.argm))
+    | all => app(all(func.bind, func.body), reduce(term.argm))
+    | lam => reduce(subst(func.body, term.argm, 0n))
+    | app => app(app(func.func, func.argm), reduce(term.argm))
+    | slf => app(slf(func.type), reduce(term.argm))
+    | neo => app(neo(func.type, func.expr), reduce(term.argm))
+    | usi => app(usi(func.expr), reduce(term.argm))
+    | ann => app(ann(func.type, func.expr, func.done), reduce(term.argm))
+    | lug => app(lug(func.msge, func.expr), reduce(term.argm))
+    | hol => app(hol(func.name), reduce(term.argm))
+  | slf => slf(reduce(term.type))
+  | neo => reduce(term.expr)
+  | usi => reduce(term.expr)
+  | ann => reduce(term.expr)
+  | lug => reduce(term.expr)
   | hol => hol(term.name)
+
+t2 : Term
+  lam(typ, lam(typ, app(var(1n), app(var(1n), var(0n)))))
+
+main hol
+//main show_term(reduce(app(t2,t2)))
+
+//main show_term(reduce(app(t2,t2), empty(_)))
+
 
 //T HOAS
 //| hvar(indx : Nat)

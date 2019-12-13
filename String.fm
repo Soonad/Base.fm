@@ -10,7 +10,7 @@ import List
 // ----------
 
 Char : Type
-  Bits
+  Number
 
 String : Type
   List(Char)
