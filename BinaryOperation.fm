@@ -1,0 +1,20 @@
+import Equal
+
+BinOp(T): Type
+  T -> T -> T
+
+//Statements
+commutative(T, op: BinOp(T)): Type
+  (a: T, b: T) -> op(a,b) == op(b,a)
+
+associative(T, op: BinOp(T)): Type
+  (a: T, b: T, c: T) -> op(op(a,b),c) == op(a,op(b,c))
+
+left_identity(T, op: BinOp(T), id: T): Type
+  (a: T) -> op(id, a) == a
+
+right_identity(T, op: BinOp(T), id: T): Type
+    (a: T) -> op(id, a) == a
+
+identity(T, op: BinOp(T), id: T): Type
+    And(left_identity(T, op, id), right_identity(T, op, id))
