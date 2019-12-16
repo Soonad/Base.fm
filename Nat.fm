@@ -4,9 +4,11 @@
 // Natural numbers.
 
 import Bool
+import Either
 import Empty
 import Equal
 import Pair
+import Sigma
 import The
 import Unit
 
@@ -86,6 +88,12 @@ mul.go(k: Nat, n: Nat, m: Nat) : Nat
 mul(n: Nat, m: Nat) : Nat
   mul.go(zero, n, m)
 
+//Non-affine, left-hand multiplication
+mull(n: Nat, m: Nat) : Nat
+  case n
+  | zero => zero
+  | succ => addl(m, mull(n.pred, m))
+
 // Comparison
 nat_compare(n: Nat, m: Nat) : Comparison
   case n
@@ -106,6 +114,13 @@ nat_equal(n: Nat, m: Nat) : Bool
 
 // Theorems
 // --------
+// Proof that `succ(n) == succ(m)` implies `n == m` (injectivity)
+succ_inj(a: Nat; b: Nat; e: succ(a) == succ(b)): a == b
+  apply(____ pred; e)
+
+// Proof that `n != m` implies `succ(n) != succ(m)` (contraposition of injectivity)
+succ_inj_contra(a: Nat; b: Nat; neq: a != b): succ(a) != succ(b)
+  (eq) => neq(succ_inj(a; b; eq))
 
 // Proof that `1 != 0`
 succ_isnt_zero(n : Nat;) : succ(n) != zero
@@ -127,6 +142,29 @@ zero_isnt_succ(n: Nat;): zero != succ(n)
 apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
   apply(_____ e)
 
+// Decidability of equality
+eq_dec(a: Nat, b: Nat): Or(a == b, a != b)
+  case a
+  + b : Nat
+  | zero => case b
+    | zero => lft(__ equal(__))
+    | succ => rgt(__ zero_isnt_succ(_))
+    : Or(zero == b, zero != b)
+  | succ => case b
+    | zero => rgt(__ succ_isnt_zero(_)) 
+    | succ => case eq_dec(a.pred, b.pred) as dec
+      | lft => lft(__ apply(____ succ; dec.value))
+      | rgt => rgt(__ succ_inj_contra(__ dec.value))
+      : Or(succ(a.pred) == succ(b.pred), succ(a.pred) != succ(b.pred))
+    : Or(succ(a.pred) == b, succ(a.pred) != b)
+  : Or(a == b, a != b)
+
+addl.zero(n: Nat) : addl(n, zero) == n
+  case n
+  | zero => equal(__)
+  | succ => apply(____ succ; addl.zero(n.pred))
+  : addl(n, zero) == n
+
 addl.succ(n: Nat, m: Nat) : succ(addl(n,m)) == addl(n,succ(m))
   case n
   + m : Nat
@@ -134,20 +172,20 @@ addl.succ(n: Nat, m: Nat) : succ(addl(n,m)) == addl(n,succ(m))
   | succ => apply(____ succ; addl.succ(n.pred,m))
   : succ(addl(n,m)) == addl(n,succ(m))
 
-addl.commute(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
+addl.comm(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
   case n
   + m : Nat
   | zero =>
     case m
     | zero => equal(__)
-    | succ => apply(____ succ; addl.commute(zero,m.pred))
+    | succ => apply(____ succ; addl.comm(zero,m.pred))
     : addl(zero,m) == addl(m,zero)
   | succ => 
-    let e = apply(____ succ; addl.commute(n.pred,m))
+    let e = apply(____ succ; addl.comm(n.pred,m))
     rewrite(___ addl.succ(m,n.pred), Equal(Nat,addl(succ(n.pred),m)); e)
   : addl(n,m) == addl(m,n)
 
-add.commute(n: Nat, m: Nat) : add(n,m) == add(m,n)
+add.comm(n: Nat, m: Nat) : add(n,m) == add(m,n)
   case n
   + m : Nat
   | zero =>
@@ -158,7 +196,7 @@ add.commute(n: Nat, m: Nat) : add(n,m) == add(m,n)
   | succ =>
     case m
     | zero => equal(__)
-    | succ => apply(____ (x) => succ(succ(x)); add.commute(n.pred,m.pred))
+    | succ => apply(____ (x) => succ(succ(x)); add.comm(n.pred,m.pred))
     : add(succ(n.pred),m) == add(m,succ(n.pred))
   : add(n,m) == add(m,n)
 
@@ -181,8 +219,8 @@ add.addl(n: Nat, m: Nat) : add(n,m) == addl(n,m)
     case m
     | zero => 
       let P = (x) => Equal(Nat,x,addl(zero,succ(n.pred)))
-      let e = rewrite(___ add.commute(zero,succ(n.pred)),P; equal(__))
-      let addl_zn = addl.commute(zero,succ(n.pred))
+      let e = rewrite(___ add.comm(zero,succ(n.pred)),P; equal(__))
+      let addl_zn = addl.comm(zero,succ(n.pred))
       rewrite(___ addl_zn,Equal(Nat,add(succ(n.pred),zero)); e)
     | succ => 
       let e = apply(____ (x) => succ(succ(x)); add.addl(n.pred,m.pred))
@@ -190,6 +228,122 @@ add.addl(n: Nat, m: Nat) : add(n,m) == addl(n,m)
       rewrite(___ addl_ss, Equal(Nat,succ(succ(add(n.pred,m.pred)))); e)
     : add(succ(n.pred),m) == addl(succ(n.pred),m)
   : add(n,m) == addl(n,m)
+
+-- Associativity of the sum
+addl.assoc(a: Nat, b: Nat, c: Nat) : addl(a,  addl(b,  c)) == addl(addl(a,  b),  c)
+  case a
+  + b : Nat
+  + c : Nat
+  | zero => equal(__)
+  | succ => apply(____ succ; addl.assoc(a.pred, b, c))
+  : addl(a,  addl(b,  c)) == addl(addl(a,  b),  c)
+
+addl.left.swap(a: Nat, b: Nat, c: Nat) : addl(a,  addl(b,  c)) == addl(b,  addl(a,  c))
+  let eq1 = addl.assoc(a, b, c)
+  let eq2 = apply(____ (x) => addl(x, c); addl.comm(a, b))
+  let eq3 = mirror(___ addl.assoc(b, a, c))
+  chain(____ eq1, chain(____ eq2, eq3))
+
+addl.right.swap(a: Nat, b: Nat, c: Nat) : addl(addl(a,  b),  c) == addl(addl(a,  c),  b)
+  let eq1 = mirror(___ addl.assoc(a, b, c))
+  let eq2 = apply(____ addl(a); addl.comm(b, c))
+  let eq3 = addl.assoc(a, c, b)
+  chain(____ eq1, chain(____ eq2, eq3))
+
+addl.inner.swap(a: Nat, b: Nat, c: Nat, d: Nat) : addl(addl(a,  b),  addl(c,  d)) == addl(addl(a,  c),  addl(b,  d))
+  let eq1 = mirror(___ addl.assoc(a, b, addl(c, d)))
+  let eq2 = apply(____ addl(a); addl.left.swap(b, c, d))
+  let eq3 = addl.assoc(a, c, addl(b, d))
+  chain(____ eq1, chain(____ eq2, eq3))
+
+mull.n.zero(n: Nat) : mull(n, zero) == zero
+  case n
+  | zero => equal(__)
+  | succ => mull.n.zero(n.pred)
+  : mull(n, zero) == zero
+
+mull.n.one(n: Nat) : mull(n, succ(zero)) == n
+  case n
+  | zero => equal(__)
+  | succ => apply(____ succ; mull.n.one(n.pred))
+  : mull(n, succ(zero)) == n
+
+mull.n.succ(n: Nat, m: Nat) : mull(n,  succ(m)) == addl(n,  mull(n,  m))
+  case n
+  | zero => equal(__)
+  | succ =>
+    let eq1 = apply(____ addl(succ(m)); mull.n.succ(n.pred, m))
+    let eq2 = apply(____ succ; addl.left.swap(m, n.pred, mull(n.pred, m)))
+    chain(____ eq1, eq2)
+  : mull(n,  succ(m)) == addl(n,  mull(n,  m))
+
+mull.comm(a: Nat, b: Nat) : mull(a, b) == mull(b, a)
+  case a
+  | zero => mirror(___ mull.n.zero(b))
+  | succ =>
+    let eq1 = apply(____ addl(b); mull.comm(a.pred, b))
+    let eq2 = mirror(___ mull.n.succ(b, a.pred))
+    chain(____ eq1, eq2)
+  : mull(a, b) == mull(b, a)
+
+mull.leftdist(a: Nat, b: Nat, c: Nat) : mull(a,  addl(b,  c)) == addl(mull(a,  b),  mull(a,  c))
+  case a
+  | zero => equal(__)
+  | succ =>
+    let eq1 = apply(____ addl(addl(b, c)); mull.leftdist(a.pred, b, c))
+    let eq2 = addl.inner.swap(b, c, mull(a.pred, b), mull(a.pred, c))
+    chain(____ eq1, eq2)
+  : mull(a,  addl(b,  c)) == addl(mull(a,  b),  mull(a,  c))
+
+mull.rightdist(a: Nat, b: Nat, c: Nat) : mull(addl(a,  b),  c) == addl(mull(a,  c),  mull(b,  c))
+  let eq1 = mull.comm(addl(a, b), c)
+  let eq2 = mull.leftdist(c, a, b)
+  let eq3 = apply(____ addl(mull(c, a)); mull.comm(c, b))
+  let eq4 = apply(____ (x) => addl(x, mull(b, c)); mull.comm(c, a))
+  chain(____ eq1, chain(____ eq2, chain(____ eq3, eq4)))
+
+mull.assoc(a: Nat, b: Nat, c: Nat) : mull(a,  mull(b,  c)) == mull(mull(a,  b),  c)
+  case a
+  | zero => equal(__)
+  | succ =>
+    let eq1 = apply(____ addl(mull(b, c)); mull.assoc(a.pred, b, c))
+    let eq2 = mirror(___ mull.rightdist(b, mull(a.pred, b), c))
+    chain(____ eq1, eq2)
+  : mull(a,  mull(b,  c)) == mull(mull(a,  b),  c)
+
+mull.left.swap(a: Nat, b: Nat, c: Nat) : mull(a,  mull(b,  c)) == mull(b,  mull(a,  c))
+  let eq1 = mull.assoc(a, b, c)
+  let eq2 = apply(____ (x) => mull(x, c); mull.comm(a, b))
+  let eq3 = mirror(___ mull.assoc(b, a, c))
+  chain(____ eq1, chain(____ eq2, eq3))
+
+mull.inner.swap(a: Nat, b: Nat, c: Nat, d: Nat) : mull(mull(a,  b),  mull(c,  d)) == mull(mull(a,  c),  mull(b,  d))
+  let eq1 = mirror(___ mull.assoc(a, b, mull(c, d)))
+  let eq2 = apply(____ mull(a); mull.left.swap(b, c, d))
+  let eq3 = mull.assoc(a, c, mull(b, d))
+  chain(____ eq1, chain(____ eq2, eq3))
+
+-- Neutral elements
+addl.uniq.neutral(a: Nat, b: Nat) : Or(addl(a, b) == a, addl(b, a) == a) -> b == zero
+  case a
+  | zero => (or) => case or
+    | lft => or.value
+    | rgt => chain(____ mirror(___ addl.zero(b)), or.value)
+    : b == zero
+  | succ => (or) => case or
+    | lft => addl.uniq.neutral(a.pred, b, lft(__ succ_inj(addl(a.pred, b); a.pred; or.value)))
+    | rgt => addl.uniq.neutral(a.pred, b, rgt(__ succ_inj(addl(b, a.pred); a.pred; chain(____ addl.succ(b, a.pred), or.value))))
+    : b == zero
+  : Or(addl(a, b) == a, addl(b, a) == a) -> b == zero
+
+addl.no.inverse(a: Nat, b: Nat) : (addl(a, b) == zero) -> And(a == zero, b == zero)
+  case a
+  | zero => case b
+    | zero => (eq) => pair(__ equal(__), equal(__))
+    | succ => (eq) => absurd(succ_isnt_zero(b.pred; eq) _)
+    : (addl(zero, b) == zero) -> And(zero == zero, b == zero)
+  | succ => (eq) => absurd(succ_isnt_zero(addl(a.pred, b); eq) _)
+  : (addl(a, b) == zero) -> And(a == zero, b == zero)
 
 // Tests
 // -----
