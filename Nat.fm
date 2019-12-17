@@ -389,16 +389,20 @@ T LTE(a: Nat, b: Nat)
   | lte.succ(a: Nat, b: Nat, lte: LTE(a, b)) : LTE(succ(a), succ(b))
 
 succ_not_lte_zero(a: Nat; pf: LTE(succ(a), zero)) : Empty
-  (case pf
-  | lte.zero => (eq1, _) => absurd(zero_isnt_succ(_ eq1) _)
-  | lte.succ => (_, eq2) => absurd(succ_isnt_zero(_ eq2) _)
-  : (pf.a == succ(a)) -> (pf.b == zero) -> Empty)(equal(__), equal(__))
+  case pf
+  + equal(__) as eq1 : pf.a == succ(a)
+  + equal(__) as eq2 : pf.b == zero
+  | lte.zero => absurd(zero_isnt_succ(_ eq1) _)
+  | lte.succ => absurd(succ_isnt_zero(_ eq2) _)
+  : Empty
 
 lte.pred(a: Nat; b: Nat; pf: LTE(succ(a), succ(b))) : LTE(a, b)
-  (case pf
-  | lte.zero => (eq1,   _) => absurd(zero_isnt_succ(_ eq1) _)
-  | lte.succ => (eq1, eq2) => (pf.lte :: rewrite LTE(pf.a,.) with succ_inj(__ eq2)) :: rewrite LTE(.,b) with succ_inj(__ eq1)
-  : (pf.a == succ(a)) -> (pf.b == succ(b)) -> LTE(a, b))(equal(__), equal(__))
+  case pf
+  + equal(__) as eq1 : pf.a == succ(a)
+  + equal(__) as eq2 : pf.b == succ(b)
+  | lte.zero => absurd(zero_isnt_succ(_ eq1) _)
+  | lte.succ => (pf.lte :: rewrite LTE(pf.a,.) with succ_inj(__ eq2)) :: rewrite LTE(.,b) with succ_inj(__ eq1)
+  : LTE(a, b)
 
 // An alternative definition of `a <= b` which is really useful is `exists x : Nat, a + x = b` therefore we can write the following functions:
 lte_add_get(a: Nat, b: Nat, pf: LTE(a, b)) : Sigma(Nat, (x: Nat) => addl(a, x) == b)
@@ -521,6 +525,31 @@ lte_trichotomy(a: Nat, b: Nat) : Or(a == b, Or(LTE(succ(a), b), LTE(succ(b), a))
       : Or(succ(a.pred) == succ(b.pred), Or(LTE(succ(succ(a.pred)), succ(b.pred)), LTE(succ(succ(b.pred)), succ(a.pred))))
     : Or(succ(a.pred) == b, Or(LTE(succ(succ(a.pred)), b), LTE(succ(b), succ(a.pred))))
   : Or(a == b, Or(LTE(succ(a), b), LTE(succ(b), a)))
+
+T LT(a: Nat, b: Nat)
+  | lt.zero(a: Nat) : LT(zero, succ(a))
+  | lt.succ(a: Nat, b: Nat, lt: LT(a, b)) : LT(succ(a), succ(b))
+
+succ_is_greater(a: Nat) : LT(a, succ(a))
+  case a
+  | zero => lt.zero(zero)
+  | succ => lt.succ(a.pred, succ(a.pred), succ_is_greater(a.pred))
+  : LT(a, succ(a))
+
+nothing_lt_zero(a: Nat; pf: LT(a, zero)) : Empty
+  case pf
+  + equal(__) as eq : pf.b == zero
+  | lt.zero => absurd(succ_isnt_zero(_ eq) _)
+  | lt.succ => absurd(succ_isnt_zero(_ eq) _)
+  : Empty 
+
+lt_not_equal(a: Nat; b: Nat; pf: LT(a, b)) : Not(a == b)
+  (eq) => case pf
+    + equal(__) as eq1 : pf.a == a
+    + equal(__) as eq2 : pf.b == b
+    | lt.zero => zero_isnt_succ(_ chain(____ chain(____ eq1, eq), mirror(___ eq2)))
+    | lt.succ => lt_not_equal(pf.a; pf.b; pf.lt, succ_inj(__ chain(____ chain(____ eq1, eq), mirror(___ eq2))))
+    : Empty
 
 // Tests
 // -----
