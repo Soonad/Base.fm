@@ -384,6 +384,145 @@ when_addl_equals_one(a: Nat, b: Nat, eq: addl(a, b) == one) : Or(And(a == one, b
     : P(a, b, a)
   : P(a, b, a)
 
+T LTE(a: Nat, b: Nat)
+  | lte.zero(a: Nat) : LTE(zero, a)
+  | lte.succ(a: Nat, b: Nat, lte: LTE(a, b)) : LTE(succ(a), succ(b))
+
+succ_not_lte_zero(a: Nat; pf: LTE(succ(a), zero)) : Empty
+  let motive    = (x, y, _)         => (x == succ(a)) -> (y == zero) -> Empty
+  let case_zero = (_, eq1, _)       => absurd(zero_isnt_succ(_ eq1) _)
+  let case_succ = (_, _, _, _, eq2) => absurd(succ_isnt_zero(_ eq2) _)
+  (use(pf)(motive; case_zero, case_succ))(equal(__), equal(__))
+
+lte.pred(a: Nat; b: Nat; pf: LTE(succ(a), succ(b))) : LTE(a, b)
+  let motive    = (x, y, _)                 => (x == succ(a)) -> (y == succ(b)) -> LTE(a, b)
+  let case_zero = (_, eq1, _)               => absurd(zero_isnt_succ(_ eq1) _)
+  let case_succ = (x, y, pf.pred, eq1, eq2) =>
+    (pf.pred :: rewrite LTE(x,.) with succ_inj(__ eq2)) :: rewrite LTE(.,b) with succ_inj(__ eq1)
+  (use(pf)(motive; case_zero, case_succ))(equal(__), equal(__))
+
+// An alternative definition of `a <= b` which is really useful is `exists x : Nat, a + x = b` therefore we can write the following functions:
+lte_add_get(a: Nat, b: Nat, pf: LTE(a, b)) : Sigma(Nat, (x: Nat) => addl(a, x) == b)
+  let P = (a: Nat, b: Nat, x: Nat) => addl(a, x) == b
+  case a
+  + pf : LTE(a, b)
+  | zero => sigma(Nat; P(zero, b); b, equal(__))
+  | succ => case b
+    + pf : LTE(succ(a.pred), b)
+    | zero => absurd(succ_not_lte_zero(_ pf), _)
+    | succ => case lte_add_get(a.pred, b.pred, lte.pred(__ pf)) as pair
+      | sigma => sigma(Nat; P(succ(a.pred), succ(b.pred)); pair.fst, apply(____ succ; pair.snd))
+      : Sigma(Nat, P(succ(a.pred), succ(b.pred)))
+    : Sigma(Nat, P(succ(a.pred), b))
+  : Sigma(Nat, P(a, b))
+
+lte_add(a: Nat, b: Nat, x: Nat, eq: addl(a, x) == b) : LTE(a, b)
+  case a
+  + eq : addl(a, x) == b
+  | zero => lte.zero(b)
+  | succ => case b
+    + eq : addl(succ(a.pred), x) == b
+    | zero => absurd(succ_isnt_zero(addl(a.pred, x); eq) _)
+    | succ => lte.succ(a.pred, b.pred, lte_add(a.pred, b.pred, x, succ_inj(addl(a.pred, x); _ eq)))
+    : LTE(succ(a.pred), b)
+  : LTE(a, b)
+
+// Less-than-or-equal properties
+lte_refl(a: Nat, b: Nat, eq: a == b) : LTE(a, b)
+  case a
+  + eq : a == b
+  | zero => lte.zero(b)
+  | succ => case b
+    + eq : succ(a.pred) == b
+    | zero => absurd(succ_isnt_zero(_ eq) _)
+    | succ => lte.succ(a.pred, b.pred, lte_refl(a.pred, b.pred, succ_inj(__ eq)))
+    : LTE(succ(a.pred), b)
+  : LTE(a, b)
+
+lte_same(a: Nat) : LTE(a, a)
+  lte_refl(a, a, equal(__))
+
+lte_bottom(a: Nat, pf: LTE(a, zero)) : a == zero
+  case a
+  + pf: LTE(a, zero)
+  | zero => equal(__)
+  | succ => absurd(succ_not_lte_zero(_ pf), _)
+  : a == zero
+
+lte_trans(a: Nat, b: Nat, c: Nat, ab: LTE(a, b), bc: LTE(b, c)) : LTE(a, c)
+  case a
+  + ab : LTE(a, b)
+  + bc : LTE(b, c)
+  | zero => lte.zero(c)
+  | succ => case b
+    + ab : LTE(succ(a.pred), b)
+    + bc : LTE(b, c)
+    | zero => absurd(succ_not_lte_zero(_ ab) _)
+    | succ => case c
+      + ab : LTE(succ(a.pred), succ(b.pred))
+      + bc : LTE(succ(b.pred), c)
+      | zero => absurd(succ_not_lte_zero(_ bc) _)
+      | succ => lte.succ(a.pred, c.pred, lte_trans(a.pred, b.pred, c.pred, lte.pred(__ ab), lte.pred(__ bc)))
+      : LTE(succ(a.pred), c)
+    : LTE(succ(a.pred), c)
+  : LTE(a, c)
+
+lte_antisym(a: Nat, b: Nat, ab: LTE(a, b), ba: LTE(b, a)) : a == b
+  case a
+  + ab: LTE(a, b)
+  + ba: LTE(b, a)
+  | zero => mirror(___ lte_bottom(b, ba))
+  | succ => case b
+    + ab: LTE(succ(a.pred), b)
+    + ba: LTE(b, succ(a.pred))
+    | zero => absurd(succ_not_lte_zero(_ ab) _)
+    | succ => apply(____ succ; lte_antisym(a.pred, b.pred, lte.pred(__ ab), lte.pred(__ ba)))
+    : succ(a.pred) == b
+  : a == b
+
+lte_total(a: Nat, b: Nat) : Or(LTE(a, b), LTE(b, a))
+  case a
+  | zero => lft(__ lte.zero(b))
+  | succ => 
+    case b
+    | zero => rgt(__ lte.zero(succ(a.pred)))
+    | succ => case lte_total(a.pred, b.pred) as or
+      | lft => lft(__ lte.succ(a.pred, b.pred, or.value))
+      | rgt => rgt(__ lte.succ(b.pred, a.pred, or.value))
+      : Or(LTE(succ(a.pred), succ(b.pred)), LTE(succ(b.pred), succ(a.pred))) 
+    : Or(LTE(succ(a.pred), b), LTE(b, succ(a.pred))) 
+  : Or(LTE(a, b), LTE(b, a))
+
+lte_dec(a: Nat, b: Nat) : Or(LTE(a, b), Not(LTE(a, b)))
+  case a
+  | zero => lft(__ lte.zero(b))
+  | succ => case b
+    | zero => rgt(__ succ_not_lte_zero(_))
+    | succ => case lte_dec(a.pred, b.pred) as or
+      | lft => lft(__ lte.succ(a.pred, b.pred, or.value))
+      | rgt => rgt(__ (pf: LTE(succ(a.pred), succ(b.pred))) => or.value(lte.pred(__ pf)))
+      : Or(LTE(succ(a.pred), succ(b.pred)), Not(LTE(succ(a.pred), succ(b.pred))))
+    : Or(LTE(succ(a.pred), b), Not(LTE(succ(a.pred), b)))
+  : Or(LTE(a, b), Not(LTE(a, b)))
+
+lte_trichotomy(a: Nat, b: Nat) : Or(a == b, Or(LTE(succ(a), b), LTE(succ(b), a)))
+  case a
+  | zero => case b
+    | zero => lft(__ equal(__))
+    | succ => rgt(__ lft(__ lte.succ(zero, b.pred, lte.zero(b.pred))))
+    : Or(zero == b, Or(LTE(succ(zero), b), LTE(succ(b), zero)))
+  | succ => case b
+    | zero => rgt(__ rgt(__ lte.succ(zero, a.pred, lte.zero(a.pred))))
+    | succ => case lte_trichotomy(a.pred, b.pred) as or
+      | lft => lft(__ apply(____ succ; or.value))
+      | rgt => case or.value as or
+        | lft => rgt(__ lft(__ lte.succ(succ(a.pred), b.pred, or.value)))
+        | rgt => rgt(__ rgt(__ lte.succ(succ(b.pred), a.pred, or.value)))
+        : Or(succ(a.pred) == succ(b.pred), Or(LTE(succ(succ(a.pred)), succ(b.pred)), LTE(succ(succ(b.pred)), succ(a.pred))))
+      : Or(succ(a.pred) == succ(b.pred), Or(LTE(succ(succ(a.pred)), succ(b.pred)), LTE(succ(succ(b.pred)), succ(a.pred))))
+    : Or(succ(a.pred) == b, Or(LTE(succ(succ(a.pred)), b), LTE(succ(b), succ(a.pred))))
+  : Or(a == b, Or(LTE(succ(a), b), LTE(succ(b), a)))
+
 // Tests
 // -----
 
