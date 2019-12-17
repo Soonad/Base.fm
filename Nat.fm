@@ -389,17 +389,16 @@ T LTE(a: Nat, b: Nat)
   | lte.succ(a: Nat, b: Nat, lte: LTE(a, b)) : LTE(succ(a), succ(b))
 
 succ_not_lte_zero(a: Nat; pf: LTE(succ(a), zero)) : Empty
-  let motive    = (x, y, _)         => (x == succ(a)) -> (y == zero) -> Empty
-  let case_zero = (_, eq1, _)       => absurd(zero_isnt_succ(_ eq1) _)
-  let case_succ = (_, _, _, _, eq2) => absurd(succ_isnt_zero(_ eq2) _)
-  (use(pf)(motive; case_zero, case_succ))(equal(__), equal(__))
+  (case pf
+  | lte.zero => (eq1, _) => absurd(zero_isnt_succ(_ eq1) _)
+  | lte.succ => (_, eq2) => absurd(succ_isnt_zero(_ eq2) _)
+  : (pf.a == succ(a)) -> (pf.b == zero) -> Empty)(equal(__), equal(__))
 
 lte.pred(a: Nat; b: Nat; pf: LTE(succ(a), succ(b))) : LTE(a, b)
-  let motive    = (x, y, _)                 => (x == succ(a)) -> (y == succ(b)) -> LTE(a, b)
-  let case_zero = (_, eq1, _)               => absurd(zero_isnt_succ(_ eq1) _)
-  let case_succ = (x, y, pf.pred, eq1, eq2) =>
-    (pf.pred :: rewrite LTE(x,.) with succ_inj(__ eq2)) :: rewrite LTE(.,b) with succ_inj(__ eq1)
-  (use(pf)(motive; case_zero, case_succ))(equal(__), equal(__))
+  (case pf
+  | lte.zero => (eq1,   _) => absurd(zero_isnt_succ(_ eq1) _)
+  | lte.succ => (eq1, eq2) => (pf.lte :: rewrite LTE(pf.a,.) with succ_inj(__ eq2)) :: rewrite LTE(.,b) with succ_inj(__ eq1)
+  : (pf.a == succ(a)) -> (pf.b == succ(b)) -> LTE(a, b))(equal(__), equal(__))
 
 // An alternative definition of `a <= b` which is really useful is `exists x : Nat, a + x = b` therefore we can write the following functions:
 lte_add_get(a: Nat, b: Nat, pf: LTE(a, b)) : Sigma(Nat, (x: Nat) => addl(a, x) == b)
