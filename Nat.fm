@@ -154,7 +154,7 @@ eq_dec(a: Nat, b: Nat): Or(a == b, a != b)
     | succ => rgt(__ zero_isnt_succ(_))
     : Or(zero == b, zero != b)
   | succ => case b
-    | zero => rgt(__ succ_isnt_zero(_)) 
+    | zero => rgt(__ succ_isnt_zero(_))
     | succ => case eq_dec(a.pred, b.pred) as dec
       | lft => lft(__ apply(____ succ; dec.value))
       | rgt => rgt(__ succ_inj_contra(__ dec.value))
@@ -183,7 +183,7 @@ addl_comm(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
     | zero => equal(__)
     | succ => apply(____ succ; addl_comm(zero,m.pred))
     : addl(zero,m) == addl(m,zero)
-  | succ => 
+  | succ =>
     let e = apply(____ succ; addl_comm(n.pred,m))
     rewrite(___ addl_succ(m,n.pred), Equal(Nat,addl(succ(n.pred),m)); e)
   : addl(n,m) == addl(m,n)
@@ -220,12 +220,12 @@ add_addl(n: Nat, m: Nat) : add(n,m) == addl(n,m)
     : add(zero,m) == addl(zero,m)
   | succ =>
     case m
-    | zero => 
+    | zero =>
       let P = (x) => Equal(Nat,x,addl(zero,succ(n.pred)))
       let e = rewrite(___ add_comm(zero,succ(n.pred)),P; equal(__))
       let addl_zn = addl_comm(zero,succ(n.pred))
       rewrite(___ addl_zn,Equal(Nat,add(succ(n.pred),zero)); e)
-    | succ => 
+    | succ =>
       let e = apply(____ (x) => succ(succ(x)); add_addl(n.pred,m.pred))
       let addl_ss = addl_succ_succ(n.pred,m.pred)
       rewrite(___ addl_ss, Equal(Nat,succ(succ(add(n.pred,m.pred)))); e)
@@ -486,14 +486,14 @@ lte_antisym(a: Nat, b: Nat, ab: LTE(a, b), ba: LTE(b, a)) : a == b
 lte_total(a: Nat, b: Nat) : Or(LTE(a, b), LTE(b, a))
   case a
   | zero => lft(__ lte.zero(b))
-  | succ => 
+  | succ =>
     case b
     | zero => rgt(__ lte.zero(succ(a.pred)))
     | succ => case lte_total(a.pred, b.pred) as or
       | lft => lft(__ lte.succ(a.pred, b.pred, or.value))
       | rgt => rgt(__ lte.succ(b.pred, a.pred, or.value))
-      : Or(LTE(succ(a.pred), succ(b.pred)), LTE(succ(b.pred), succ(a.pred))) 
-    : Or(LTE(succ(a.pred), b), LTE(b, succ(a.pred))) 
+      : Or(LTE(succ(a.pred), succ(b.pred)), LTE(succ(b.pred), succ(a.pred)))
+    : Or(LTE(succ(a.pred), b), LTE(b, succ(a.pred)))
   : Or(LTE(a, b), LTE(b, a))
 
 lte_dec(a: Nat, b: Nat) : Or(LTE(a, b), Not(LTE(a, b)))
@@ -536,12 +536,20 @@ succ_is_greater(a: Nat) : LT(a, succ(a))
   | succ => lt.succ(a.pred, succ(a.pred), succ_is_greater(a.pred))
   : LT(a, succ(a))
 
-nothing_lt_zero(a: Nat; pf: LT(a, zero)) : Empty
+nothing_lt_zero(a: Nat;) : Not(LT(a, zero))
+  (pf) => case pf
+    + equal(__) as eq : pf.b == zero
+    | lt.zero => absurd(succ_isnt_zero(_ eq) _)
+    | lt.succ => absurd(succ_isnt_zero(_ eq) _)
+    : Empty
+
+lt.pred(a: Nat; b: Nat; pf: LT(succ(a), succ(b))) : LT(a, b)
   case pf
-  + equal(__) as eq : pf.b == zero
-  | lt.zero => absurd(succ_isnt_zero(_ eq) _)
-  | lt.succ => absurd(succ_isnt_zero(_ eq) _)
-  : Empty 
+  + equal(__) as eq1 : pf.a == succ(a)
+  + equal(__) as eq2 : pf.b == succ(b)
+  | lt.zero => absurd(zero_isnt_succ(_ eq1) _)
+  | lt.succ => (pf.lt :: rewrite LT(pf.a,.) with succ_inj(__ eq2)) :: rewrite LT(.,b) with succ_inj(__ eq1)
+  : LT(a, b)
 
 lt_not_equal(a: Nat; b: Nat; pf: LT(a, b)) : Not(a == b)
   (eq) => case pf
@@ -550,6 +558,89 @@ lt_not_equal(a: Nat; b: Nat; pf: LT(a, b)) : Not(a == b)
     | lt.zero => zero_isnt_succ(_ chain(____ chain(____ eq1, eq), mirror(___ eq2)))
     | lt.succ => lt_not_equal(pf.a; pf.b; pf.lt, succ_inj(__ chain(____ chain(____ eq1, eq), mirror(___ eq2))))
     : Empty
+
+lt_to_succ_lte(a: Nat, b: Nat) : LT(a, b) -> LTE(succ(a), b)
+  (pf) => case b
+    + pf : LT(a, b)
+    | zero => absurd(nothing_lt_zero(_ pf) _)
+    | succ => case a
+      + pf : LT(a, succ(b.pred))
+      | zero => lte.succ(zero, b.pred, lte.zero(b.pred))
+      | succ => lte.succ(succ(a.pred), b.pred, lt_to_succ_lte(a.pred, b.pred, lt.pred(__ pf)))
+      : LTE(succ(a), succ(b.pred))
+    : LTE(succ(a), b)
+
+lt_succ_to_lte(a: Nat, b: Nat) : LT(a, succ(b)) -> LTE(a, b)
+  (pf) => case a
+    + pf : LT(a, succ(b))
+    | zero => lte.zero(b)
+    | succ => case b
+      + pf : LT(succ(a.pred), succ(b))
+      | zero => absurd(nothing_lt_zero(_ lt.pred(__ pf)) _)
+      | succ => lte.succ(a.pred, b.pred, lt_succ_to_lte(a.pred, b.pred, lt.pred(__ pf)))
+      : LTE(succ(a.pred), b)
+    : LTE(a, b)
+
+
+succ_lte_to_lt(a: Nat, b: Nat) : LTE(succ(a), b) -> LT(a, b)
+  (pf) => case b
+    + pf : LTE(succ(a), b)
+    | zero => absurd(succ_not_lte_zero(_ pf) _)
+    | succ => case a
+      + pf : LTE(succ(a), succ(b.pred))
+      | zero => lt.zero(b.pred)
+      | succ => lt.succ(a.pred, b.pred, succ_lte_to_lt(a.pred, b.pred, lte.pred(__ pf)))
+      : LT(a, succ(b.pred))
+    : LT(a, b)
+
+lte_to_lt_succ(a: Nat, b: Nat) : LTE(a, b) -> LT(a, succ(b))
+  (pf) => case a
+    + pf : LTE(a, b)
+    | zero => lt.zero(b)
+    | succ => case b
+      + pf : LTE(succ(a.pred), b)
+      | zero => absurd(succ_not_lte_zero(_ pf) _)
+      | succ => lt.succ(a.pred, succ(b.pred), lte_to_lt_succ(a.pred, b.pred, lte.pred(__ pf)))
+      : LT(succ(a.pred), succ(b))
+    : LT(a, succ(b))
+
+lte_lt_or_eq(a: Nat, b: Nat, pf: LTE(a, b)) : Or(LT(a, b), a == b)
+  case a
+  + pf : LTE(a, b)
+  | zero => case b
+    + pf : LTE(zero, b)
+    | zero => rgt(__ equal(__))
+    | succ => lft(__ lt.zero(b.pred))
+    : Or(LT(zero, b), zero == b)
+  | succ => case b
+    + pf : LTE(succ(a.pred), b)
+    | zero => absurd(succ_not_lte_zero(_ pf) _)
+    | succ => case lte_lt_or_eq(a.pred, b.pred, lte.pred(__ pf)) as or
+      | lft => lft(__ lt.succ(a.pred, b.pred, or.value))
+      | rgt => rgt(__ apply(____ succ; or.value))
+      : Or(LT(succ(a.pred), succ(b.pred)), succ(a.pred) == succ(b.pred))
+    : Or(LT(succ(a.pred), b), succ(a.pred) == b)
+  : Or(LT(a, b), a == b)
+
+lt_stronger_lte(a: Nat, b: Nat, pf: LT(a, b)) : LTE(a, b)
+  case b
+  + pf : LT(a, b)
+  | zero => absurd(nothing_lt_zero(_ pf) _)
+  | succ => case a
+    + pf : LT(a, succ(b.pred))
+    | zero => lte.zero(succ(b.pred))
+    | succ => lte.succ(a.pred, b.pred, lt_stronger_lte(a.pred, b.pred, lt.pred(__ pf)))
+    : LTE(a, succ(b.pred))
+  : LTE(a, b)
+
+nat_trichotomy(a: Nat, b: Nat) : Or(a == b, Or(LT(a, b), LT(b, a)))
+  case lte_trichotomy(a, b) as or
+  | lft => lft(__ or.value)
+  | rgt => case or.value as or
+    | lft => rgt(__ lft(__ succ_lte_to_lt(a, b, or.value)))
+    | rgt => rgt(__ rgt(__ succ_lte_to_lt(b, a, or.value)))
+    : Or(a == b, Or(LT(a, b), LT(b, a)))
+  : Or(a == b, Or(LT(a, b), LT(b, a)))
 
 // Tests
 // -----
