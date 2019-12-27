@@ -48,7 +48,7 @@ match_one(chr: Char) : Parser(Bool)
   (str) =>
     case str
     | nil  => pair(__ nil(_), some(_ false))
-    | cons => case num_equal(chr, str.head) as eq
+    | cons => case number_equal(chr, str.head) as eq
       + str.tail : String
       | true  => pair(__ str.tail, some(_ true))
       | false => pair(__
@@ -59,7 +59,7 @@ match_one(chr: Char) : Parser(Bool)
 parse_exact(chr: Char) : Parser(Unit)
   do {
     var val = next;
-    case num_equal(chr, val) as eq
+    case number_equal(chr, val) as eq
     | true  => do { return unit; }
     | false => do { throw; }
   }
@@ -77,7 +77,7 @@ skip_whites : Parser(Unit)
 parse_nat : Parser(Nat)
   do {
     var chr = next;
-    case num_equal(chr, 'S') as eq
+    case number_equal(chr, 'S') as eq
     | true => do {
       var pred = parse_nat;
       return succ(pred);
