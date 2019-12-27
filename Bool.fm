@@ -61,14 +61,14 @@ nor(a: Bool, b: Bool) : Bool
 // Exclusive or
 xor(a: Bool, b: Bool) : Bool
   case a
-  + b : Bool
+  with b : Bool
   | true  => not(b)
   | false => b
 
 // Logical equality
 xnor(a: Bool, b: Bool) : Bool
   case a
-  + b : Bool
+  with b : Bool
   | true  => b
   | false => not(b)
 
@@ -106,16 +106,16 @@ false_isnt_true : false != true
   (e) => unit :: rewrite P(.) with e
 
 // A bool that is provably different from the input
-different_elem(a : Bool) : Bool .such_that. (b) => a != b
+different_elem(a : Bool) : Subset(Bool, (b) => a != b)
   case a
   | true  => subset(_ (b) => ? != b; ?, true_isnt_false;)
   | false => subset(_ (b) => ? != b; ?, false_isnt_true;)
-  : Bool .such_that. (b) => a != b
+  : Subset(Bool, (b) => a != b)
 
 // Demorgan's Law: !(a || b) == !a && !b
 demorgan_0(a, b) : not(or(a,b)) == and(not(a),not(b))
   case a
-  + b : Bool
+  with b : Bool
   | true => case b
     | true  => equal(__)
     | false => equal(__)
@@ -129,7 +129,7 @@ demorgan_0(a, b) : not(or(a,b)) == and(not(a),not(b))
 // Demorgan's Law: !(a && b) == !a || !b
 demorgan_1(a, b) : not(and(a,b)) == or(not(a), not(b))
   case a
-  + b : Bool
+  with b : Bool
   | true => case b
     | true  => equal(__)
     | false => equal(__)

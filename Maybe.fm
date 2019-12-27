@@ -11,7 +11,7 @@ import Bool
 // Definition
 // ----------
 
-T Maybe<A>
+T Maybe{A}
 | none
 | some(value : A)
 

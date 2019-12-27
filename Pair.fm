@@ -9,7 +9,7 @@
 // Definition
 // ----------
 
-T Pair<A, B>
+T Pair{A, B}
 | pair(fst : A, snd : B)
 
 // And is just a logical synonym for Pair

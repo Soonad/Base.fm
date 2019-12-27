@@ -29,15 +29,15 @@ not_bits(x: Bits) : Bits
 // Bitwise conjunction
 and_bits(x: Bits, y: Bits) : Bits
   case x
-  + y : Bits
+  with y : Bits
   | be => be
   | b0 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b0(and_bits(x.pred, y.pred))
     | b1 => b0(and_bits(x.pred, y.pred))
   | b1 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b0(and_bits(x.pred, y.pred))
     | b1 => b1(and_bits(x.pred, y.pred))
@@ -45,15 +45,15 @@ and_bits(x: Bits, y: Bits) : Bits
 // Bitwise disjunction
 or_bits(x: Bits, y: Bits) : Bits
   case x
-  + y : Bits
+  with y : Bits
   | be => be
   | b0 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b0(or_bits(x.pred, y.pred))
     | b1 => b1(or_bits(x.pred, y.pred))
   | b1 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b1(or_bits(x.pred, y.pred))
     | b1 => b1(or_bits(x.pred, y.pred))
@@ -61,15 +61,15 @@ or_bits(x: Bits, y: Bits) : Bits
 // Bitwise exclusive disjunction
 xor_bits(x: Bits, y: Bits) : Bits
   case x
-  + y : Bits
+  with y : Bits
   | be => be
   | b0 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b0(xor_bits(x.pred, y.pred))
     | b1 => b1(xor_bits(x.pred, y.pred))
   | b1 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b1(xor_bits(x.pred, y.pred))
     | b1 => b0(xor_bits(x.pred, y.pred))
@@ -77,10 +77,10 @@ xor_bits(x: Bits, y: Bits) : Bits
 // Bitwise right shift
 right_shift_bits(n: Nat, x: Bits) : Bits
   case n
-  + x : Bits
+  with x : Bits
   | zero => x
   | succ => case x
-    + n.pred : Nat
+    with n.pred : Nat
     | be => be
     | b0 => right_shift_bits(n.pred, x.pred)
     | b1 => right_shift_bits(n.pred, x.pred)
@@ -88,10 +88,10 @@ right_shift_bits(n: Nat, x: Bits) : Bits
 // Bitwise left shift
 left_shift_bits(n: Nat, x: Bits) : Bits
   case n
-  + x : Bits
+  with x : Bits
   | zero => x
   | succ => case x
-    + n.pred : Nat
+    with n.pred : Nat
     | be => be
     | b0 => left_shift_bits(n.pred, b0(b0(x.pred)))
     | b1 => left_shift_bits(n.pred, b0(b1(x.pred)))
@@ -106,15 +106,15 @@ inc_bits(x: Bits) : Bits
 // Addition
 add_bits(x: Bits, y: Bits) : Bits
   case x
-  + y : Bits
+  with y : Bits
   | be => be
   | b0 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b0(add_bits(x.pred, y.pred))
     | b1 => b1(add_bits(x.pred, y.pred))
   | b1 => case y
-    + x.pred : Bits
+    with x.pred : Bits
     | be => be
     | b0 => b1(add_bits(x.pred, y.pred))
     | b1 => b0(inc_bits(add_bits(x.pred, y.pred)))
@@ -132,7 +132,7 @@ nat_to_bits(n: Nat) : Bits
 
 copy_bits(bs: Bits) : And(Bits, Bits)
   case bs
-  + copy_bits : Bits -> And(Bits, Bits)
+  with copy_bits : Bits -> And(Bits, Bits)
   | be =>
     pair(__ be, be)
   | b0 => case copy_bits(bs.pred) as pred
@@ -142,8 +142,8 @@ copy_bits(bs: Bits) : And(Bits, Bits)
 
 equal_bits(as: Bits, bs: Bits) : Bool
   case as
-  + bs : Bits
-  + equal_bits : Bits -> Bits -> Bool
+  with bs : Bits
+  with equal_bits : Bits -> Bits -> Bool
   | be => case bs
     | be => true
     | b0 => false

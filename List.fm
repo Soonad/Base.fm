@@ -10,7 +10,7 @@ import Nat
 // Definition
 // ----------
 
-T List<A>
+T List{A}
 | nil
 | cons(head : A, tail : List(A))
 
@@ -34,7 +34,7 @@ take(A; x : A, xs : List(A)) : Pair(A, List(A))
 
 at(A; n : Nat, xs : List(A)) : Maybe(A)
   case xs
-  + n : Nat
+  with n : Nat
   | nil  => none(_)
   | cons => case n
     | zero => some(_ xs.head)
@@ -59,14 +59,14 @@ ziply(A; B; fs : List(A -> B), xs : List(A)) : List(B)
 // Concatenates two lists
 concat(A; xs : List(A), ys : List(A)) : List(A)
   case xs
-  + ys : List(A)
+  with ys : List(A)
   | nil  => ys
   | cons => cons(_ xs.head, concat(_ xs.tail, ys))
 
 // Helper for reverse
 reverse.go(A; xs : List(A), rs : List(A)) : List(A)
   case xs
-  + rs : List(A)
+  with rs : List(A)
   | nil  => rs
   | cons => reverse.go(_ xs.tail, cons(A; xs.head, rs))
 
@@ -91,7 +91,7 @@ concatenate(A; xs : Concat(A), ys : Concat(A)) : Concat(A)
 // Converts a list to a O(1) concatenator
 list_to_concat(A; xs : List(A)) : Concat(A)
   (x) => case xs
-    + x : List(A)
+    with x : List(A)
     | nil  => x
     | cons => cons(_ xs.head, list_to_concat(_ xs.tail, x))
 

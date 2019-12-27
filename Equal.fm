@@ -6,12 +6,13 @@
 // `a` equals itself, which implies `b` is equal to `a` iff
 // `b` reduces to `a`.
 // 
-// == is sugar for Equal(A, a, b)
+// `a == b` is built-in sugar for Equal(?, a, b)
+// `a != b` is built-in sugar for Not(Equal(?, a, b))
 
 // Definition
 // ----------
 
-T Equal<A, a : A> (b : A)
+T Equal{A, a : A} (b : A)
 | equal : Equal(A, a, a)
 
 // Functions

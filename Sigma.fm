@@ -7,5 +7,5 @@
 // Definition
 // ----------
 
-T Sigma<A, B : A -> Type>
+T Sigma{A, B : A -> Type}
 | sigma(fst : A, snd : B(fst))

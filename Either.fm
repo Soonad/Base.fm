@@ -9,7 +9,7 @@
 // Definition
 // ----------
 
-T Either<A, B>
+T Either{A, B}
 | lft(value : A)
 | rgt(value : B)
 

@@ -41,24 +41,24 @@ copy_nat(n: Nat) : Pair(Nat, Nat)
 // Addition
 add(n: Nat, m: Nat) : Nat
   case n
-  + m : Nat
+  with m : Nat
   | zero => m
   | succ => case m
-    + n.pred : Nat
+    with n.pred : Nat
     | zero => succ(n.pred)
     | succ => succ(succ(add(n.pred, m.pred)))
 
 // Left-hand addition
 addl(n: Nat, m: Nat) : Nat
   case n
-  + m : Nat
+  with m : Nat
   | zero => m
   | succ => succ(addl(n.pred, m))
 
 // Subtraction
 sub(n: Nat, m: Nat) : Nat
   case m
-  + n : Nat
+  with n : Nat
   | zero => n
   | succ => case n
     | zero => zero
@@ -74,9 +74,9 @@ double(n: Nat) : Nat
 mul.go(k: Nat, n: Nat, m: Nat) : Nat
   let f = mul.go
   case k
-  + n: Nat
-  + m: Nat
-  + f: Nat -> Nat -> Nat -> Nat
+  with n: Nat
+  with m: Nat
+  with f: Nat -> Nat -> Nat -> Nat
   | zero => case m
     | zero => zero
     | succ => f(n, zero, m.pred)
@@ -89,7 +89,7 @@ mul(n: Nat, m: Nat) : Nat
 // Comparison
 nat_compare(n: Nat, m: Nat) : Comparison
   case n
-  + m: Nat
+  with m: Nat
   | zero => case m
     | zero => equal_to
     | succ => less_than
@@ -129,14 +129,14 @@ apply_succ(n: Nat; m; e: n == m) : succ(n) == succ(m)
 
 addl.succ(n: Nat, m: Nat) : succ(addl(n,m)) == addl(n,succ(m))
   case n
-  + m : Nat
+  with m : Nat
   | zero => equal(__)
   | succ => apply(____ succ; addl.succ(n.pred,m))
   : succ(addl(n,m)) == addl(n,succ(m))
 
 addl.commute(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
   case n
-  + m : Nat
+  with m : Nat
   | zero =>
     case m
     | zero => equal(__)
@@ -149,7 +149,7 @@ addl.commute(n: Nat, m: Nat) : addl(n,m) == addl(m,n)
 
 add.commute(n: Nat, m: Nat) : add(n,m) == add(m,n)
   case n
-  + m : Nat
+  with m : Nat
   | zero =>
     case m
     | zero => equal(__)
@@ -164,14 +164,14 @@ add.commute(n: Nat, m: Nat) : add(n,m) == add(m,n)
 
 addl.succ_succ(n: Nat, m: Nat) : succ(succ(addl(n,m))) == addl(succ(n),succ(m))
   case n
-  + m : Nat
+  with m : Nat
   | zero => equal(__)
   | succ => apply(____ succ; addl.succ_succ(n.pred,m))
   : succ(succ(addl(n,m))) == addl(succ(n),succ(m))
 
 add.addl(n: Nat, m: Nat) : add(n,m) == addl(n,m)
   case n
-  + m : Nat
+  with m : Nat
   | zero =>
     case m
     | zero => equal(__)

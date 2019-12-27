@@ -9,8 +9,5 @@
 // Definition
 // ----------
 
-T Subset<A, B : A -> Type>
+T Subset{A, B : A -> Type}
 | subset(fst : A, snd : B(fst);)
-
-.such_that.(A, B) : Type
-  Subset(A, B)
