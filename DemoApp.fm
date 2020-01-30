@@ -39,26 +39,26 @@ demo_app : App(DemoAppState)
         // An image
         img(#[64, 64], (pos) => 
           get #[x,y] = pos
-          let r = ((x .*. 8 .+. state.mousex) .%. 256) .|. 0
-          let g = ((y .*. 8 .+. state.mousey) .%. 256) .|. 0
+          let r = ((x * 8 + state.mousex) % 256) || 0
+          let g = ((y * 8 + state.mousey) % 256) || 0
           let b = 128
           let c = 0xFF000000
-          let c = c .|. (b .<<. 16)
-          let c = c .|. (g .<<. 8)
-          let c = c .|. r
+          let c = c || (b << 16)
+          let c = c || (g << 8)
+          let c = c || r
           c),
       ])
 
   // Application interaction
   let update = (event, state) =>
     case event
-    + state : DemoAppState
+    with state : DemoAppState
     | mouseclick =>
       case state
       | demoappstate => demoappstate(
         state.mousex,
         state.mousey,
-        state.clicks .+. 1,
+        state.clicks + 1,
         state.lastkey)
     | mousemove =>
       case state

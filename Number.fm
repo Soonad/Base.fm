@@ -2,60 +2,42 @@ import Bool
 import String
 
 number_equal(a : Number, b : Number) : Bool
-  if a == b then
+  if a === b then
     true
   else
     false
 
-//digit_to_char(n: Number) : Number
-  //if n .<. 10 then
-    //n .+. '0'
-  //else
-    //(n .-. 10) .+. 'a'
+digit_to_char(n: Number) : Number
+  if n < 10 then
+    n + '0'
+  else
+    (n - 10) + 'a'
 
-//number_to_string.aux(base: Number, n: Number) : String -> String
-  //if n .==. 0 then
-    //(x) => x
-  //else
-    //let c = digit_to_char(n .%. base)
-    //let f = number_to_string.aux(base, (n ./. base) .|. 0)
-    //(x) => f(cons(_ c, x))
+number_to_string.aux(base: Number, n: Number) : String -> String
+  if n === 0 then
+    (x) => x
+  else
+    let c = digit_to_char(n % base)
+    let f = number_to_string.aux(base, (n \ base) || 0)
+    (x) => f(cons(_ c, x))
 
-//number_to_string(base: Number, n : Number) : String
-  //if n .==. 0 then
-    //"0"
-  //else
-    //number_to_string.aux(base, n, [])
+number_to_string(base: Number, n : Number) : String
+  if n === 0 then
+    "0"
+  else
+    number_to_string.aux(base, n, [])
 
-//pi : Number
-  //3.141592653589793
+pi : Number
+  3.141592653589793
 
-//tau 
-  //6.283185307179586
+tau 
+  6.283185307179586
 
-//abs(x : Number) : Number
-  //if x .<. 0 then
-    //x .*. -1
-  //else
-    //x
+abs(x : Number) : Number
+  if x < 0 then
+    x * -1
+  else
+    x
     
-//floor(x : Number) : Number
-  //(x .-. (x .%. 1)) .-. (if x .<. 0 then 1 else 0)
-
-//sin(x : Number) : Number
-  //0 .sin. x
-
-//cos(x : Number) : Number
-  //0 .cos. x
-
-//tan(x : Number) : Number
-  //0 .tan. x
-
-//asin(x : Number) : Number
-  //0 .asin. x
-
-//acos(x : Number) : Number
-  //0 .acos. x
-
-//atan(x : Number) : Number
-  //0 .atan. x
+floor(x : Number) : Number
+  (x - (x % 1)) - (if x < 0 then 1 else 0)

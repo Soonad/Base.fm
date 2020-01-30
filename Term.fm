@@ -38,7 +38,7 @@ show_nat(n : Nat) : String
 show_term.go(term : Term, dep : Nat) : String -> String
   let txt = list_to_concat(Char;)
   case term
-  + dep : Nat
+  with dep : Nat
   | typ =>
     let type = txt("Type")
     (x) => type(x)
@@ -115,7 +115,7 @@ shift(term : Term, inc : Nat, dep : Nat) : Term
   | typ => typ
   | ref => ref(term.name)
   | var => case nat_compare(term.indx, dep) as cmp
-    + term.indx : Nat
+    with term.indx : Nat
     | less_than    => var(term.indx)
     | equal_to     => var(add(inc, term.indx))
     | greater_than => var(add(inc, term.indx))
@@ -159,7 +159,7 @@ subst(term : Term, val : Term, dep : Nat) : Term
   | typ => typ
   | ref => ref(term.name)
   | var => case nat_compare(term.indx, dep) as cmp
-    + term.indx : Nat
+    with term.indx : Nat
     | less_than    => var(term.indx)
     | equal_to     => val
     | greater_than => var(pred(term.indx))
@@ -200,15 +200,15 @@ subst(term : Term, val : Term, dep : Nat) : Term
 
 reduce(term : Term) : Term
   case term
-  + reduce : Term -> Term
+  with reduce : Term -> Term
   | typ => typ
   | ref => ref(term.name)
   | var => var(term.indx)
   | all => all(reduce(term.bind), reduce(term.body))
   | lam => lam(hol(be), reduce(term.body))
   | app => case reduce(term.func) as func
-    + term.argm : Term
-    + reduce : Term -> Term
+    with term.argm : Term
+    with reduce : Term -> Term
     | typ => app(typ, reduce(term.argm))
     | ref => app(ref(func.name), reduce(term.argm))
     | var => app(var(func.indx), reduce(term.argm))

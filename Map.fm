@@ -4,7 +4,7 @@ import Nat
 import List
 
 // A Map from Bits to values
-T Map<A>
+T Map{A}
 | empty
 | multi(val: Maybe(A), lft: Map(A), rgt: Map(A))
 
@@ -14,8 +14,8 @@ singleton_map(A; x: A) : Map(A)
 // Gets a value
 lookup(A; bits: Bits, map: Map(A)) : Maybe(A)
   case bits
-  + map    : Map(A)
-  + lookup : (A; bits: Bits, map: Map(A)) -> Maybe(A)
+  with map    : Map(A)
+  with lookup : (A; bits: Bits, map: Map(A)) -> Maybe(A)
   | be => case map
     | empty => none(_)
     | multi => map.val
@@ -29,19 +29,19 @@ lookup(A; bits: Bits, map: Map(A)) : Maybe(A)
 // Sets a value
 insert(A; bits: Bits, val: A, map: Map(A)) : Map(A)
   case bits
-  + val: A
-  + map: Map(A)
-  + insert: (A: Type;) -> Bits -> A -> Map(A) -> Map(A)
+  with val: A
+  with map: Map(A)
+  with insert: (A: Type;) -> Bits -> A -> Map(A) -> Map(A)
   | be => case map
-    + some(A; val) as val : Maybe(A)
+    with some(A; val) as val : Maybe(A)
     | empty => multi(_ val, empty(_), empty(_))
     | multi => multi(_ val, map.lft, map.rgt)
   | b0 => case map
-    + insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
+    with insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
     | empty => multi(_ none(_), insert(empty(_)), empty(_))
     | multi => multi(_ map.val, insert(map.lft), map.rgt)
   | b1 => case map
-    + insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
+    with insert(A; bits.pred, val) as insert : Map(A) -> Map(A)
     | empty => multi(_ none(_), empty(_), insert(empty(_)))
     | multi => multi(_ map.val, map.lft, insert(map.rgt))
 
@@ -62,7 +62,7 @@ map_elements(A; map : Map(A)) : List(A)
     let rgt = map_elements(_ map.rgt)
     let all = concat(_ lft, rgt)
     case map.val as val
-    + all : List(A)
+    with all : List(A)
     | none => all
     | some => cons(_ val.value, all)
 
@@ -71,17 +71,17 @@ query(A; qry: A -> Pair(A,A), bits: Bits, map: Map(A))
 : Pair(Map(A), Maybe(A))
   let rec = query(A;)
   case bits
-  + map : Map(A)
-  + rec : (qry : A -> Pair(A,A), bits : Bits, map : Map(A))
+  with map : Map(A)
+  with rec : (qry : A -> Pair(A,A), bits : Bits, map : Map(A))
     -> Pair(Map(A), Maybe(A))
-  + qry : A -> Pair(A, A)
+  with qry : A -> Pair(A, A)
   | be => case map
     | empty =>
       pair(__ empty(_), none(_))
     | multi =>
       case map.val as mval
-      + map.lft : Map(A)
-      + map.rgt : Map(A)
+      with map.lft : Map(A)
+      with map.rgt : Map(A)
       | none => 
         let map = multi(_ none(_), map.lft, map.rgt)
         let val = none(_)
@@ -121,18 +121,18 @@ LookupInsert(A, bits: Bits, val: A, map: Map(A)) : Type
 lookup_insert(A; bits : Bits, val : A, map : Map(A))
 : LookupInsert(A, bits, val, map)
   case bits
-  + map : Map(A)
-  + val : A
+  with map : Map(A)
+  with val : A
   | be =>
     case map
-    + val : A
+    with val : A
     | empty => equal(_ some(A; val);)
     | multi => equal(_ some(A; val);)
     : LookupInsert(A, be, val, map)
   | b0 =>
     let rec = lookup_insert(A; bits.pred, val)
     case map
-    + rec : (map : Map(A))
+    with rec : (map : Map(A))
       -> LookupInsert(A, bits.pred, val, map)
     | empty => rec(empty(_))
     | multi => rec(map.lft)
@@ -140,7 +140,7 @@ lookup_insert(A; bits : Bits, val : A, map : Map(A))
   | b1 =>
     let rec = lookup_insert(A; bits.pred, val)
     case map
-    + rec : (map : Map(A))
+    with rec : (map : Map(A))
       -> LookupInsert(A, bits.pred, val, map)
     | empty => rec(empty(_))
     | multi => rec(map.rgt)

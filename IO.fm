@@ -6,7 +6,7 @@ T Eff
 | putstr(str: String)
 | getstr
 
-T IO<A>
+T IO{A}
 | exec(eff: Eff, cont: String -> IO(A))
 | pure(val: A)
 
@@ -27,9 +27,9 @@ question(qry: String) : IO(String)
   pure(_ x)))
 
 for(from: Number, to: Number, eff: Number -> IO(Unit)) : IO(Unit)
-  if from .==. to then
+  if from === to then
     pure(_ unit)
   else do {
     eff(from)
-    for(from .+. 1, to, eff)
+    for(from + 1, to, eff)
   }
