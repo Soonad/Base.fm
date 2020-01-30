@@ -44,6 +44,23 @@ at(A; n : Nat, xs : List(A)) : Maybe(A)
     | zero => some(_ xs.head)
     | succ => at(_ n.pred, xs.tail)
 
+// Finds the first occurrence
+find(A; fn: A -> Bool, xs: List(A)) : Maybe(A)
+  case xs
+  | nil  => none(_)
+  | cons => case fn(xs.head) as got
+    | true  => some(_ xs.head)
+    | false => find(_ fn, xs.tail)
+
+// Filters a list
+filter(A; fn: A -> Bool, xs: List(A)) : List(A)
+  case xs
+  | nil  => nil(_)
+  | cons => case fn(xs.head) as got
+    with xs.tail : List(A)
+    | true  => cons(_ xs.head, xs.tail)
+    | false => cons(_ xs.head, filter(_ fn, xs.tail))
+
 // Returns the same list
 sames(A; xs : List(A)) : List(A)
   case xs
