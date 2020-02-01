@@ -57,9 +57,10 @@ filter(A; fn: A -> Bool, xs: List(A)) : List(A)
   case xs
   | nil  => nil(_)
   | cons => case fn(xs.head) as got
+    with fn : A -> Bool
     with xs.tail : List(A)
-    | true  => cons(_ xs.head, xs.tail)
-    | false => cons(_ xs.head, filter(_ fn, xs.tail))
+    | true  => cons(_ xs.head, filter(_ fn, xs.tail))
+    | false => filter(_ fn, xs.tail)
 
 // Returns the same list
 sames(A; xs : List(A)) : List(A)
