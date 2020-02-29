@@ -27,6 +27,16 @@ number_to_string(base: Number, n : Number) : String
   else
     number_to_string.aux(base, n, [])
 
+is_true(bool: Bool) : Number
+  case bool
+  | true  => 1
+  | false => 0
+
+is_false(bool: Bool) : Number
+  case bool
+  | true  => 0
+  | false => 1
+
 pi : Number
   3.141592653589793
 
@@ -53,3 +63,19 @@ max(a: Number, b: Number) : Number
     a
   else
     b
+
+// Is a <= b?
+gte(a: Number, b: Number) : Number
+  (a > b) || (a === b)
+
+// Is a >= b?
+lte(a: Number, b: Number) : Number
+  (a < b) || (a === b)
+
+// Is x inside the a..b range, with `b` exclusive?
+is_between(a: Number, b: Number, x: Number) : Number
+  (a === x) || ((a < x) && (x < b))
+
+// Is x inside the a..b range, inclusive?
+is_within(a: Number, b: Number, x: Number) : Number
+  (a === x) || (a === b) || ((a < x) && (x < b))
