@@ -1,0 +1,325 @@
+// A ideia é que o Formality-Lang compila para o
+// Formality-Core para fins de type-checking apenas. O
+// Formality-Lang tem coisas tipo ADTs e números, enquanto o
+// Formality-Core só tem lambdas e self. Para virar
+// JavaScript, a compilação parte do Formality-Lang, de modo
+// a poder usar os números e ADTs nele presentes.
+
+import Nat
+import String
+
+T Term
+| var(indx: Nat)
+| typ
+| all(name: String, bind: Term, body: Term, eras: Bool)
+| lam(name: String, body: Term, eras: Bool)
+| app(func: Term, argm: Term, eras: Bool)
+| slf(name: String, type: Term)
+| neo(type: Term, expr: Term)
+| usi(expr: Term)
+| ann(type: Term, expr: Term, done: Bool)
+| lgs(msge: Term, expr: Term)
+| hol(name: String)
+| ref(name: String, eras: Bool)
+
+Defs : Type
+  Map(Term)
+
+shift(term: Term, inc: Nat, dep: Nat) : Term
+  case term
+  | var =>
+    case nat_compare(term.indx, dep) as cmp
+    | less_than    => var(term.indx)
+    | equal_to     => var(add(inc, term.indx))
+    | greater_than => var(add(inc, term.indx))
+  | typ =>
+    typ
+  | all =>
+    let name = term.name
+    let bind = shift(term.bind, inc, dep)
+    let body = shift(term.body, inc, succ(dep))
+    let eras = term.eras
+    all(name, bind, body, eras)
+  | lam =>
+    let name = term.name
+    let body = shift(term.body, inc, succ(dep))
+    let eras = term.eras
+    lam(name, body, eras)
+  | app =>
+    let func = shift(term.func, inc, dep)
+    let argm = shift(term.argm, inc, dep)
+    let eras = term.eras
+    app(func, argm, eras)
+  | slf =>
+    let name = term.name
+    let type = shift(term.type, inc, succ(dep))
+    slf(name, type)
+  | neo =>
+    let type = shift(term.type, inc, dep)
+    let expr = shift(term.expr, inc, dep)
+    neo(type, expr)
+  | usi =>
+    let expr = shift(term.expr, inc, dep)
+    usi(expr)
+  | ann =>
+    let type = shift(term.type, inc, dep)
+    let expr = shift(term.expr, inc, dep)
+    let done = term.done
+    ann(type, expr, done)
+  | lgs =>
+    let msge = shift(term.msge, inc, dep)
+    let expr = shift(term.expr, inc, dep)
+    lgs(msge, expr)
+  | hol =>
+    let name = term.name
+    hol(name)
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
+
+subst(term: Term, trm: Term, dep: Nat) : Term
+  case term
+  | var =>
+    case nat_compare(term.indx, dep) as cmp
+    | less_than    => var(term.indx)
+    | equal_to     => trm
+    | greater_than => var(pred(term.indx))
+  | typ =>
+    typ
+  | all =>
+    let name = term.name
+    let bind = subst(term.bind, trm, dep)
+    let body = subst(term.body, trm, succ(dep))
+    let eras = term.eras
+    all(name, bind, body, eras)
+  | lam =>
+    let name = term.name
+    let body = subst(term.body, shift(trm,1n,0n), succ(dep))
+    let eras = term.eras
+    lam(name, body, eras)
+  | app =>
+    let func = subst(term.func, trm, dep)
+    let argm = subst(term.argm, shift(trm,1n,0n), dep)
+    let eras = term.eras
+    app(func, argm, eras)
+  | slf =>
+    let name = term.name
+    let type = subst(term.type, shift(trm,1n,0n), succ(dep))
+    slf(name, type)
+  | neo =>
+    let type = subst(term.type, trm, dep)
+    let expr = subst(term.expr, trm, dep)
+    neo(type, expr)
+  | usi =>
+    let expr = subst(term.expr, trm, dep)
+    usi(expr)
+  | ann =>
+    let type = subst(term.type, trm, dep)
+    let expr = subst(term.expr, trm, dep)
+    let done = term.done
+    ann(type, expr, done)
+  | lgs =>
+    let msge = subst(term.msge, trm, dep)
+    let expr = subst(term.expr, trm, dep)
+    lgs(msge, expr)
+  | hol =>
+    let name = term.name
+    hol(name)
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
+
+subst_many(term: Term, vals: List(Term), inc: Nat, dep: Nat) : Term
+  case vals
+  | nil =>
+    term
+  | cons =>
+    let sval = shift(vals.head, inc, 0n)
+    let sdep = add(dep, inc)
+    let term = subst(term, sval, sdep)
+    subst_many(term, vals.tail, pred(inc), dep)
+
+T Hoas
+| varx(indx: Nat)
+| typx
+| allx(name: String, bind: Hoas, body: Hoas -> Hoas, eras: Bool)
+| lamx(name: String, body: Hoas -> Hoas, eras: Bool)
+| appx(func: Hoas, argm: Hoas, eras: Bool)
+| slfx(name: String, type: Hoas -> Hoas)
+| neox(type: Hoas, expr: Hoas)
+| usix(expr: Hoas)
+| annx(type: Hoas, expr: Hoas, done: Bool)
+| lgsx(msge: Hoas, expr: Hoas)
+| holx(name: String)
+| refx(name: String, eras: Bool)
+
+term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
+  case term
+  | var =>
+    case at(Hoas; term.indx, vals) as got
+    | none => varx(sub(length(_ vals), succ(term.indx)))
+    | some => got.value
+  | typ =>
+    typx
+  | all =>
+    let name = term.name
+    let bind = term_to_hoas(term.bind, vals)
+    let body = (x) => term_to_hoas(term.body,cons(_ x,vals))
+    let eras = term.eras
+    allx(name, bind, body, eras)
+  | lam =>
+    let name = term.name
+    let body = (x) => term_to_hoas(term.body,cons(_ x,vals))
+    let eras = term.eras
+    lamx(name, body, eras)
+  | app =>
+    let func = term_to_hoas(term.func, vals)
+    let argm = term_to_hoas(term.argm, vals)
+    let eras = term.eras
+    appx(func, argm, eras)
+  | slf =>
+    let name = term.name
+    let type = (x) => term_to_hoas(term.type, cons(_ x, vals))
+    slfx(name, type)
+  | neo =>
+    let type = term_to_hoas(term.type, vals)
+    let expr = term_to_hoas(term.expr, vals)
+    neox(type, expr)
+  | usi =>
+    let expr = term_to_hoas(term.expr, vals)
+    usix(expr)
+  | ann =>
+    let type = term_to_hoas(term.type, vals)
+    let expr = term_to_hoas(term.expr, vals)
+    let done = term.done
+    annx(type, expr, done)
+  | lgs =>
+    let msge = term_to_hoas(term.msge, vals)
+    let expr = term_to_hoas(term.expr, vals)
+    lgsx(msge, expr)
+  | hol =>
+    let name = term.name
+    holx(name)
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    refx(name, eras)
+
+hoas_to_term(term: Hoas, depth: Nat) : Term
+  case term
+  | varx =>
+    var(sub(depth, succ(term.indx)))
+  | typx =>
+    typ
+  | allx =>
+    let name = term.name
+    let bind = hoas_to_term(term.bind, depth)
+    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let eras = term.eras
+    all(name, bind, body, eras)
+  | lamx =>
+    let name = term.name
+    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let eras = term.eras
+    lam(name, body, eras)
+  | appx =>
+    let func = hoas_to_term(term.func, depth)
+    let argm = hoas_to_term(term.argm, depth)
+    let eras = term.eras
+    app(func, argm, eras)
+  | slfx =>
+    let name = term.name
+    let type = hoas_to_term(term.type(varx(depth)), succ(depth))
+    slf(name, type)
+  | neox =>
+    let type = hoas_to_term(term.type, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    neo(type, expr)
+  | usix =>
+    let expr = hoas_to_term(term.expr, depth)
+    usi(expr)
+  | annx =>
+    let type = hoas_to_term(term.type, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    let done = term.done
+    ann(type, expr, done)
+  | lgsx =>
+    let msge = hoas_to_term(term.msge, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    lgs(msge, expr)
+  | holx =>
+    let name = term.name
+    hol(name)
+  | refx =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
+
+show.go(term: Term, names: List(String)) : Concat(Char)
+  case term
+  | var =>
+    (x) => case at(String; term.indx, names) as got
+      | none => "X"
+      | some => got.value
+  | typ =>
+    (x) => "Type"
+  | all =>
+    let pun0 = list_to_concat(Char; "(")
+    let name = list_to_concat(Char; term.name)
+    let pun1 = list_to_concat(Char; " : ")
+    let bind = show.go(term.bind, names)
+    let pun2 = list_to_concat(Char; ") -> ")
+    let body = show.go(term.body, cons(String; term.name, names))
+    (x) => pun0(name(pun1(bind(pun2(body(x))))))
+  | lam =>
+    let pun0 = list_to_concat(Char; "(")
+    let name = list_to_concat(Char; term.name)
+    let pun1 = list_to_concat(Char; ") => ")
+    let body = show.go(term.body, cons(String; term.name, names))
+    (x) => pun0(name(pun1(body(x))))
+  | app =>
+    let func = show.go(term.func, names)
+    let pun0 = list_to_concat(Char; "(")
+    let argm = show.go(term.argm, names)
+    let pun1 = list_to_concat(Char; ")")
+    (x) => func(pun0(argm(pun1(x))))
+  | slf =>
+    let pun0 = list_to_concat(Char; "${")
+    let name = list_to_concat(Char; term.name)
+    let pun1 = list_to_concat(Char; "} ")
+    //let type = show.go(term.type, names)
+    let type = show.go(term.type, cons(String; term.name, names))
+    (x) => pun0(name(pun1(type(x))))
+  | neo =>
+    let pun0 = list_to_concat(Char; "new(")
+    let type = show.go(term.type, names)
+    let pun1 = list_to_concat(Char; ")");
+    let expr = show.go(term.expr, names)
+    (x) => pun0(type(pun1(expr(x))))
+  | usi =>
+    let pun0 = list_to_concat(Char; "use(")
+    let expr = show.go(term.expr, names)
+    let pun1 = list_to_concat(Char; ")")
+    (x) => pun0(expr(pun1(x)))
+  | ann =>
+    let type = show.go(term.type, names)
+    let pun0 = list_to_concat(Char; " :: ")
+    let expr = show.go(term.expr, names)
+    (x) => type(pun0(expr(x)))
+  | lgs =>
+    let expr = show.go(term.expr, names)
+    (x) => expr(x)
+  | hol =>
+    let name = list_to_concat(Char; term.name)
+    (x) => name(x)
+  | ref =>
+    let name = list_to_concat(Char; term.name);
+    (x) => name(x)
+  : Concat(Char)
+  
+show(term: Term) : String
+  show.go(term, [], [])
+
+main show(lam("foo", lam("bar", var(1n), false), false))
