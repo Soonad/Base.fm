@@ -27,6 +27,15 @@ number_to_string(base: Number, n : Number) : String
   else
     number_to_string.aux(base, n, [])
 
+number_to_bits(len: Number, n: Number) : Bits
+  if len === 0 then
+    be
+  else
+    if n && 1 then
+      b1(number_to_bits(len - 1, n >>> 1))
+    else
+      b0(number_to_bits(len - 1, n >>> 1))
+
 is_true(bool: Bool) : Number
   case bool
   | true  => 1
