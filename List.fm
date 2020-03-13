@@ -52,6 +52,22 @@ find(A; fn: A -> Bool, xs: List(A)) : Maybe(A)
     | true  => some(_ xs.head)
     | false => find(_ fn, xs.tail)
 
+// Finds the first occurrence (helper)
+find_index.aux(A;
+  fn: A -> Bool,
+  xs: List(A),
+  ix: Nat
+) : Maybe(Nat)
+  case xs
+  | nil  => none(_)
+  | cons => case fn(xs.head) as got
+    | true  => some(_ ix)
+    | false => find_index.aux(_ fn, xs.tail, succ(ix))
+
+// Finds the first occurrence
+find_index(A; fn: A -> Bool, xs: List(A)) : Maybe(Nat)
+  find_index.aux(A; fn, xs, 0n)
+
 // Filters a list
 filter(A; fn: A -> Bool, xs: List(A)) : List(A)
   case xs

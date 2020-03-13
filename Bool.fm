@@ -80,6 +80,23 @@ not_f(b: Bool) : Bool
     | false => true
     : P(not_f(b))
 
+// Number conversions
+is_true(bool: Bool) : Number
+  case bool
+  | true  => 1
+  | false => 0
+
+is_false(bool: Bool) : Number
+  case bool
+  | true  => 0
+  | false => 1
+
+number_to_bool(n: Number)
+  if n then
+    true
+  else
+    false
+
 // Theorems
 // --------
 

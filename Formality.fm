@@ -6,6 +6,7 @@
 // a poder usar os números e ADTs nele presentes.
 
 import Nat
+import Unit
 import String
 
 T Term
@@ -21,6 +22,12 @@ T Term
 | lgs(msge: Term, expr: Term)
 | hol(name: String)
 | ref(name: String, eras: Bool)
+
+Lazy(A : Type) : Type
+  Unit -> A
+
+force(A; x: Lazy(A)) : A
+  x(unit)
 
 Defs : Type
   Map(Term)
@@ -281,11 +288,12 @@ show.go(term: Term, names: List(String)) : Concat(Char)
     let body = show.go(term.body, cons(String; term.name, names))
     (x) => pun0(name(pun1(body(x))))
   | app =>
-    let func = show.go(term.func, names)
     let pun0 = list_to_concat(Char; "(")
+    let func = show.go(term.func, names)
+    let pun1 = list_to_concat(Char; ")(")
     let argm = show.go(term.argm, names)
-    let pun1 = list_to_concat(Char; ")")
-    (x) => func(pun0(argm(pun1(x))))
+    let pun2 = list_to_concat(Char; ")")
+    (x) => pun0(func(pun1(argm(pun2(x)))))
   | slf =>
     let pun0 = list_to_concat(Char; "${")
     let name = list_to_concat(Char; term.name)
@@ -327,22 +335,20 @@ show(term: Term) : String
 // avoids that in order to increase performance to the
 // theoretical maximum, and decrease the dependency.
 
-Parse : Type
+Parsed : Type
   Maybe(Pair(String, Term))
 
-try(b: Parse, a: Parse) : Parse
-  case a
-  |none case b |none none(_) |some some(_ b.value)
-  |some some(_ a.value)
+Vars : Type
+  List(String)
 
-// Matches an exact string, returns the remaining code
-consume(value: String, code: String) : Maybe(String)
-  case value |nil some(_ code) |cons
-  case code  |nil none(_)      |cons
-  if code.head === value.head then
-    consume(value.tail, code.tail)
-  else
-    none(_)
+// If `b` is successful, return it. Otherwise, try `a`.
+try(a: Lazy(Parsed), b: Parsed) : Parsed
+  case b
+  with unit : Unit
+  |none case force(_ a) as a
+    |none none(_)
+    |some some(_ a.value)
+  |some some(_ b.value)
 
 // Drops some characters from code
 drop(amount: Nat, code: String) : String
@@ -356,9 +362,32 @@ is_name_char(chr: Char) : Number
   (chr > 64) && (chr < 91)  || // A-Z 
   (chr > 96) && (chr < 126) || // a-z
   (chr === 95)                 // _ 
+
+// Is this character a space?
+is_space_char(chr: Char) : Number
+  (chr === ' ')
+
+// Removes leadig spaces
+skip_spaces(code: String) : String
+  case code |nil nil(_) |cons
+  if is_space_char(code.head) then
+    skip_spaces(code.tail)
+  else
+    code
+
+// Matches an exact string, returns the remaining code
+consume(value: String, code: String) : Maybe(String)
+  let code = skip_spaces(code)
+  case value |nil some(_ code) |cons
+  case code  |nil none(_)      |cons
+  if code.head === value.head then
+    consume(value.tail, code.tail)
+  else
+    none(_)
   
 // Parses name characters
 parse_name(code: String) : Pair(String, String)
+  let code = skip_spaces(code)
   case code |nil #[code, nil(_)] |cons
   if is_name_char(code.head) then
     get #[code, name] = parse_name(code.tail)
@@ -366,8 +395,27 @@ parse_name(code: String) : Pair(String, String)
   else
     #[code, nil(Char;)]
 
+// Parses a grouping `(...)`
+parse_grp(code: String, vars: Vars) : Parsed
+  // Parses `(`
+  case consume("(",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  // Parses term
+  case parse_term(code,vars) as got
+  |none => none(_)
+  |some => get #[code,term] = got.value
+
+  // Parses `)`
+  case consume(")",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  some(_ pair(__ code, term))
+
 // Parses `(x:A)->B`
-parse_all(code: String) : Maybe(Pair(String, Term))
+parse_all(code: String, vars: Vars) : Parsed
   // Parses `(`
   case consume("(",code) as got
   |none => none(_)
@@ -382,7 +430,7 @@ parse_all(code: String) : Maybe(Pair(String, Term))
   |some => let code = got.value
 
   // Parses variable type
-  case parse_term(code) as got
+  case parse_term(code, vars) as got
   |none => none(_)
   |some => get #[code, type] = got.value
 
@@ -403,31 +451,108 @@ parse_all(code: String) : Maybe(Pair(String, Term))
   |some => let code = got.value
 
   // Parses body
-  case parse_term(code) as got
+  case parse_term(code, cons(_ name, vars)) as got
   |none => none(_)
   |some => get #[code, body] = got.value
 
   // Result
   some(_ pair(__ code, all(name, type, body, eras)))
 
-parse_typ(code: String) : Maybe(Pair(String,Term))
+// Parses `(x:A)=>B`
+parse_lam(code: String, vars: Vars) : Parsed
+  // Parses `(`
+  case consume("(",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  // Parses variable name
+  get #[code, name] = parse_name(code)
+
+  // Parses erasure
+  get #[code,eras] =
+    case consume(";",code) as got
+    |none => #[code, false]
+    |some => #[got.value, true]
+
+  // Parses `)`
+  case consume(")",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  // Parses `->`
+  case consume("=>",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  // Parses body
+  case parse_term(code, cons(_ name, vars)) as got
+  |none => none(_)
+  |some => get #[code, body] = got.value
+
+  // Result
+  some(_ pair(__ code, lam(name, body, eras)))
+
+// Parses `Type`
+parse_typ(code: String, vars: Vars) : Parsed
   case consume("Type",code) as got
   |none => none(_)
   |some => some(_ pair(__ got.value, typ))
 
-parse_var(code: String) : Maybe(Pair(String,Term))
+// Parses variables
+parse_var(code: String, vars: Vars) : Parsed
   get #[code,name] = parse_name(code)
-  some(_ pair(__ code, var(0n)))
+  case find_index(_ string.equal(name), vars) as found
+  |none => none(_)
+  |some => some(_ pair(__ code, var(found.value)))
 
-parse_term(code: String) : Maybe(Pair(String,Term))
+// Parses a self type
+//parse_slf(code: String, vars: Vars) : Parsed
+  
+
+// Parses application
+parse_app(code: String, func: Term, vars: Vars) : Parsed
+  // Parses `(`
+  case consume("(",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  // Parses argument
+  case parse_term(code, vars) as got
+  |none => none(_)
+  |some => get #[code,argm] = got.value
+
+  // Parses `)`
+  case consume(")",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  some(_ pair(__ code, app(func, argm, false)))
+
+// Postfix parses
+// Attempts each one repeatedly, until all fail
+parse_postfix(code: String, term: Term, vars: Vars) : Parsed
+  //let parsed = parse_postfix.try(parse_app, parsed, vars)
   let parsed = none(_)
-  let parsed = try(parse_all(code), parsed)
-  let parsed = try(parse_typ(code), parsed)
-  let parsed = try(parse_var(code), parsed)
-  parsed
+  let parsed = try((x)=>parse_app(code, term, vars), parsed)
+  case parsed
+  |none some(_ pair(__ code, term))
+  |some get #[code,term] = parsed.value
+  parse_postfix(code, term, vars)
+
+// Parses terms
+parse_term(code: String, vars: Vars) : Parsed
+  let parsed = none(_)
+  let parsed = try((x)=>parse_all(code, vars), parsed)
+  let parsed = try((x)=>parse_lam(code, vars), parsed)
+  let parsed = try((x)=>parse_grp(code, vars), parsed)
+  let parsed = try((x)=>parse_typ(code, vars), parsed)
+  let parsed = try((x)=>parse_var(code, vars), parsed)
+  case parsed |none none(_) |some
+  get #[code, term] = parsed.value
+  parse_postfix(code, term, vars)
     
-main 
-  let parsed = parse_term("(A:Type)->(B:Type)->B")
-  case parsed |none "" |some
+main
+  let parsed = parse_term("((x) => x)(Type(Type))((a) => (b) => (c) => (d) => c)", [])
+  case parsed |none "Parse error." |some
   case parsed.value |pair
   show(parsed.value.snd)

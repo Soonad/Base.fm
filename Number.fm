@@ -36,15 +36,7 @@ number_to_bits(len: Number, n: Number) : Bits
     else
       b0(number_to_bits(len - 1, n >>> 1))
 
-is_true(bool: Bool) : Number
-  case bool
-  | true  => 1
-  | false => 0
-
-is_false(bool: Bool) : Number
-  case bool
-  | true  => 0
-  | false => 1
+mai number_to_bool
 
 pi : Number
   3.141592653589793

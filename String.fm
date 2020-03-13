@@ -4,6 +4,7 @@
 // A list of Unicode characters.
 
 import Bits
+import Bool
 import List
 
 // Definition
@@ -22,3 +23,17 @@ string.test : String
   let str = "Hello, world!"
   let str = reverse(_ str)
   str
+
+// Are two strings identical?
+string.equal(a: String, b: String) : Bool 
+  case a
+  with b : String
+  |nil case b
+    |nil  true
+    |cons false
+  |cons case b
+    |nil  false
+    |cons
+      let head_equals = number_to_bool(a.head === b.head)
+      let tail_equals = string.equal(a.tail, b.tail)
+      and(head_equals, tail_equals)
