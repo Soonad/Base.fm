@@ -499,7 +499,7 @@ parse_typ(code: String, vars: Vars) : Parsed
 parse_var(code: String, vars: Vars) : Parsed
   get #[code,name] = parse_name(code)
   case find_index(_ string.equal(name), vars) as found
-  |none => none(_)
+  |none => some(_ pair(__ code, ref(name, false)))
   |some => some(_ pair(__ code, var(found.value)))
 
 // Parses a self type
@@ -598,7 +598,7 @@ parse_term(code: String, vars: Vars) : Parsed
   parse_postfix(code, term, vars)
     
 main
-  let parsed = parse_term("type{self} (P : (self : Type) -> Type) -> (T : P(Type)) -> (F : P(Type)) -> P(self)", [])
+  let parsed = parse_term("type{self} (P : (self : Bool) -> Type) -> (T : P(true)) -> (F : P(false)) -> P(self)", [])
   case parsed |none "Parse error." |some
   case parsed.value |pair
   show(parsed.value.snd)
