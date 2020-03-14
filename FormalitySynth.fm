@@ -1,0 +1,41 @@
+import Nat
+import Bool
+import Map
+import String
+
+import Formality
+import FormalityLang
+
+synth(x : Lang) : Term
+  case x
+  | lvar => var(x.indx)
+  | ltyp => typ
+  | lall => all(x.name, synth(x.bind), synth(x.body), x.eras)
+  | llam => lam(x.name, synth(x.body), x.eras)
+  | lapp => app(synth(x.func), synth(x.argm), x.eras)
+  | lslf => slf(x.name, synth(x.type))
+  | lins => ins(synth(x.type), synth(x.expr))
+  | leli => eli(synth(x.expr))
+  | lann => ann(synth(x.type), synth(x.expr), x.done)
+  | llgs => lgs(synth(x.msge), synth(x.expr))
+  | lhol => hol(x.name)
+  | lref => ref(x.name, x.eras)
+  | llet => subst(x.expr, x.body, 0n)
+  | lwhn => ?
+  | lswt => ?
+  | lcse => ?
+  | lrwt => ?
+  | lwrd => ref("Word", false)
+  | lu64 => ?
+  | ldbl => ref("Double", false)
+  | lf64 => ?
+  | lopr => ?
+  | lite => ?
+  | lstr => ?
+  | lchr => ?
+  | lnat => ?
+  | lbit => ?
+  | ltup => ?
+  | lget => ?
+  | llst => ?
+  | lsig => ?
