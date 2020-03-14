@@ -2,6 +2,7 @@ import Nat
 import Bool
 import Map
 import String
+import NonEmpty
 import Formality
 
 -- type synonyms
@@ -33,9 +34,9 @@ T Lang
 | lhol(name: Name)                                      -- Metavariable
 | lref(name: Name, eras: Eras)                          -- Reference
 | llet(name: Name, expr: Lang, body: Lang)              -- Inline definition
-| lwhn(vals: List(Pair(Lang, Lang)), else: Lang)        -- When-statement
+| lwhn(vals: NonEmpty(Pair(Lang, Lang)), else: Lang)    -- When-statement
 | lswt(expr: Lang,                                      -- Switch-statement
-      vals : List(Pair(Lang, Lang)),
+      vals : NonEmpty(Pair(Lang, Lang)),
       else: Lang)
 | lcse(expr: Lang,                                      -- Case-statement
       with: List(Pair(Lang,Pair(Lang,Lang))),

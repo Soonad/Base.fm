@@ -1,0 +1,15 @@
+-- non-empty list
+T NonEmpty{A}
+| ne_nil(last : A)
+| ne_cons(head : A, tail : NonEmpty(A))
+
+ne_head(A; x : A, xs : NonEmpty(A)) : A
+  case xs
+  | ne_nil  => x
+  | ne_cons => xs.head
+
+// Returns the tail
+ne_tail(A; xs : NonEmpty(A)) : NonEmpty(A)
+  case xs
+  | ne_nil  => ne_nil(_ xs.last)
+  | ne_cons => xs.tail
