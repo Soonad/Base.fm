@@ -16,8 +16,8 @@ T Term
 | lam(name: String, body: Term, eras: Bool)
 | app(func: Term, argm: Term, eras: Bool)
 | slf(name: String, type: Term)
-| neo(type: Term, expr: Term)
-| usi(expr: Term)
+| ins(type: Term, expr: Term)
+| eli(expr: Term)
 | ann(type: Term, expr: Term, done: Bool)
 | lgs(msge: Term, expr: Term)
 | hol(name: String)
@@ -28,9 +28,6 @@ Lazy(A : Type) : Type
 
 force(A; x: Lazy(A)) : A
   x(unit)
-
-Defs : Type
-  Map(Term)
 
 shift(term: Term, inc: Nat, dep: Nat) : Term
   case term
@@ -61,13 +58,13 @@ shift(term: Term, inc: Nat, dep: Nat) : Term
     let name = term.name
     let type = shift(term.type, inc, succ(dep))
     slf(name, type)
-  | neo =>
+  | ins =>
     let type = shift(term.type, inc, dep)
     let expr = shift(term.expr, inc, dep)
-    neo(type, expr)
-  | usi =>
+    ins(type, expr)
+  | eli =>
     let expr = shift(term.expr, inc, dep)
-    usi(expr)
+    eli(expr)
   | ann =>
     let type = shift(term.type, inc, dep)
     let expr = shift(term.expr, inc, dep)
@@ -114,13 +111,13 @@ subst(term: Term, trm: Term, dep: Nat) : Term
     let name = term.name
     let type = subst(term.type, shift(trm,1n,0n), succ(dep))
     slf(name, type)
-  | neo =>
+  | ins =>
     let type = subst(term.type, trm, dep)
     let expr = subst(term.expr, trm, dep)
-    neo(type, expr)
-  | usi =>
+    ins(type, expr)
+  | eli =>
     let expr = subst(term.expr, trm, dep)
-    usi(expr)
+    eli(expr)
   | ann =>
     let type = subst(term.type, trm, dep)
     let expr = subst(term.expr, trm, dep)
@@ -155,8 +152,8 @@ T Hoas
 | lamx(name: String, body: Hoas -> Hoas, eras: Bool)
 | appx(func: Hoas, argm: Hoas, eras: Bool)
 | slfx(name: String, type: Hoas -> Hoas)
-| neox(type: Hoas, expr: Hoas)
-| usix(expr: Hoas)
+| insx(type: Hoas, expr: Hoas)
+| elix(expr: Hoas)
 | annx(type: Hoas, expr: Hoas, done: Bool)
 | lgsx(msge: Hoas, expr: Hoas)
 | holx(name: String)
@@ -190,13 +187,13 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
     let name = term.name
     let type = (x) => term_to_hoas(term.type, cons(_ x, vals))
     slfx(name, type)
-  | neo =>
+  | ins =>
     let type = term_to_hoas(term.type, vals)
     let expr = term_to_hoas(term.expr, vals)
-    neox(type, expr)
-  | usi =>
+    insx(type, expr)
+  | eli =>
     let expr = term_to_hoas(term.expr, vals)
-    usix(expr)
+    elix(expr)
   | ann =>
     let type = term_to_hoas(term.type, vals)
     let expr = term_to_hoas(term.expr, vals)
@@ -240,13 +237,13 @@ hoas_to_term(term: Hoas, depth: Nat) : Term
     let name = term.name
     let type = hoas_to_term(term.type(varx(depth)), succ(depth))
     slf(name, type)
-  | neox =>
+  | insx =>
     let type = hoas_to_term(term.type, depth)
     let expr = hoas_to_term(term.expr, depth)
-    neo(type, expr)
-  | usix =>
+    ins(type, expr)
+  | elix =>
     let expr = hoas_to_term(term.expr, depth)
-    usi(expr)
+    eli(expr)
   | annx =>
     let type = hoas_to_term(term.type, depth)
     let expr = hoas_to_term(term.expr, depth)
@@ -295,22 +292,22 @@ show.go(term: Term, names: List(String)) : Concat(Char)
     let pun2 = list_to_concat(Char; ")")
     (x) => pun0(func(pun1(argm(pun2(x)))))
   | slf =>
-    let pun0 = list_to_concat(Char; "${")
+    let pun0 = list_to_concat(Char; "type{")
     let name = list_to_concat(Char; term.name)
     let pun1 = list_to_concat(Char; "} ")
     //let type = show.go(term.type, names)
     let type = show.go(term.type, cons(String; term.name, names))
     (x) => pun0(name(pun1(type(x))))
-  | neo =>
-    let pun0 = list_to_concat(Char; "new(")
+  | ins =>
+    let pun0 = list_to_concat(Char; "inst{")
     let type = show.go(term.type, names)
-    let pun1 = list_to_concat(Char; ")");
+    let pun1 = list_to_concat(Char; "}");
     let expr = show.go(term.expr, names)
     (x) => pun0(type(pun1(expr(x))))
-  | usi =>
-    let pun0 = list_to_concat(Char; "use(")
+  | eli =>
+    let pun0 = list_to_concat(Char; "elim{")
     let expr = show.go(term.expr, names)
-    let pun1 = list_to_concat(Char; ")")
+    let pun1 = list_to_concat(Char; "}")
     (x) => pun0(expr(pun1(x)))
   | ann =>
     let type = show.go(term.type, names)
@@ -360,7 +357,7 @@ drop(amount: Nat, code: String) : String
 is_name_char(chr: Char) : Number
   (chr > 47) && (chr < 58)  || // 0-9
   (chr > 64) && (chr < 91)  || // A-Z 
-  (chr > 96) && (chr < 126) || // a-z
+  (chr > 96) && (chr < 123) || // a-z
   (chr === 95)                 // _ 
 
 // Is this character a space?
@@ -506,8 +503,54 @@ parse_var(code: String, vars: Vars) : Parsed
   |some => some(_ pair(__ code, var(found.value)))
 
 // Parses a self type
-//parse_slf(code: String, vars: Vars) : Parsed
-  
+parse_slf(code: String, vars: Vars) : Parsed
+  case consume("type{",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  get #[code,name] = parse_name(code)
+
+  case consume("}",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  case parse_term(code, cons(_ name, vars)) as got
+  |none => none(_)
+  |some => get #[code,body] = got.value
+
+  some(_ pair(__ code, slf(name, body)))
+
+// Parses a self instantiation
+parse_ins(code: String, vars: Vars) : Parsed
+  case consume("inst{",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  case parse_term(code,vars) as got
+  |none => none(_)
+  |some => get #[code,type] = got.value
+
+  case consume("}",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  case parse_term(code,vars) as got
+  |none => none(_)
+  |some => get #[code,expr] = got.value 
+
+  some(_ pair(__ code, ins(type, expr)))
+
+// Parses a self elimination
+parse_eli(code: String, vars: Vars) : Parsed
+  case consume("elim{",code) as got
+  |none => none(_)
+  |some => let code = got.value
+
+  case parse_term(code,vars) as got
+  |none => none(_)
+  |some => get #[code,expr] = got.value
+
+  some(_ pair(__ code, eli(expr)))
 
 // Parses application
 parse_app(code: String, func: Term, vars: Vars) : Parsed
@@ -546,13 +589,16 @@ parse_term(code: String, vars: Vars) : Parsed
   let parsed = try((x)=>parse_lam(code, vars), parsed)
   let parsed = try((x)=>parse_grp(code, vars), parsed)
   let parsed = try((x)=>parse_typ(code, vars), parsed)
+  let parsed = try((x)=>parse_slf(code, vars), parsed)
+  let parsed = try((x)=>parse_ins(code, vars), parsed)
+  let parsed = try((x)=>parse_eli(code, vars), parsed)
   let parsed = try((x)=>parse_var(code, vars), parsed)
   case parsed |none none(_) |some
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
     
 main
-  let parsed = parse_term("((x) => x)(Type(Type))((a) => (b) => (c) => (d) => c)", [])
+  let parsed = parse_term("type{self} (P : (self : Type) -> Type) -> (T : P(Type)) -> (F : P(Type)) -> P(self)", [])
   case parsed |none "Parse error." |some
   case parsed.value |pair
   show(parsed.value.snd)
