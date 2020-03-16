@@ -1,4 +1,5 @@
 import Bool
+import Nat
 import String
 
 number_equal(a : Number, b : Number) : Bool
@@ -36,7 +37,10 @@ number_to_bits(len: Number, n: Number) : Bits
     else
       b0(number_to_bits(len - 1, n >>> 1))
 
-mai number_to_bool
+nat_to_number(n: Nat) : Number
+  case n
+  | zero => 0
+  | succ => 1 + nat_to_number(n.pred)
 
 pi : Number
   3.141592653589793
