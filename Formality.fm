@@ -8,6 +8,7 @@
 import Nat
 import Unit
 import String
+import IO
 
 T Term
 | var(indx: Nat)
@@ -207,6 +208,80 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
     let name = term.name
     holx(name)
   | ref =>
+    let name = term.name
+    let eras = term.eras
+    refx(name, eras)
+
+normalize(term: Hoas) : Hoas
+  case term
+  | varx =>
+    varx(term.indx)
+  | typx =>
+    typx
+  | allx =>
+    let name = term.name
+    let bind = normalize(term.bind)
+    let body = (x) => normalize(term.body(x))
+    let eras = term.eras
+    allx(name, bind, body, eras)
+  | lamx =>
+    let name = term.name
+    let body = (x) => normalize(term.body(x))
+    let eras = term.eras
+    lamx(name, body, eras)
+  | appx =>
+    case unit with normalize(term.func) as func : Hoas |unit
+    case func
+    with term.argm : Hoas
+    with term.eras : Bool
+    | varx => appx(func, normalize(term.argm), term.eras)
+    | typx => appx(func, normalize(term.argm), term.eras)
+    | allx => appx(func, normalize(term.argm), term.eras)
+    | lamx => normalize(func.body(term.argm))
+    | appx => appx(func, normalize(term.argm), term.eras)
+    | slfx => appx(func, normalize(term.argm), term.eras)
+    | insx => appx(func, normalize(term.argm), term.eras)
+    | elix => appx(func, normalize(term.argm), term.eras)
+    | annx => appx(func, normalize(term.argm), term.eras)
+    | lgsx => appx(func, normalize(term.argm), term.eras)
+    | holx => appx(func, normalize(term.argm), term.eras)
+    | refx => appx(func, normalize(term.argm), term.eras)
+  | slfx =>
+    let name = term.name
+    let type = (x) => normalize(term.type(x))
+    slfx(name, type)
+  | insx =>
+    let type = normalize(term.type)
+    let expr = normalize(term.expr)
+    insx(type, expr)
+  | elix =>
+    case unit with normalize(term.expr) as expr : Hoas |unit
+    case expr
+    | varx => elix(expr)
+    | typx => elix(expr)
+    | allx => elix(expr)
+    | lamx => elix(expr)
+    | appx => elix(expr)
+    | slfx => elix(expr)
+    | insx => elix(expr)
+    | elix => expr
+    | annx => elix(expr)
+    | lgsx => elix(expr)
+    | holx => elix(expr)
+    | refx => elix(expr)
+  | annx =>
+    let type = normalize(term.type)
+    let expr = normalize(term.expr)
+    let done = term.done
+    annx(type, expr, done)
+  | lgsx =>
+    let msge = normalize(term.msge)
+    let expr = normalize(term.expr)
+    lgsx(msge, expr)
+  | holx =>
+    let name = term.name
+    holx(name)
+  | refx =>
     let name = term.name
     let eras = term.eras
     refx(name, eras)
@@ -597,8 +672,10 @@ parse_term(code: String, vars: Vars) : Parsed
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
     
-main
-  let parsed = parse_term("type{self} (P : (self : Bool) -> Type) -> (T : P(true)) -> (F : P(false)) -> P(self)", [])
-  case parsed |none "Parse error." |some
+main : IO(Unit) do {
+  let parsed = parse_term("((f)=>(x)=>f(f(f(x))))((f)=>(x)=>f(f(f(x))))", [])
+  ////let parsed = parse_term("type{self} (P: (self: Bool) -> Type) -> (T: P(true)) -> (F: P(false)) -> P(self)", [])
+  case parsed |none return(_ unit) |some
   case parsed.value |pair
-  show(parsed.value.snd)
+  print(show(hoas_to_term(normalize(term_to_hoas(parsed.value.snd,[])),0n)))
+}
