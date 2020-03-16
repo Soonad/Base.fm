@@ -10,6 +10,20 @@ import Unit
 import String
 import IO
 
+// :::::::::::
+// :: Utils ::
+// :::::::::::
+
+Lazy(A : Type) : Type
+  Unit -> A
+
+force(A; x: Lazy(A)) : A
+  x(unit)
+
+// ::::::::::
+// :: Term ::
+// ::::::::::
+
 T Term
 | var(indx: Nat)
 | typ
@@ -24,11 +38,9 @@ T Term
 | hol(name: String)
 | ref(name: String, eras: Bool)
 
-Lazy(A : Type) : Type
-  Unit -> A
-
-force(A; x: Lazy(A)) : A
-  x(unit)
+// ::::::::::::::::::
+// :: Substitution ::
+// ::::::::::::::::::
 
 shift(term: Term, inc: Nat, dep: Nat) : Term
   case term
@@ -146,6 +158,10 @@ subst_many(term: Term, vals: List(Term), inc: Nat, dep: Nat) : Term
     let term = subst(term, sval, sdep)
     subst_many(term, vals.tail, pred(inc), dep)
 
+// :::::::::::::::::::
+// :: Normalization ::
+// :::::::::::::::::::
+
 T Hoas
 | varx(indx: Nat)
 | typx
@@ -211,6 +227,56 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
     let name = term.name
     let eras = term.eras
     refx(name, eras)
+
+hoas_to_term(term: Hoas, depth: Nat) : Term
+  case term
+  | varx =>
+    var(sub(depth, succ(term.indx)))
+  | typx =>
+    typ
+  | allx =>
+    let name = term.name
+    let bind = hoas_to_term(term.bind, depth)
+    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let eras = term.eras
+    all(name, bind, body, eras)
+  | lamx =>
+    let name = term.name
+    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let eras = term.eras
+    lam(name, body, eras)
+  | appx =>
+    let func = hoas_to_term(term.func, depth)
+    let argm = hoas_to_term(term.argm, depth)
+    let eras = term.eras
+    app(func, argm, eras)
+  | slfx =>
+    let name = term.name
+    let type = hoas_to_term(term.type(varx(depth)), succ(depth))
+    slf(name, type)
+  | insx =>
+    let type = hoas_to_term(term.type, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    ins(type, expr)
+  | elix =>
+    let expr = hoas_to_term(term.expr, depth)
+    eli(expr)
+  | annx =>
+    let type = hoas_to_term(term.type, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    let done = term.done
+    ann(type, expr, done)
+  | lgsx =>
+    let msge = hoas_to_term(term.msge, depth)
+    let expr = hoas_to_term(term.expr, depth)
+    lgs(msge, expr)
+  | holx =>
+    let name = term.name
+    hol(name)
+  | refx =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
 
 normalize(term: Hoas) : Hoas
   case term
@@ -286,55 +352,9 @@ normalize(term: Hoas) : Hoas
     let eras = term.eras
     refx(name, eras)
 
-hoas_to_term(term: Hoas, depth: Nat) : Term
-  case term
-  | varx =>
-    var(sub(depth, succ(term.indx)))
-  | typx =>
-    typ
-  | allx =>
-    let name = term.name
-    let bind = hoas_to_term(term.bind, depth)
-    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
-    let eras = term.eras
-    all(name, bind, body, eras)
-  | lamx =>
-    let name = term.name
-    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
-    let eras = term.eras
-    lam(name, body, eras)
-  | appx =>
-    let func = hoas_to_term(term.func, depth)
-    let argm = hoas_to_term(term.argm, depth)
-    let eras = term.eras
-    app(func, argm, eras)
-  | slfx =>
-    let name = term.name
-    let type = hoas_to_term(term.type(varx(depth)), succ(depth))
-    slf(name, type)
-  | insx =>
-    let type = hoas_to_term(term.type, depth)
-    let expr = hoas_to_term(term.expr, depth)
-    ins(type, expr)
-  | elix =>
-    let expr = hoas_to_term(term.expr, depth)
-    eli(expr)
-  | annx =>
-    let type = hoas_to_term(term.type, depth)
-    let expr = hoas_to_term(term.expr, depth)
-    let done = term.done
-    ann(type, expr, done)
-  | lgsx =>
-    let msge = hoas_to_term(term.msge, depth)
-    let expr = hoas_to_term(term.expr, depth)
-    lgs(msge, expr)
-  | holx =>
-    let name = term.name
-    hol(name)
-  | refx =>
-    let name = term.name
-    let eras = term.eras
-    ref(name, eras)
+// :::::::::::::::::
+// :: Stringifier ::
+// :::::::::::::::::
 
 show.go(term: Term, names: List(String)) : Concat(Char)
   case term
@@ -403,6 +423,10 @@ show.go(term: Term, names: List(String)) : Concat(Char)
 show(term: Term) : String
   show.go(term, [], [])
 
+// ::::::::::::
+// :: Parser ::
+// ::::::::::::
+
 // The parser below would be prettier with monads, but it
 // avoids that in order to increase performance to the
 // theoretical maximum, and decrease the dependency.
@@ -456,7 +480,7 @@ consume(value: String, code: String) : Maybe(String)
     consume(value.tail, code.tail)
   else
     none(_)
-  
+
 // Parses name characters
 parse_name(code: String) : Pair(String, String)
   let code = skip_spaces(code)
@@ -574,8 +598,11 @@ parse_typ(code: String, vars: Vars) : Parsed
 parse_var(code: String, vars: Vars) : Parsed
   get #[code,name] = parse_name(code)
   case find_index(_ string.equal(name), vars) as found
-  |none => some(_ pair(__ code, ref(name, false)))
-  |some => some(_ pair(__ code, var(found.value)))
+  |none =>
+    case name |nil none(_) |cons
+    some(_ pair(__ code, ref(name, false)))
+  |some =>
+    some(_ pair(__ code, var(found.value)))
 
 // Parses a self type
 parse_slf(code: String, vars: Vars) : Parsed
@@ -671,11 +698,284 @@ parse_term(code: String, vars: Vars) : Parsed
   case parsed |none none(_) |some
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
+
+// ::::::::::::::
+// :: Equality ::
+// ::::::::::::::
+
+identical(a: Term, b: Term) : Bool
+  case a
+  | var =>
+    case b
+    | var => nat_equal(a.indx, b.indx) 
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | typ =>
+    case b
+    | var => false
+    | typ => true
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | all =>
+    case b
+    | var => false
+    | typ => false
+    | all => and(equal(a.bind,b.bind),equal(a.body,b.body))
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | lam =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => and(equal(a.body,b.body))
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | app =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => and(equal(a.func,b.func),equal(a.argm,b.argm))
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | slf =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | ins =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | eli =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | ann =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | lgs =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | hol =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  | ref =>
+    case b
+    | var => false
+    | typ => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+    | lgs => false
+    | hol => false
+    | ref => false
+  
+// :::::::::::::::::::
+// :: Type-Checking ::
+// :::::::::::::::::::
+
+Context : Type
+  List(Term)
+
+ctx.get(ctx: Context, i: Nat) : Maybe(Term)
+  case at(_ i, ctx) as got
+  | none => none(_) 
+  | some => some(_ shift(got.value, succ(i), 0n))
+
+ctx.nil : Context
+  nil(_)
+
+ctx.ext(ctx: Context, term: Term) : Context
+  cons(_ term, ctx)
+
+// Type-checks a term
+typecheck(term: Term, type: Maybe(Term), ctx: Context) : Maybe(Term)
+  case term
+  | var =>
+    ctx.get(ctx, term.indx)
+  | typ =>
+    some(_ typ)
+  | all =>
+    let bind_t = typecheck(term.bind, some(_ typ), ctx)
+    let ex_ctx = ctx.ext(ctx, term.bind)
+    let body_t = typecheck(term.body, some(_ typ), ex_ctx)
+    case bind_t |none none(_) |some
+    case body_t |none none(_) |some
+    some(_ typ)
+  | lam =>
+    case type |none none(_) |some
+    case type.value as type
+    | var => none(_)
+    | typ => none(_)
+    | all =>
+      let ex_ctx = ctx.ext(ctx, type.bind)
+      let body_t = typecheck(term.body, some(_ type.body), ex_ctx)
+      case body_t |none none(_) |some
+      some(_ all(term.name, type.bind, body_t.value, term.eras))
+    | lam => none(_)
+    | app => none(_)
+    | slf => none(_)
+    | ins => none(_)
+    | eli => none(_)
+    | ann => none(_)
+    | lgs => none(_)
+    | hol => none(_)
+    | ref => none(_)
+  | app =>
+    let func_t = typecheck(term.func, none(_), ctx)
+    case func_t |none none(_) |some
+    case func_t.value as func_t
+    | var => none(_)
+    | typ => none(_)
+    | all => none(_)
+    | lam => none(_)
+    | app => none(_)
+    | slf => none(_)
+    | ins => none(_)
+    | eli => none(_)
+    | ann => none(_)
+    | lgs => none(_)
+    | hol => none(_)
+    | ref => none(_)
+  | slf => some(_ typ)
+  | ins => some(_ typ)
+  | eli => some(_ typ)
+  | ann => some(_ typ)
+  | lgs => some(_ typ)
+  | hol => some(_ typ)
+  | ref => some(_ typ)
     
-main : IO(Unit) do {
-  let parsed = parse_term("((f)=>(x)=>f(f(f(x))))((f)=>(x)=>f(f(f(x))))", [])
-  ////let parsed = parse_term("type{self} (P: (self: Bool) -> Type) -> (T: P(true)) -> (F: P(false)) -> P(self)", [])
-  case parsed |none return(_ unit) |some
-  case parsed.value |pair
-  print(show(hoas_to_term(normalize(term_to_hoas(parsed.value.snd,[])),0n)))
-}
+// ::::::::::
+// :: Test ::
+// ::::::::::
+
+main : IO(Unit)
+  let term_code = "(A) => (x) => x"
+  let type_code = "(A : Type) -> (x : A) -> A"
+
+  // Parses term
+  let parsed_term = parse_term(term_code, [])
+  case parsed_term |none print("Error parsing term.") |some
+
+  // Parses type
+  let parsed_type = parse_term(type_code, [])
+  case parsed_type |none print("Error parsing type.") |some
+
+  // Gets parsed term
+  case parsed_term.value |pair
+  let term = parsed_term.value.snd
+
+  // Gets parsed type
+  case parsed_type.value |pair
+  let type = parsed_type.value.snd
+
+  // Infers the term type
+  let term_t = typecheck(term, some(_ type), [])
+  case term_t |none print("Type error.") |some do {
+    print(show(term));
+    print(show(term_t.value))
+  }
