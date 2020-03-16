@@ -1,0 +1,83 @@
+import Nat
+import Bool
+import Map
+import String
+import NonEmpty
+import Formality
+
+-- type synonyms
+Eras : Type; Bool
+Name : Type; String
+Oper : Type; Number
+
+-- binary numeric operations
+enum
+| ADD
+| SUB
+| MUL
+| DIV
+
+-- TODO: decide how to structure Oper
+
+-- Formality language term (core terms + syntax sugar)
+T Lang
+| lvar(indx: Nat)                                       -- Variable
+| ltyp                                                  -- Type type
+| lall(name: Name, bind: Lang, body: Lang, eras: Eras)  -- Forall
+| llam(name: Name, bind: Lang, body: Lang, eras: Eras)  -- Lambda
+| lapp(func: Lang, argm: Lang, eras: Eras)              -- Application
+| lslf(name: Name, type: Lang)                          -- Self-type
+| lins(type: Lang, expr: Lang)                          -- Self-type introduction
+| leli(expr: Lang)                                      -- Self-type elimination
+| lann(type: Lang, expr: Lang, done: Bool)              -- Type annotation
+| llgs(msge: Lang, expr: Lang)                          -- Inline log
+| lhol(name: Name)                                      -- Metavariable
+| lref(name: Name, eras: Eras)                          -- Reference
+| llet(name: Name, expr: Lang, body: Lang)              -- Inline definition
+| lwhn(vals: NonEmpty(Pair(Lang, Lang)), else: Lang)    -- When-statement
+| lswt(expr: Lang,                                      -- Switch-statement
+      vals : NonEmpty(Pair(Lang, Lang)),
+      else: Lang)
+| lcse(expr: Lang,                                      -- Case-statement
+      with: List(Pair(Lang,Pair(Lang,Lang))),
+      data: Data,
+      vals: List(Pair(Name,Lang)),
+      type: Maybe(Lang))
+| lrwt(prop: Lang, evid : Lang)                         -- Type rewrite
+| lwrd                                                  -- Word type
+| lu64(valu: Bits)                                      -- Word value
+| ldbl                                                  -- Double type
+| lf64(valu: Bits)                                      -- Double value
+| lopr(oper: Oper, vlft: Lang, vrgt: Lang)              -- Binary operation
+| lite(cond: Lang, then: Lang, else: Lang) 
+| lstr(valu: Name)                                      -- String value
+| lchr(valu: Char)                                      -- Character value
+| lnat(indc: Bool, valu: Nat)                           -- Natural number value
+| lbit(indc: Bool, valu: Bits)                          -- Bitstring value
+| ltup(type: Bool, valu: List(Lang))                    -- Tuple value and type
+| lget(nlft: Name, nrgt: Name, vlft: Lang, vrgt: Lang)  -- Pair projection
+| llst(valu: List(Lang))                                -- List value
+| lsig(exts: List(Pair(Maybe(Name),Lang)), expr: Lang)  -- Sigma type
+
+-- datatype sugar
+T Data
+| adt(
+    name: Name,                                        -- datatype name
+    pars: List(Pair(Name,Lang)),                       -- type parameters
+    inds: List(Pair(Name,Lang)),                       -- type indices
+    ctrs: List(Pair(Name,Ctor))                        -- datatype constructors
+    )
+
+-- datatype sugar constructors
+T Ctor
+| ctor(pars: List(Pair(Name, Pair(Lang,Eras))), type: Maybe(Lang))
+
+-- top level declaration
+T Declaration
+| impt(name: Name, alias: Name, hide: List(Name))    -- import
+| expr(name: Name, term: Lang)                       -- definition
+| enum(name: Maybe(Name), vals: List(Name))          -- enumeration
+| data(valu: Data)                                   -- datatype
+
+-- A Formality module is a list of declarations
+Module : Type; List(Declaration)

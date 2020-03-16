@@ -1,0 +1,65 @@
+import Nat
+import Bool
+import Map
+import String
+
+import Formality
+import FormalityLang
+
+T SynthState
+| synthState(
+    hol_count: Number,
+    terms: Map(Term)
+  )
+
+T SynthError
+| synthError
+
+synth(x : Lang) : Term
+  case x
+  | lvar => var(x.indx)
+  | ltyp => typ
+  | lall => all(x.name, synth(x.bind), synth(x.body), x.eras)
+  | llam => lam(x.name, synth(x.body), x.eras)
+  | lapp => app(synth(x.func), synth(x.argm), x.eras)
+  | lslf => slf(x.name, synth(x.type))
+  | lins => ins(synth(x.type), synth(x.expr))
+  | leli => eli(synth(x.expr))
+  | lann => ann(synth(x.type), synth(x.expr), x.done)
+  | llgs => lgs(synth(x.msge), synth(x.expr))
+  | lhol => hol(x.name)
+  | lref => ref(x.name, x.eras)
+  | llet => subst(synth(x.expr), synth(x.body), 0n)
+  | lwhn => case x.vals as ts
+    | ne_nil  => get #[c,t] = ts.last; mk_ite(synth(c),synth(t),synth(x.else))
+    | ne_cons => get #[c,t] = ts.head
+        mk_ite(synth(c),synth(t),synth(lwhn(ts.tail,x.else)))
+  | lswt => ?
+  | lcse => ?
+  | lrwt => ?
+  | lwrd => ref("Word", false)
+  | lu64 => ? 
+  | ldbl => ref("Double", false)
+  | lf64 => ? 
+  | lopr => ?
+  | lite => mk_ite(synth(x.cond),synth(x.then),synth(x.else))
+  | lstr => ?
+  | lchr => ?
+  | lnat => ?
+  | lbit => ?
+  | ltup => ?
+  | lget => ?
+  | llst => ?
+  | lsig => ?
+
+mk_ite(c : Term, t : Term, e : Term) : Term
+  let ap = (f : Term, a : Term) => app(f,a,false)
+  ap(ap(ap(app(ref("ifte",false), hol("?"),false),c),t),e)
+
+ifte(A : Type; c : Bool, t : A, f : A) : A
+   case c | true => t | false => f
+
+Word : Type; ?Word
+Double : Type; ?Double
+
+
