@@ -107,7 +107,7 @@ subst(term: Term, trm: Term, dep: Nat) : Term
   | all =>
     let name = term.name
     let bind = subst(term.bind, trm, dep)
-    let body = subst(term.body, trm, succ(dep))
+    let body = subst(term.body, shift(trm,1n,0n), succ(dep))
     let eras = term.eras
     all(name, bind, body, eras)
   | lam =>
@@ -117,7 +117,7 @@ subst(term: Term, trm: Term, dep: Nat) : Term
     lam(name, body, eras)
   | app =>
     let func = subst(term.func, trm, dep)
-    let argm = subst(term.argm, shift(trm,1n,0n), dep)
+    let argm = subst(term.argm, trm, dep)
     let eras = term.eras
     app(func, argm, eras)
   | slf =>
@@ -171,7 +171,7 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
   case term
   | var =>
     case at(Hoas; term.indx, vals) as got
-    | none => varx(sub(length(_ vals), succ(term.indx)))
+    | none => varx(term.indx)
     | some => got.value
   | typ =>
     typx
@@ -215,7 +215,10 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
 hoas_to_term(term: Hoas, depth: Nat) : Term
   case term
   | varx =>
-    var(sub(depth, succ(term.indx)))
+    case nat_compare(term.indx, depth) as cmp
+    | less_than    => var(sub(depth, succ(term.indx)))
+    | equal_to     => var(term.indx)
+    | greater_than => var(term.indx)
   | typx =>
     typ
   | allx =>
@@ -318,7 +321,11 @@ normalize(term: Hoas, defs: Defs) : Hoas
     let eras = term.eras
     case lookup(_ string_to_bits(name), defs) as got
     | none => refx(name, eras)
-    | some => term_to_hoas(got.value, [])
+    | some => case got.value |def
+      term_to_hoas(got.value.term, [])
+
+reduce(term: Term, defs: Defs) : Term
+  hoas_to_term(normalize(term_to_hoas(term, []), defs), 0n)
 
 // :::::::::::::::::
 // :: Stringifier ::
@@ -872,8 +879,14 @@ Equations : Type
 typecheck(
   term : Term,
   type : Maybe(Term),
+  defs : Defs,
   ctx  : Context
 ) : Maybe(Pair(Equations, Term))
+  // TODO: weak reduce intead
+  let type = case type
+    | none => none(_)
+    | some => some(_reduce(type.value,defs))
+
   let chk = case term
 
     // Variables
@@ -888,9 +901,9 @@ typecheck(
 
     // Function Type (Universal Quantification)
     | all =>
-      let bind_chk = typecheck(term.bind, some(_ typ), ctx)
+      let bind_chk = typecheck(term.bind, some(_ typ), defs, ctx)
       let ext_ctx  = ctx.ext(ctx, term.bind)
-      let body_chk = typecheck(term.body, some(_ typ), ext_ctx)
+      let body_chk = typecheck(term.body, some(_ typ), defs, ext_ctx)
       case bind_chk
       | none => none(_)
       | some => get #[bind_eqs, bind_typ] = bind_chk.value
@@ -910,7 +923,7 @@ typecheck(
       | typ => none(_)
       | all =>
         let ext_ctx  = ctx.ext(ctx, type.bind)
-        let body_chk = typecheck(term.body, some(_ type.body), ext_ctx)
+        let body_chk = typecheck(term.body, some(_ type.body), defs, ext_ctx)
         case body_chk
         | none => none(_)
         | some => get #[body_eqs, body_typ] = body_chk.value
@@ -927,7 +940,7 @@ typecheck(
 
     // Function Elimination (application)
     | app =>
-      let func_chk = typecheck(term.func, none(_), ctx)
+      let func_chk = typecheck(term.func, none(_), defs, ctx)
       case func_chk
       | none => none(_)
       | some => get #[func_eqs, func_typ] = func_chk.value
@@ -935,7 +948,7 @@ typecheck(
       | var => none(_)
       | typ => none(_)
       | all =>
-        let argm_chk = typecheck(term.argm, some(_ func_typ.bind), ctx)
+        let argm_chk = typecheck(term.argm, some(_ func_typ.bind), defs, ctx)
         case argm_chk
         | none => none(_)
         | some => get #[argm_eqs, argm_typ] = argm_chk.value
@@ -951,19 +964,25 @@ typecheck(
       | ref => none(_)
 
     // Self Type
-    | slf => some(_ pair(__ [], typ))
+    | slf => none(_)
 
     // Self Value
-    | ins => some(_ pair(__ [], typ))
+    | ins => none(_)
 
     // Self Elimination
-    | eli => some(_ pair(__ [], typ))
+    | eli => none(_)
 
     // Annotation
-    | ann => some(_ pair(__ [], typ))
+    | ann => some(_ pair(__ [], term.type))
 
     // Reference
-    | ref => some(_ pair(__ [], typ))
+    | ref => 
+      case lookup(_ string_to_bits(term.name), defs) as got
+      | none =>
+        none(_)
+      | some =>
+        case got.value |def
+        some(_ pair(__ [], got.value.type))
 
   // Appends expected/inferred type to equations list
   case chk
@@ -1006,24 +1025,37 @@ main
     Nat : Type
       (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
       
-    zero : Nat
+    zero : (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
       (A) => (z) => (s) => z
 
-    succ : (x : Nat) -> Nat
+    succ : (n : Nat) -> Nat
       (n) => (A) => (z) => (s) => s(n(A)(z)(s))
+
+    mul : (a : Nat) -> (b : Nat) -> Nat
+      (a) => (b) => (A) => (z) => (s) => a(A)(z)((x) => b(A)(x)(s))
+
+    main : Nat
+      mul(succ(succ(zero)))(succ(succ(zero)))
   ")
 
-  case lookup(_ string_to_bits("Nat"), defs) as got
+  case lookup(_ string_to_bits("main"), defs) as got
   | none => print("Def not found.")
   | some => case got.value |def do {
     let type = got.value.type
     let term = got.value.term
 
-    case typecheck(term, some(_ type), []) as term_t
-    | none => print("Type error.")
+    case typecheck(term, some(_ type), defs, []) as term_t
+    | none => do {
+      print("Type error.")
+      print(show(term))
+      print(show(reduce(term,defs)))
+    }
     | some => case term_t.value |pair do {
       print("[Term]")
       print(show(term))
+      print("")
+      print("[Norm]")
+      print(show(reduce(term,defs)))
       print("")
       print("[Type]")
       print(show(term_t.value.snd))
