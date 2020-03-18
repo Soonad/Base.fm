@@ -6,6 +6,7 @@
 import Bits
 import Bool
 import List
+import Number
 
 // Definition
 // ----------
@@ -37,3 +38,58 @@ string.equal(a: String, b: String) : Bool
       let head_equals = number_to_bool(a.head === b.head)
       let tail_equals = string.equal(a.tail, b.tail)
       and(head_equals, tail_equals)
+
+string_to_bits(str: String) : Bits
+  case str
+  | nil =>
+    be
+  | cons =>
+    let char_bits = number_to_bits(16, str.head)
+    let rest_bits = string_to_bits(str.tail)
+    concat_bits(char_bits, rest_bits)
+
+bits_to_string.go(
+  bits : Bits,
+  chr  : Char,
+  idx  : Number,
+  str  : String -> String,
+) : String
+  let got = case bits
+    | be => none(_)
+    | b0 => some(_ #[0, bits.pred])
+    | b1 => some(_ #[1, bits.pred])
+  case got
+  with chr : Char
+  with str : String -> String
+  with idx : Number
+  | none =>
+    str(nil(_))
+    //cons(_ chr, str)
+  | some =>
+    get #[bit, bits.pred] = got.value
+    let end = idx === 15
+    let chr = chr || (bit << idx)
+    let nxt = (if end
+      then (s, x) => s(cons(_chr,x))
+      else (s, x) => s(x)
+      ) :: (String -> String) -> (String -> String)
+    let chr = if end then 0 else chr || (bit << idx)
+    let idx = if end then 0 else idx + 1
+    bits_to_string.go(bits.pred, chr, idx, nxt(str))
+  
+bits_to_string(bits: Bits)
+  bits_to_string.go(bits, 0, 0, (x) => x)
+
+number_to_string.aux(base: Number, n: Number) : String -> String
+  if n === 0 then
+    (x) => x
+  else
+    let c = digit_to_char(n % base)
+    let f = number_to_string.aux(base, (n \ base) || 0)
+    (x) => f(cons(_ c, x))
+
+number_to_string(base: Number, n : Number) : String
+  if n === 0 then
+    "0"
+  else
+    number_to_string.aux(base, n, [])

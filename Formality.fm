@@ -5,11 +5,13 @@
 // JavaScript, a compilação parte do Formality-Lang, de modo
 // a poder usar os números e ADTs nele presentes.
 
-import Nat
-import Unit
-import String
-import Number
+import Bits
 import IO
+import Map
+import Nat
+import Number
+import String
+import Unit
 
 // :::::::::::
 // :: Utils ::
@@ -38,6 +40,12 @@ T Term
 | lgs(msge: Term, expr: Term)
 | hol(name: String)
 | ref(name: String, eras: Bool)
+  
+T Def
+| def(type: Term, term: Term)
+
+Defs : Type
+  Map(Def)
 
 // ::::::::::::::::::
 // :: Substitution ::
@@ -279,7 +287,7 @@ hoas_to_term(term: Hoas, depth: Nat) : Term
     let eras = term.eras
     ref(name, eras)
 
-normalize(term: Hoas) : Hoas
+normalize(term: Hoas, defs: Defs) : Hoas
   case term
   | varx =>
     varx(term.indx)
@@ -287,42 +295,42 @@ normalize(term: Hoas) : Hoas
     typx
   | allx =>
     let name = term.name
-    let bind = normalize(term.bind)
-    let body = (x) => normalize(term.body(x))
+    let bind = normalize(term.bind, defs)
+    let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
     allx(name, bind, body, eras)
   | lamx =>
     let name = term.name
-    let body = (x) => normalize(term.body(x))
+    let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
     lamx(name, body, eras)
   | appx =>
-    case unit with normalize(term.func) as func : Hoas |unit
+    case unit with normalize(term.func, defs) as func : Hoas |unit
     case func
     with term.argm : Hoas
     with term.eras : Bool
-    | varx => appx(func, normalize(term.argm), term.eras)
-    | typx => appx(func, normalize(term.argm), term.eras)
-    | allx => appx(func, normalize(term.argm), term.eras)
-    | lamx => normalize(func.body(term.argm))
-    | appx => appx(func, normalize(term.argm), term.eras)
-    | slfx => appx(func, normalize(term.argm), term.eras)
-    | insx => appx(func, normalize(term.argm), term.eras)
-    | elix => appx(func, normalize(term.argm), term.eras)
-    | annx => appx(func, normalize(term.argm), term.eras)
-    | lgsx => appx(func, normalize(term.argm), term.eras)
-    | holx => appx(func, normalize(term.argm), term.eras)
-    | refx => appx(func, normalize(term.argm), term.eras)
+    | varx => appx(func, normalize(term.argm, defs), term.eras)
+    | typx => appx(func, normalize(term.argm, defs), term.eras)
+    | allx => appx(func, normalize(term.argm, defs), term.eras)
+    | lamx => normalize(func.body(term.argm), defs)
+    | appx => appx(func, normalize(term.argm, defs), term.eras)
+    | slfx => appx(func, normalize(term.argm, defs), term.eras)
+    | insx => appx(func, normalize(term.argm, defs), term.eras)
+    | elix => appx(func, normalize(term.argm, defs), term.eras)
+    | annx => appx(func, normalize(term.argm, defs), term.eras)
+    | lgsx => appx(func, normalize(term.argm, defs), term.eras)
+    | holx => appx(func, normalize(term.argm, defs), term.eras)
+    | refx => appx(func, normalize(term.argm, defs), term.eras)
   | slfx =>
     let name = term.name
-    let type = (x) => normalize(term.type(x))
+    let type = (x) => normalize(term.type(x), defs)
     slfx(name, type)
   | insx =>
-    let type = normalize(term.type)
-    let expr = normalize(term.expr)
+    let type = normalize(term.type, defs)
+    let expr = normalize(term.expr, defs)
     insx(type, expr)
   | elix =>
-    case unit with normalize(term.expr) as expr : Hoas |unit
+    case unit with normalize(term.expr, defs) as expr : Hoas |unit
     case expr
     | varx => elix(expr)
     | typx => elix(expr)
@@ -337,13 +345,13 @@ normalize(term: Hoas) : Hoas
     | holx => elix(expr)
     | refx => elix(expr)
   | annx =>
-    let type = normalize(term.type)
-    let expr = normalize(term.expr)
+    let type = normalize(term.type, defs)
+    let expr = normalize(term.expr, defs)
     let done = term.done
     annx(type, expr, done)
   | lgsx =>
-    let msge = normalize(term.msge)
-    let expr = normalize(term.expr)
+    let msge = normalize(term.msge, defs)
+    let expr = normalize(term.expr, defs)
     lgsx(msge, expr)
   | holx =>
     let name = term.name
@@ -351,7 +359,9 @@ normalize(term: Hoas) : Hoas
   | refx =>
     let name = term.name
     let eras = term.eras
-    refx(name, eras)
+    case lookup(_ string_to_bits(name), defs) as got
+    | none => refx(name, eras)
+    | some => term_to_hoas(got.value, [])
 
 // :::::::::::::::::
 // :: Stringifier ::
@@ -429,6 +439,18 @@ show.go(term: Term, names: List(String)) : Concat(Char)
 show(term: Term) : String
   show.go(term, [], [])
 
+//show_defs.go(defs: Defs) : String
+  //let els = map_elements(_ defs)
+  //let cons = (term, str) =>
+    //let name = list_to_concat(Char; show(head))
+    //let 
+  //fold(Def; String; 
+  //| none => nil(_)
+  //| some => 
+  //case defs
+  //| none => nil(_)
+  //| some => case 
+  
 // ::::::::::::
 // :: Parser ::
 // ::::::::::::
@@ -460,14 +482,14 @@ drop(amount: Nat, code: String) : String
 
 // Is this character allowed in names?
 is_name_char(chr: Char) : Number
-  (chr > 47) && (chr < 58)  || // 0-9
-  (chr > 64) && (chr < 91)  || // A-Z 
-  (chr > 96) && (chr < 123) || // a-z
-  (chr === 95)                 // _ 
+  ((chr > 47) && (chr < 58))  || // 0-9
+  ((chr > 64) && (chr < 91))  || // A-Z 
+  ((chr > 96) && (chr < 123)) || // a-z
+  (chr === 95)                   // _ 
 
 // Is this character a space?
 is_space_char(chr: Char) : Number
-  (chr === ' ')
+  (chr === ' ') || (chr === 10)
 
 // Removes leadig spaces
 skip_spaces(code: String) : String
@@ -476,6 +498,16 @@ skip_spaces(code: String) : String
     skip_spaces(code.tail)
   else
     code
+
+// Are there non-space characters on this line?
+line_has_chars(code: String) : Number
+  case code |nil 0 |cons
+  if (code.head === ' ') then
+    line_has_chars(code.tail)
+  else if (code.head === 10) then
+    0
+  else
+    1
 
 // Matches an exact string, returns the remaining code
 consume(value: String, code: String) : Maybe(String)
@@ -488,14 +520,16 @@ consume(value: String, code: String) : Maybe(String)
     none(_)
 
 // Parses name characters
-parse_name(code: String) : Pair(String, String)
-  let code = skip_spaces(code)
+parse_name.go(code: String) : Pair(String, String)
   case code |nil #[code, nil(_)] |cons
   if is_name_char(code.head) then
-    get #[code, name] = parse_name(code.tail)
+    get #[code, name] = parse_name.go(code.tail)
     #[code, cons(Char; code.head, name)]
   else
     #[code, nil(Char;)]
+
+parse_name(code: String) : Pair(String, String)
+  parse_name.go(skip_spaces(code))
 
 // Parses a grouping `(...)`
 parse_grp(code: String, vars: Vars) : Parsed
@@ -682,13 +716,15 @@ parse_app(code: String, func: Term, vars: Vars) : Parsed
 // Postfix parses
 // Attempts each one repeatedly, until all fail
 parse_postfix(code: String, term: Term, vars: Vars) : Parsed
-  //let parsed = parse_postfix.try(parse_app, parsed, vars)
-  let parsed = none(_)
-  let parsed = try((x)=>parse_app(code, term, vars), parsed)
-  case parsed
-  |none some(_ pair(__ code, term))
-  |some get #[code,term] = parsed.value
-  parse_postfix(code, term, vars)
+  if line_has_chars(code) then
+    let parsed = none(_)
+    let parsed = try((x)=>parse_app(code, term, vars), parsed)
+    case parsed
+    |none some(_ pair(__ code, term))
+    |some get #[code,term] = parsed.value
+    parse_postfix(code, term, vars)
+  else
+    some(_ pair(__ code, term))
 
 // Parses terms
 parse_term(code: String, vars: Vars) : Parsed
@@ -704,6 +740,34 @@ parse_term(code: String, vars: Vars) : Parsed
   case parsed |none none(_) |some
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
+
+// Parses defs
+parse_defs.go(code: String, defs: Defs) : Defs
+  get #[code,name] = parse_name(code)
+  case name
+  with defs : Defs
+  | nil  => defs
+  | cons =>
+    let name = cons(_ name.head, name.tail)
+    case consume(":",code) as got
+    with defs : Defs
+    |none => defs
+    |some => let code = got.value
+    case parse_term(code, []) as got
+    with defs : Defs
+    |none => defs
+    |some => get #[code,type] = got.value
+    case parse_term(code, []) as got
+    with defs : Defs
+    |none => defs
+    |some => get #[code,term] = got.value
+    let bits = string_to_bits(name)
+    let defs = insert(_ bits, def(type,term), defs)
+    parse_defs.go(code, defs)
+
+// Parses defs
+parse_defs(code: String) : Defs
+  parse_defs.go(code, empty(_))
 
 // ::::::::::::::
 // :: Equality ::
@@ -788,7 +852,7 @@ identical(a: Term, b: Term) : Bool
     | all => false
     | lam => false
     | app => false
-    | slf => false
+    | slf => equal(a.type,b.type)
     | ins => false
     | eli => false
     | ann => false
@@ -803,7 +867,7 @@ identical(a: Term, b: Term) : Bool
     | lam => false
     | app => false
     | slf => false
-    | ins => false
+    | ins => and(equal(a.type,b.type),equal(a.expr,b.expr))
     | eli => false
     | ann => false
     | lgs => false
@@ -818,7 +882,7 @@ identical(a: Term, b: Term) : Bool
     | app => false
     | slf => false
     | ins => false
-    | eli => false
+    | eli => equal(a.expr,b.expr)
     | ann => false
     | lgs => false
     | hol => false
@@ -833,7 +897,7 @@ identical(a: Term, b: Term) : Bool
     | slf => false
     | ins => false
     | eli => false
-    | ann => false
+    | ann => equal(a.expr,b.expr)
     | lgs => false
     | hol => false
     | ref => false
@@ -848,7 +912,7 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
+    | lgs => equal(a.expr,b.expr)
     | hol => false
     | ref => false
   | hol =>
@@ -878,7 +942,7 @@ identical(a: Term, b: Term) : Bool
     | ann => false
     | lgs => false
     | hol => false
-    | ref => false
+    | ref => string_equal(a.name,b.name)
   
 // :::::::::::::::::::
 // :: Type-Checking ::
@@ -1044,37 +1108,34 @@ show_equations(eqs: Equations) : String
 // :: Test ::
 // ::::::::::
 
-main : IO(Unit)
-  // Should type error because `s : A -> A` instead of `A`
-  let term_code = "(A) => (s) => (z) => s"
-  let type_code = "(A : Type) -> (s : (x:A) -> A) -> (z : A) -> A"
+main
+  let defs = parse_defs("
+    Nat : Type
+      (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
+      
+    zero : Nat
+      (A) => (z) => (s) => z
 
-  // Parses term
-  let parsed_term = parse_term(term_code, [])
-  case parsed_term |none print("Error parsing term.") |some
+    succ : (x : Nat) -> Nat
+      (n) => (A) => (z) => (s) => s(n(A)(z)(s))
+  ")
 
-  // Parses type
-  let parsed_type = parse_term(type_code, [])
-  case parsed_type |none print("Error parsing type.") |some
+  case lookup(_ string_to_bits("Nat"), defs) as got
+  | none => print("Def not found.")
+  | some => case got.value |def do {
+    let type = got.value.type
+    let term = got.value.term
 
-  // Gets parsed term
-  case parsed_term.value |pair
-  let term = parsed_term.value.snd
-
-  // Gets parsed type
-  case parsed_type.value |pair
-  let type = parsed_type.value.snd
-
-  // Infers the term type
-  let term_t = typecheck(term, some(_ type), [])
-  case term_t |none print("Type error.") |some
-  case term_t.value |pair do {
-    print("[Term]")
-    print(show(term))
-    print("")
-    print("[Equalities]")
-    print(show_equations(term_t.value.fst))
-    print("[Type]")
-    print(show(term_t.value.snd))
-    print("")
+    case typecheck(term, some(_ type), []) as term_t
+    | none => print("Type error.")
+    | some => case term_t.value |pair do {
+      print("[Term]")
+      print(show(term))
+      print("")
+      print("[Type]")
+      print(show(term_t.value.snd))
+      print("")
+      print("[Equations]")
+      print(show_equations(term_t.value.fst))
+    }
   }
