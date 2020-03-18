@@ -37,8 +37,6 @@ T Term
 | ins(type: Term, expr: Term)
 | eli(expr: Term)
 | ann(type: Term, expr: Term, done: Bool)
-| lgs(msge: Term, expr: Term)
-| hol(name: String)
 | ref(name: String, eras: Bool)
   
 T Def
@@ -92,13 +90,6 @@ shift(term: Term, inc: Nat, dep: Nat) : Term
     let expr = shift(term.expr, inc, dep)
     let done = term.done
     ann(type, expr, done)
-  | lgs =>
-    let msge = shift(term.msge, inc, dep)
-    let expr = shift(term.expr, inc, dep)
-    lgs(msge, expr)
-  | hol =>
-    let name = term.name
-    hol(name)
   | ref =>
     let name = term.name
     let eras = term.eras
@@ -145,13 +136,6 @@ subst(term: Term, trm: Term, dep: Nat) : Term
     let expr = subst(term.expr, trm, dep)
     let done = term.done
     ann(type, expr, done)
-  | lgs =>
-    let msge = subst(term.msge, trm, dep)
-    let expr = subst(term.expr, trm, dep)
-    lgs(msge, expr)
-  | hol =>
-    let name = term.name
-    hol(name)
   | ref =>
     let name = term.name
     let eras = term.eras
@@ -181,8 +165,6 @@ T Hoas
 | insx(type: Hoas, expr: Hoas)
 | elix(expr: Hoas)
 | annx(type: Hoas, expr: Hoas, done: Bool)
-| lgsx(msge: Hoas, expr: Hoas)
-| holx(name: String)
 | refx(name: String, eras: Bool)
 
 term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
@@ -225,13 +207,6 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
     let expr = term_to_hoas(term.expr, vals)
     let done = term.done
     annx(type, expr, done)
-  | lgs =>
-    let msge = term_to_hoas(term.msge, vals)
-    let expr = term_to_hoas(term.expr, vals)
-    lgsx(msge, expr)
-  | hol =>
-    let name = term.name
-    holx(name)
   | ref =>
     let name = term.name
     let eras = term.eras
@@ -275,13 +250,6 @@ hoas_to_term(term: Hoas, depth: Nat) : Term
     let expr = hoas_to_term(term.expr, depth)
     let done = term.done
     ann(type, expr, done)
-  | lgsx =>
-    let msge = hoas_to_term(term.msge, depth)
-    let expr = hoas_to_term(term.expr, depth)
-    lgs(msge, expr)
-  | holx =>
-    let name = term.name
-    hol(name)
   | refx =>
     let name = term.name
     let eras = term.eras
@@ -318,8 +286,6 @@ normalize(term: Hoas, defs: Defs) : Hoas
     | insx => appx(func, normalize(term.argm, defs), term.eras)
     | elix => appx(func, normalize(term.argm, defs), term.eras)
     | annx => appx(func, normalize(term.argm, defs), term.eras)
-    | lgsx => appx(func, normalize(term.argm, defs), term.eras)
-    | holx => appx(func, normalize(term.argm, defs), term.eras)
     | refx => appx(func, normalize(term.argm, defs), term.eras)
   | slfx =>
     let name = term.name
@@ -341,21 +307,12 @@ normalize(term: Hoas, defs: Defs) : Hoas
     | insx => elix(expr)
     | elix => expr
     | annx => elix(expr)
-    | lgsx => elix(expr)
-    | holx => elix(expr)
     | refx => elix(expr)
   | annx =>
     let type = normalize(term.type, defs)
     let expr = normalize(term.expr, defs)
     let done = term.done
     annx(type, expr, done)
-  | lgsx =>
-    let msge = normalize(term.msge, defs)
-    let expr = normalize(term.expr, defs)
-    lgsx(msge, expr)
-  | holx =>
-    let name = term.name
-    holx(name)
   | refx =>
     let name = term.name
     let eras = term.eras
@@ -425,12 +382,6 @@ show.go(term: Term, names: List(String)) : Concat(Char)
     let pun0 = list_to_concat(Char; " :: ")
     let expr = show.go(term.expr, names)
     (x) => type(pun0(expr(x)))
-  | lgs =>
-    let expr = show.go(term.expr, names)
-    (x) => expr(x)
-  | hol =>
-    let name = list_to_concat(Char; term.name)
-    (x) => name(x)
   | ref =>
     let name = list_to_concat(Char; term.name);
     (x) => name(x)
@@ -786,8 +737,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | typ =>
     case b
@@ -800,8 +749,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | all =>
     case b
@@ -814,8 +761,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | lam =>
     case b
@@ -828,8 +773,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | app =>
     case b
@@ -842,8 +785,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | slf =>
     case b
@@ -856,8 +797,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | ins =>
     case b
@@ -870,8 +809,6 @@ identical(a: Term, b: Term) : Bool
     | ins => and(equal(a.type,b.type),equal(a.expr,b.expr))
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | eli =>
     case b
@@ -884,8 +821,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => equal(a.expr,b.expr)
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | ann =>
     case b
@@ -898,36 +833,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => equal(a.expr,b.expr)
-    | lgs => false
-    | hol => false
-    | ref => false
-  | lgs =>
-    case b
-    | var => false
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => equal(a.expr,b.expr)
-    | hol => false
-    | ref => false
-  | hol =>
-    case b
-    | var => false
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
     | ref => false
   | ref =>
     case b
@@ -940,8 +845,6 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
     | ref => string_equal(a.name,b.name)
   
 // :::::::::::::::::::
@@ -1020,8 +923,6 @@ typecheck(
       | ins => none(_)
       | eli => none(_)
       | ann => none(_)
-      | lgs => none(_)
-      | hol => none(_)
       | ref => none(_)
 
     // Function Elimination (application)
@@ -1047,8 +948,6 @@ typecheck(
       | ins => none(_)
       | eli => none(_)
       | ann => none(_)
-      | lgs => none(_)
-      | hol => none(_)
       | ref => none(_)
 
     // Self Type
@@ -1062,12 +961,6 @@ typecheck(
 
     // Annotation
     | ann => some(_ pair(__ [], typ))
-
-    // Log
-    | lgs => some(_ pair(__ [], typ))
-
-    // Hole
-    | hol => some(_ pair(__ [], typ))
 
     // Reference
     | ref => some(_ pair(__ [], typ))
