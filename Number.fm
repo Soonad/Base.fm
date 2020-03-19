@@ -1,6 +1,7 @@
 import Bool
 import Nat
-import String
+import Bits
+//import String
 
 number_equal(a : Number, b : Number) : Bool
   if a === b then
@@ -13,20 +14,6 @@ digit_to_char(n: Number) : Number
     n + '0'
   else
     (n - 10) + 'a'
-
-number_to_string.aux(base: Number, n: Number) : String -> String
-  if n === 0 then
-    (x) => x
-  else
-    let c = digit_to_char(n % base)
-    let f = number_to_string.aux(base, (n \ base) || 0)
-    (x) => f(cons(_ c, x))
-
-number_to_string(base: Number, n : Number) : String
-  if n === 0 then
-    "0"
-  else
-    number_to_string.aux(base, n, [])
 
 number_to_bits(len: Number, n: Number) : Bits
   if len === 0 then

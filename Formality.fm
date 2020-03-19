@@ -5,11 +5,13 @@
 // JavaScript, a compilação parte do Formality-Lang, de modo
 // a poder usar os números e ADTs nele presentes.
 
-import Nat
-import Unit
-import String
-import Number
+import Bits
 import IO
+import Map
+import Nat
+import Number
+import String
+import Unit
 
 // :::::::::::
 // :: Utils ::
@@ -26,8 +28,9 @@ force(A; x: Lazy(A)) : A
 // ::::::::::
 
 T Term
-| var(indx: Nat)
 | typ
+| var(indx: Nat)
+| ref(name: String, eras: Bool)
 | all(name: String, bind: Term, body: Term, eras: Bool)
 | lam(name: String, body: Term, eras: Bool)
 | app(func: Term, argm: Term, eras: Bool)
@@ -35,9 +38,12 @@ T Term
 | ins(type: Term, expr: Term)
 | eli(expr: Term)
 | ann(type: Term, expr: Term, done: Bool)
-| lgs(msge: Term, expr: Term)
-| hol(name: String)
-| ref(name: String, eras: Bool)
+  
+T Def
+| def(type: Term, term: Term)
+
+Defs : Type
+  Map(Def)
 
 // ::::::::::::::::::
 // :: Substitution ::
@@ -45,13 +51,17 @@ T Term
 
 shift(term: Term, inc: Nat, dep: Nat) : Term
   case term
+  | typ =>
+    typ
   | var =>
     case nat_compare(term.indx, dep) as cmp
     | less_than    => var(term.indx)
     | equal_to     => var(add(inc, term.indx))
     | greater_than => var(add(inc, term.indx))
-  | typ =>
-    typ
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
   | all =>
     let name = term.name
     let bind = shift(term.bind, inc, dep)
@@ -84,31 +94,24 @@ shift(term: Term, inc: Nat, dep: Nat) : Term
     let expr = shift(term.expr, inc, dep)
     let done = term.done
     ann(type, expr, done)
-  | lgs =>
-    let msge = shift(term.msge, inc, dep)
-    let expr = shift(term.expr, inc, dep)
-    lgs(msge, expr)
-  | hol =>
-    let name = term.name
-    hol(name)
-  | ref =>
-    let name = term.name
-    let eras = term.eras
-    ref(name, eras)
 
 subst(term: Term, trm: Term, dep: Nat) : Term
   case term
+  | typ =>
+    typ
   | var =>
     case nat_compare(term.indx, dep) as cmp
     | less_than    => var(term.indx)
     | equal_to     => trm
     | greater_than => var(pred(term.indx))
-  | typ =>
-    typ
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
   | all =>
     let name = term.name
     let bind = subst(term.bind, trm, dep)
-    let body = subst(term.body, trm, succ(dep))
+    let body = subst(term.body, shift(trm,1n,0n), succ(dep))
     let eras = term.eras
     all(name, bind, body, eras)
   | lam =>
@@ -118,7 +121,7 @@ subst(term: Term, trm: Term, dep: Nat) : Term
     lam(name, body, eras)
   | app =>
     let func = subst(term.func, trm, dep)
-    let argm = subst(term.argm, shift(trm,1n,0n), dep)
+    let argm = subst(term.argm, trm, dep)
     let eras = term.eras
     app(func, argm, eras)
   | slf =>
@@ -137,17 +140,6 @@ subst(term: Term, trm: Term, dep: Nat) : Term
     let expr = subst(term.expr, trm, dep)
     let done = term.done
     ann(type, expr, done)
-  | lgs =>
-    let msge = subst(term.msge, trm, dep)
-    let expr = subst(term.expr, trm, dep)
-    lgs(msge, expr)
-  | hol =>
-    let name = term.name
-    hol(name)
-  | ref =>
-    let name = term.name
-    let eras = term.eras
-    ref(name, eras)
 
 subst_many(term: Term, vals: List(Term), inc: Nat, dep: Nat) : Term
   case vals
@@ -164,8 +156,9 @@ subst_many(term: Term, vals: List(Term), inc: Nat, dep: Nat) : Term
 // :::::::::::::::::::
 
 T Hoas
-| varx(indx: Nat)
 | typx
+| varx(indx: Nat)
+| refx(name: String, eras: Bool)
 | allx(name: String, bind: Hoas, body: Hoas -> Hoas, eras: Bool)
 | lamx(name: String, body: Hoas -> Hoas, eras: Bool)
 | appx(func: Hoas, argm: Hoas, eras: Bool)
@@ -173,18 +166,19 @@ T Hoas
 | insx(type: Hoas, expr: Hoas)
 | elix(expr: Hoas)
 | annx(type: Hoas, expr: Hoas, done: Bool)
-| lgsx(msge: Hoas, expr: Hoas)
-| holx(name: String)
-| refx(name: String, eras: Bool)
 
 term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
   case term
-  | var =>
-    case at(Hoas; term.indx, vals) as got
-    | none => varx(sub(length(_ vals), succ(term.indx)))
-    | some => got.value
   | typ =>
     typx
+  | var =>
+    case at(Hoas; term.indx, vals) as got
+    | none => varx(term.indx)
+    | some => got.value
+  | ref =>
+    let name = term.name
+    let eras = term.eras
+    refx(name, eras)
   | all =>
     let name = term.name
     let bind = term_to_hoas(term.bind, vals)
@@ -217,24 +211,20 @@ term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
     let expr = term_to_hoas(term.expr, vals)
     let done = term.done
     annx(type, expr, done)
-  | lgs =>
-    let msge = term_to_hoas(term.msge, vals)
-    let expr = term_to_hoas(term.expr, vals)
-    lgsx(msge, expr)
-  | hol =>
-    let name = term.name
-    holx(name)
-  | ref =>
-    let name = term.name
-    let eras = term.eras
-    refx(name, eras)
 
 hoas_to_term(term: Hoas, depth: Nat) : Term
   case term
-  | varx =>
-    var(sub(depth, succ(term.indx)))
   | typx =>
     typ
+  | varx =>
+    case nat_compare(term.indx, depth) as cmp
+    | less_than    => var(sub(depth, succ(term.indx)))
+    | equal_to     => var(term.indx)
+    | greater_than => var(term.indx)
+  | refx =>
+    let name = term.name
+    let eras = term.eras
+    ref(name, eras)
   | allx =>
     let name = term.name
     let bind = hoas_to_term(term.bind, depth)
@@ -267,65 +257,60 @@ hoas_to_term(term: Hoas, depth: Nat) : Term
     let expr = hoas_to_term(term.expr, depth)
     let done = term.done
     ann(type, expr, done)
-  | lgsx =>
-    let msge = hoas_to_term(term.msge, depth)
-    let expr = hoas_to_term(term.expr, depth)
-    lgs(msge, expr)
-  | holx =>
-    let name = term.name
-    hol(name)
+
+normalize(term: Hoas, defs: Defs) : Hoas
+  case term
+  | typx =>
+    typx
+  | varx =>
+    varx(term.indx)
   | refx =>
     let name = term.name
     let eras = term.eras
-    ref(name, eras)
-
-normalize(term: Hoas) : Hoas
-  case term
-  | varx =>
-    varx(term.indx)
-  | typx =>
-    typx
+    case lookup(_ string_to_bits(name), defs) as got
+    | none => refx(name, eras)
+    | some => case got.value |def
+      term_to_hoas(got.value.term, [])
   | allx =>
     let name = term.name
-    let bind = normalize(term.bind)
-    let body = (x) => normalize(term.body(x))
+    let bind = normalize(term.bind, defs)
+    let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
     allx(name, bind, body, eras)
   | lamx =>
     let name = term.name
-    let body = (x) => normalize(term.body(x))
+    let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
     lamx(name, body, eras)
   | appx =>
-    case unit with normalize(term.func) as func : Hoas |unit
+    case unit with normalize(term.func, defs) as func : Hoas |unit
     case func
     with term.argm : Hoas
     with term.eras : Bool
-    | varx => appx(func, normalize(term.argm), term.eras)
-    | typx => appx(func, normalize(term.argm), term.eras)
-    | allx => appx(func, normalize(term.argm), term.eras)
-    | lamx => normalize(func.body(term.argm))
-    | appx => appx(func, normalize(term.argm), term.eras)
-    | slfx => appx(func, normalize(term.argm), term.eras)
-    | insx => appx(func, normalize(term.argm), term.eras)
-    | elix => appx(func, normalize(term.argm), term.eras)
-    | annx => appx(func, normalize(term.argm), term.eras)
-    | lgsx => appx(func, normalize(term.argm), term.eras)
-    | holx => appx(func, normalize(term.argm), term.eras)
-    | refx => appx(func, normalize(term.argm), term.eras)
+    | typx => appx(func, normalize(term.argm, defs), term.eras)
+    | varx => appx(func, normalize(term.argm, defs), term.eras)
+    | refx => appx(func, normalize(term.argm, defs), term.eras)
+    | allx => appx(func, normalize(term.argm, defs), term.eras)
+    | lamx => normalize(func.body(term.argm), defs)
+    | appx => appx(func, normalize(term.argm, defs), term.eras)
+    | slfx => appx(func, normalize(term.argm, defs), term.eras)
+    | insx => appx(func, normalize(term.argm, defs), term.eras)
+    | elix => appx(func, normalize(term.argm, defs), term.eras)
+    | annx => appx(func, normalize(term.argm, defs), term.eras)
   | slfx =>
     let name = term.name
-    let type = (x) => normalize(term.type(x))
+    let type = (x) => normalize(term.type(x), defs)
     slfx(name, type)
   | insx =>
-    let type = normalize(term.type)
-    let expr = normalize(term.expr)
+    let type = normalize(term.type, defs)
+    let expr = normalize(term.expr, defs)
     insx(type, expr)
   | elix =>
-    case unit with normalize(term.expr) as expr : Hoas |unit
+    case unit with normalize(term.expr, defs) as expr : Hoas |unit
     case expr
-    | varx => elix(expr)
     | typx => elix(expr)
+    | varx => elix(expr)
+    | refx => elix(expr)
     | allx => elix(expr)
     | lamx => elix(expr)
     | appx => elix(expr)
@@ -333,25 +318,14 @@ normalize(term: Hoas) : Hoas
     | insx => elix(expr)
     | elix => expr
     | annx => elix(expr)
-    | lgsx => elix(expr)
-    | holx => elix(expr)
-    | refx => elix(expr)
   | annx =>
-    let type = normalize(term.type)
-    let expr = normalize(term.expr)
+    let type = normalize(term.type, defs)
+    let expr = normalize(term.expr, defs)
     let done = term.done
     annx(type, expr, done)
-  | lgsx =>
-    let msge = normalize(term.msge)
-    let expr = normalize(term.expr)
-    lgsx(msge, expr)
-  | holx =>
-    let name = term.name
-    holx(name)
-  | refx =>
-    let name = term.name
-    let eras = term.eras
-    refx(name, eras)
+
+reduce(term: Term, defs: Defs) : Term
+  hoas_to_term(normalize(term_to_hoas(term, []), defs), 0n)
 
 // :::::::::::::::::
 // :: Stringifier ::
@@ -359,6 +333,9 @@ normalize(term: Hoas) : Hoas
 
 show.go(term: Term, names: List(String)) : Concat(Char)
   case term
+  | typ =>
+    let type = list_to_concat(Char; "Type")
+    (x) => type(x)
   | var =>
     (x) => case at(String; term.indx, names) as got
       | none =>
@@ -368,9 +345,9 @@ show.go(term: Term, names: List(String)) : Concat(Char)
         str0(str1(x))
       | some =>
         list_to_concat(Char; got.value, x)
-  | typ =>
-    let type = list_to_concat(Char; "Type")
-    (x) => type(x)
+  | ref =>
+    let name = list_to_concat(Char; term.name)
+    (x) => name(x)
   | all =>
     let pun0 = list_to_concat(Char; "(")
     let name = list_to_concat(Char; term.name)
@@ -415,20 +392,23 @@ show.go(term: Term, names: List(String)) : Concat(Char)
     let pun0 = list_to_concat(Char; " :: ")
     let expr = show.go(term.expr, names)
     (x) => type(pun0(expr(x)))
-  | lgs =>
-    let expr = show.go(term.expr, names)
-    (x) => expr(x)
-  | hol =>
-    let name = list_to_concat(Char; term.name)
-    (x) => name(x)
-  | ref =>
-    let name = list_to_concat(Char; term.name);
-    (x) => name(x)
   : Concat(Char)
   
 show(term: Term) : String
   show.go(term, [], [])
 
+//show_defs.go(defs: Defs) : String
+  //let els = map_elements(_ defs)
+  //let cons = (term, str) =>
+    //let name = list_to_concat(Char; show(head))
+    //let 
+  //fold(Def; String; 
+  //| none => nil(_)
+  //| some => 
+  //case defs
+  //| none => nil(_)
+  //| some => case 
+  
 // ::::::::::::
 // :: Parser ::
 // ::::::::::::
@@ -460,14 +440,14 @@ drop(amount: Nat, code: String) : String
 
 // Is this character allowed in names?
 is_name_char(chr: Char) : Number
-  (chr > 47) && (chr < 58)  || // 0-9
-  (chr > 64) && (chr < 91)  || // A-Z 
-  (chr > 96) && (chr < 123) || // a-z
-  (chr === 95)                 // _ 
+  ((chr > 47) && (chr < 58))  || // 0-9
+  ((chr > 64) && (chr < 91))  || // A-Z 
+  ((chr > 96) && (chr < 123)) || // a-z
+  (chr === 95)                   // _ 
 
 // Is this character a space?
 is_space_char(chr: Char) : Number
-  (chr === ' ')
+  (chr === ' ') || (chr === 10)
 
 // Removes leadig spaces
 skip_spaces(code: String) : String
@@ -476,6 +456,16 @@ skip_spaces(code: String) : String
     skip_spaces(code.tail)
   else
     code
+
+// Are there non-space characters on this line?
+line_has_chars(code: String) : Number
+  case code |nil 0 |cons
+  if (code.head === ' ') then
+    line_has_chars(code.tail)
+  else if (code.head === 10) then
+    0
+  else
+    1
 
 // Matches an exact string, returns the remaining code
 consume(value: String, code: String) : Maybe(String)
@@ -488,14 +478,16 @@ consume(value: String, code: String) : Maybe(String)
     none(_)
 
 // Parses name characters
-parse_name(code: String) : Pair(String, String)
-  let code = skip_spaces(code)
+parse_name.go(code: String) : Pair(String, String)
   case code |nil #[code, nil(_)] |cons
   if is_name_char(code.head) then
-    get #[code, name] = parse_name(code.tail)
+    get #[code, name] = parse_name.go(code.tail)
     #[code, cons(Char; code.head, name)]
   else
     #[code, nil(Char;)]
+
+parse_name(code: String) : Pair(String, String)
+  parse_name.go(skip_spaces(code))
 
 // Parses a grouping `(...)`
 parse_grp(code: String, vars: Vars) : Parsed
@@ -682,13 +674,15 @@ parse_app(code: String, func: Term, vars: Vars) : Parsed
 // Postfix parses
 // Attempts each one repeatedly, until all fail
 parse_postfix(code: String, term: Term, vars: Vars) : Parsed
-  //let parsed = parse_postfix.try(parse_app, parsed, vars)
-  let parsed = none(_)
-  let parsed = try((x)=>parse_app(code, term, vars), parsed)
-  case parsed
-  |none some(_ pair(__ code, term))
-  |some get #[code,term] = parsed.value
-  parse_postfix(code, term, vars)
+  if line_has_chars(code) then
+    let parsed = none(_)
+    let parsed = try((x)=>parse_app(code, term, vars), parsed)
+    case parsed
+    |none some(_ pair(__ code, term))
+    |some get #[code,term] = parsed.value
+    parse_postfix(code, term, vars)
+  else
+    some(_ pair(__ code, term))
 
 // Parses terms
 parse_term(code: String, vars: Vars) : Parsed
@@ -705,30 +699,45 @@ parse_term(code: String, vars: Vars) : Parsed
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
 
+// Parses defs
+parse_defs.go(code: String, defs: Defs) : Defs
+  get #[code,name] = parse_name(code)
+  case name
+  with defs : Defs
+  | nil  => defs
+  | cons =>
+    let name = cons(_ name.head, name.tail)
+    case consume(":",code) as got
+    with defs : Defs
+    |none => defs
+    |some => let code = got.value
+    case parse_term(code, []) as got
+    with defs : Defs
+    |none => defs
+    |some => get #[code,type] = got.value
+    case parse_term(code, []) as got
+    with defs : Defs
+    |none => defs
+    |some => get #[code,term] = got.value
+    let bits = string_to_bits(name)
+    let defs = insert(_ bits, def(type,term), defs)
+    parse_defs.go(code, defs)
+
+// Parses defs
+parse_defs(code: String) : Defs
+  parse_defs.go(code, empty(_))
+
 // ::::::::::::::
 // :: Equality ::
 // ::::::::::::::
 
 identical(a: Term, b: Term) : Bool
   case a
-  | var =>
-    case b
-    | var => nat_equal(a.indx, b.indx) 
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | typ =>
     case b
-    | var => false
     | typ => true
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => false
@@ -736,13 +745,35 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
+  | var =>
+    case b
+    | typ => false
+    | var => nat_equal(a.indx, b.indx) 
     | ref => false
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
+  | ref =>
+    case b
+    | typ => false
+    | var => false
+    | ref => string_equal(a.name,b.name)
+    | all => false
+    | lam => false
+    | app => false
+    | slf => false
+    | ins => false
+    | eli => false
+    | ann => false
   | all =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => and(equal(a.bind,b.bind),equal(a.body,b.body))
     | lam => false
     | app => false
@@ -750,13 +781,11 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | lam =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => and(equal(a.body,b.body))
     | app => false
@@ -764,13 +793,11 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | app =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => and(equal(a.func,b.func),equal(a.argm,b.argm))
@@ -778,107 +805,54 @@ identical(a: Term, b: Term) : Bool
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | slf =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => false
-    | slf => false
+    | slf => equal(a.type,b.type)
     | ins => false
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | ins =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => false
     | slf => false
-    | ins => false
+    | ins => and(equal(a.type,b.type),equal(a.expr,b.expr))
     | eli => false
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | eli =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => false
     | slf => false
     | ins => false
-    | eli => false
+    | eli => equal(a.expr,b.expr)
     | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
   | ann =>
     case b
-    | var => false
     | typ => false
+    | var => false
+    | ref => false
     | all => false
     | lam => false
     | app => false
     | slf => false
     | ins => false
     | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
-  | lgs =>
-    case b
-    | var => false
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
-  | hol =>
-    case b
-    | var => false
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
-  | ref =>
-    case b
-    | var => false
-    | typ => false
-    | all => false
-    | lam => false
-    | app => false
-    | slf => false
-    | ins => false
-    | eli => false
-    | ann => false
-    | lgs => false
-    | hol => false
-    | ref => false
+    | ann => equal(a.expr,b.expr)
   
 // :::::::::::::::::::
 // :: Type-Checking ::
@@ -905,9 +879,19 @@ Equations : Type
 typecheck(
   term : Term,
   type : Maybe(Term),
+  defs : Defs,
   ctx  : Context
 ) : Maybe(Pair(Equations, Term))
+  // TODO: weak reduce intead
+  let type = case type
+    | none => none(_)
+    | some => some(_reduce(type.value,defs))
+
   let chk = case term
+
+    // Type of Types
+    | typ =>
+      some(_ pair(__ [], typ))
 
     // Variables
     | var =>
@@ -915,15 +899,20 @@ typecheck(
       | none => none(_)
       | some => some(_ pair(__ [], got.value))
 
-    // Type of Types
-    | typ =>
-      some(_ pair(__ [], typ))
+    // Reference
+    | ref => 
+      case lookup(_ string_to_bits(term.name), defs) as got
+      | none =>
+        none(_)
+      | some =>
+        case got.value |def
+        some(_ pair(__ [], got.value.type))
 
     // Function Type (Universal Quantification)
     | all =>
-      let bind_chk = typecheck(term.bind, some(_ typ), ctx)
+      let bind_chk = typecheck(term.bind, some(_ typ), defs, ctx)
       let ext_ctx  = ctx.ext(ctx, term.bind)
-      let body_chk = typecheck(term.body, some(_ typ), ext_ctx)
+      let body_chk = typecheck(term.body, some(_ typ), defs, ext_ctx)
       case bind_chk
       | none => none(_)
       | some => get #[bind_eqs, bind_typ] = bind_chk.value
@@ -939,11 +928,12 @@ typecheck(
       case type
       | none => none(_)
       | some => case type.value as type
-      | var => none(_)
       | typ => none(_)
+      | var => none(_)
+      | ref => none(_)
       | all =>
         let ext_ctx  = ctx.ext(ctx, type.bind)
-        let body_chk = typecheck(term.body, some(_ type.body), ext_ctx)
+        let body_chk = typecheck(term.body, some(_ type.body), defs, ext_ctx)
         case body_chk
         | none => none(_)
         | some => get #[body_eqs, body_typ] = body_chk.value
@@ -956,21 +946,19 @@ typecheck(
       | ins => none(_)
       | eli => none(_)
       | ann => none(_)
-      | lgs => none(_)
-      | hol => none(_)
-      | ref => none(_)
 
     // Function Elimination (application)
     | app =>
-      let func_chk = typecheck(term.func, none(_), ctx)
+      let func_chk = typecheck(term.func, none(_), defs, ctx)
       case func_chk
       | none => none(_)
       | some => get #[func_eqs, func_typ] = func_chk.value
       case func_typ
-      | var => none(_)
       | typ => none(_)
+      | var => none(_)
+      | ref => none(_)
       | all =>
-        let argm_chk = typecheck(term.argm, some(_ func_typ.bind), ctx)
+        let argm_chk = typecheck(term.argm, some(_ func_typ.bind), defs, ctx)
         case argm_chk
         | none => none(_)
         | some => get #[argm_eqs, argm_typ] = argm_chk.value
@@ -983,30 +971,18 @@ typecheck(
       | ins => none(_)
       | eli => none(_)
       | ann => none(_)
-      | lgs => none(_)
-      | hol => none(_)
-      | ref => none(_)
 
     // Self Type
-    | slf => some(_ pair(__ [], typ))
+    | slf => none(_)
 
     // Self Value
-    | ins => some(_ pair(__ [], typ))
+    | ins => none(_)
 
     // Self Elimination
-    | eli => some(_ pair(__ [], typ))
+    | eli => none(_)
 
     // Annotation
-    | ann => some(_ pair(__ [], typ))
-
-    // Log
-    | lgs => some(_ pair(__ [], typ))
-
-    // Hole
-    | hol => some(_ pair(__ [], typ))
-
-    // Reference
-    | ref => some(_ pair(__ [], typ))
+    | ann => some(_ pair(__ [], term.type))
 
   // Appends expected/inferred type to equations list
   case chk
@@ -1044,37 +1020,47 @@ show_equations(eqs: Equations) : String
 // :: Test ::
 // ::::::::::
 
-main : IO(Unit)
-  // Should type error because `s : A -> A` instead of `A`
-  let term_code = "(A) => (s) => (z) => s"
-  let type_code = "(A : Type) -> (s : (x:A) -> A) -> (z : A) -> A"
+main
+  let defs = parse_defs("
+    Nat : Type
+      (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
+      
+    zero : (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
+      (A) => (z) => (s) => z
 
-  // Parses term
-  let parsed_term = parse_term(term_code, [])
-  case parsed_term |none print("Error parsing term.") |some
+    succ : (n : Nat) -> Nat
+      (n) => (A) => (z) => (s) => s(n(A)(z)(s))
 
-  // Parses type
-  let parsed_type = parse_term(type_code, [])
-  case parsed_type |none print("Error parsing type.") |some
+    mul : (a : Nat) -> (b : Nat) -> Nat
+      (a) => (b) => (A) => (z) => (s) => a(A)(z)((x) => b(A)(x)(s))
 
-  // Gets parsed term
-  case parsed_term.value |pair
-  let term = parsed_term.value.snd
+    main : Nat
+      mul(succ(succ(zero)))(succ(succ(zero)))
+  ")
 
-  // Gets parsed type
-  case parsed_type.value |pair
-  let type = parsed_type.value.snd
+  case lookup(_ string_to_bits("main"), defs) as got
+  | none => print("Def not found.")
+  | some => case got.value |def do {
+    let type = got.value.type
+    let term = got.value.term
 
-  // Infers the term type
-  let term_t = typecheck(term, some(_ type), [])
-  case term_t |none print("Type error.") |some
-  case term_t.value |pair do {
-    print("[Term]")
-    print(show(term))
-    print("")
-    print("[Equalities]")
-    print(show_equations(term_t.value.fst))
-    print("[Type]")
-    print(show(term_t.value.snd))
-    print("")
+    case typecheck(term, some(_ type), defs, []) as term_t
+    | none => do {
+      print("Type error.")
+      print(show(term))
+      print(show(reduce(term,defs)))
+    }
+    | some => case term_t.value |pair do {
+      print("[Term]")
+      print(show(term))
+      print("")
+      print("[Norm]")
+      print(show(reduce(term,defs)))
+      print("")
+      print("[Type]")
+      print(show(term_t.value.snd))
+      print("")
+      print("[Equations]")
+      print(show_equations(term_t.value.fst))
+    }
   }

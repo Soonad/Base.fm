@@ -157,6 +157,14 @@ equal_bits(as: Bits, bs: Bits) : Bool
     | b0 => false
     | b1 => equal_bits(as.pred, bs.pred)
 
+concat_bits(as: Bits, bs: Bits) : Bits
+  case as
+  with bs          : Bits
+  with concat_bits : Bits -> Bits -> Bits
+  | be => bs
+  | b0 => b0(concat_bits(as.pred, bs))
+  | b1 => b1(concat_bits(as.pred, bs))
+
 // Theorems
 // --------
 
