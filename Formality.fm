@@ -881,7 +881,7 @@ show_equations(eqs: Equations) : String
 // ::::::::::
 
 main : IO(Unit)
-  let p = parse(__ parse_term([]), "Type")
+  let p = parse(__ parse_term([]), "(A: Type) -> (z : A) -> (s : (x:A) -> A) -> A")
   case p
   | p_err => print("Error")
   | p_res => print(show(p.res))
