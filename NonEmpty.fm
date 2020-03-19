@@ -1,3 +1,5 @@
+import List
+
 -- non-empty list
 T NonEmpty{A}
 | ne_nil(last : A)
@@ -13,3 +15,8 @@ ne_tail(A; xs : NonEmpty(A)) : NonEmpty(A)
   case xs
   | ne_nil  => ne_nil(_ xs.last)
   | ne_cons => xs.tail
+
+ne_to_list(A; xs: NonEmpty(A)): List(A)
+  case xs
+  | ne_nil  => cons(_ xs.last,nil(_))
+  | ne_cons => cons(_ xs.head,ne_to_list(_ xs.tail))

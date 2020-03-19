@@ -62,13 +62,13 @@ p_bind(E: Type; A: Type; B: Type; p : Parser(E,A), f: A -> Parser(E,B))
     |p_err p_err(__ b.loc,b.inp,b.err)
     |p_res p_res(__ b.loc,b.inp,b.res)
 
---// if `b` succeeds, choose `b`
---// if `b` fails, backtrack and choose `a`
+--// if `a` succeeds, choose `a`
+--// if `a` fails, backtrack and choose `b`
 p_choose(E: Type; A: Type; a: Parser(E,A), b: Parser(E,A)) : Parser(E,A)
   (i,str) =>
-  case b(i,str) as b
-  |p_err a(i,str)
-  |p_res p_res(__ b.loc,b.inp,b.res)
+  case a(i,str) as a
+  |p_err b(i,str)
+  |p_res p_res(__ a.loc,a.inp,a.res)
 
 // choice of a list of parsers
 p_choice(E: Type; A: Type; ps: List(Parser(E,A))) : Parser(E,A)
@@ -132,7 +132,7 @@ p_seqr(E: Type; A: Type; B: Type; a : Parser(E,A), b : Parser(E,B))
   p_bind(___ b, (y) =>
   p_pure(__ x)))
 
-p_eof(E: Type) : Parser(E,Unit)
+p_eof(E: Type;) : Parser(E,Unit)
   (i,str) => case str
   | nil  p_res(__ i,nil(_),unit)
   | cons p_err(__ i,str,p_err_expected(_ "\\EOF"))

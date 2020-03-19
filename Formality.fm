@@ -12,16 +12,9 @@ import Nat
 import Number
 import String
 import Unit
+import Parse
+import NonEmpty
 
-// :::::::::::
-// :: Utils ::
-// :::::::::::
-
-Lazy(A : Type) : Type
-  Unit -> A
-
-force(A; x: Lazy(A)) : A
-  x(unit)
 
 // ::::::::::
 // :: Term ::
@@ -408,330 +401,197 @@ show(term: Term) : String
   //case defs
   //| none => nil(_)
   //| some => case 
-  
+
 // ::::::::::::
 // :: Parser ::
 // ::::::::::::
 
-// The parser below would be prettier with monads, but it
-// avoids that in order to increase performance to the
-// theoretical maximum, and decrease the dependency.
+T FPErr
+| fp_err
 
-Parsed : Type
-  Maybe(Pair(String, Term))
+FParsed(A) : Type; Parsed(FPErr, A)
+FParser(A) : Type; Parser(FPErr, A)
 
 Vars : Type
   List(String)
-
-// If `b` is successful, return it. Otherwise, try `a`.
-try(a: Lazy(Parsed), b: Parsed) : Parsed
-  case b
-  with unit : Unit
-  |none case force(_ a) as a
-    |none none(_)
-    |some some(_ a.value)
-  |some some(_ b.value)
-
-// Drops some characters from code
-drop(amount: Nat, code: String) : String
-  case amount |zero code |succ
-  case code   |nil  code |cons
-  drop(amount.pred, code.tail)
-
-// Is this character allowed in names?
-is_name_char(chr: Char) : Number
-  ((chr > 47) && (chr < 58))  || // 0-9
-  ((chr > 64) && (chr < 91))  || // A-Z 
-  ((chr > 96) && (chr < 123)) || // a-z
-  (chr === 95)                   // _ 
 
 // Is this character a space?
 is_space_char(chr: Char) : Number
   (chr === ' ') || (chr === 10)
 
 // Removes leadig spaces
-skip_spaces(code: String) : String
-  case code |nil nil(_) |cons
-  if is_space_char(code.head) then
-    skip_spaces(code.tail)
-  else
-    code
+whitespace : FParser(String)
+  p_take_while(_ is_space_char)
 
-// Are there non-space characters on this line?
-line_has_chars(code: String) : Number
-  case code |nil 0 |cons
-  if (code.head === ' ') then
-    line_has_chars(code.tail)
-  else if (code.head === 10) then
-    0
-  else
-    1
+// alphabetic character
+alpha_char(chr: Char) : Number
+  ((chr > 64) && (chr < 91))  || // A-Z
+  ((chr > 96) && (chr < 123))    // a-z
 
-// Matches an exact string, returns the remaining code
-consume(value: String, code: String) : Maybe(String)
-  let code = skip_spaces(code)
-  case value |nil some(_ code) |cons
-  case code  |nil none(_)      |cons
-  if code.head === value.head then
-    consume(value.tail, code.tail)
-  else
-    none(_)
+// Is this character allowed in names?
+name_char(chr: Char) : Number
+  ((chr > 47) && (chr < 58))  || // 0-9
+  ((chr > 64) && (chr < 91))  || // A-Z 
+  ((chr > 96) && (chr < 123)) || // a-z
+  (chr === 95)                   // _
 
-// Parses name characters
-parse_name.go(code: String) : Pair(String, String)
-  case code |nil #[code, nil(_)] |cons
-  if is_name_char(code.head) then
-    get #[code, name] = parse_name.go(code.tail)
-    #[code, cons(Char; code.head, name)]
-  else
-    #[code, nil(Char;)]
+parse_name : FParser(String)
+  p_bind(___ p_take_while(_ (x) => x === 95), (x1) =>
+     case x1
+     | nil
+        p_bind(___ p_satisfy(_ alpha_char), (x2) =>
+        p_bind(___ p_take_while(_ name_char), (x3) =>
+        p_pure(__ cons(_ x2,x3))))
+     | cons
+        p_bind(___ p_many1(__ p_satisfy(_ name_char)),(x3) =>
+        p_pure(__ concat(_ x1, ne_to_list(_ x3))))
+    )
 
-parse_name(code: String) : Pair(String, String)
-  parse_name.go(skip_spaces(code))
+parse_refVar(vars : Vars): FParser(Term)
+  p_bind(___ parse_name, (nam) =>
+    case find_index(_ string.equal(nam), vars) as found
+    |none => p_pure(__ ref(nam, false))
+    |some => p_pure(__ var(found.value))
+    )
 
-// Parses a grouping `(...)`
-parse_grp(code: String, vars: Vars) : Parsed
-  // Parses `(`
-  case consume("(",code) as got
-  |none => none(_)
-  |some => let code = got.value
+p_symbol(x : String) : FParser(String)
+  p_seqr(___ p_string(_ x), whitespace)
 
-  // Parses term
-  case parse_term(code,vars) as got
-  |none => none(_)
-  |some => get #[code,term] = got.value
+parse_all(vars : Vars) : FParser(Term)
+  p_seql(___ p_symbol("("),
+  p_bind(___ parse_name, (nam) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol(":"),
+  p_bind(___ parse_term(vars), (typ) =>
+  p_bind(___ p_optional(__ p_string(_ ";")), (era) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol(")"),
+  p_seql(___ p_symbol("->"),
+  p_bind(___ parse_term(cons(_ nam, vars)), (bod) =>
+  p_pure(__ 
+    case era
+    |none all(nam,typ,bod,false)
+    |some all(nam,typ,bod,true)
+  )))))))))))
 
-  // Parses `)`
-  case consume(")",code) as got
-  |none => none(_)
-  |some => let code = got.value
+parse_lam(vars : Vars) : FParser(Term)
+  p_seql(___ p_symbol("("),
+  p_bind(___ parse_name, (nam) =>
+  p_bind(___ p_optional(__ p_string(_ ";")), (era) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol(")"),
+  p_seql(___ p_symbol("=>"),
+  p_bind(___ parse_term(cons(_ nam, vars)), (bod) =>
+  p_pure(__
+    case era
+    |none lam(nam,bod,false)
+    |some lam(nam,bod,true)
+  ))))))))
 
-  some(_ pair(__ code, term))
+parse_grp(vars : Vars) : FParser(Term)
+  p_seql(___ p_symbol("("),
+  p_bind(___ parse_term(vars), (ter) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_string(_ ")"),
+  p_pure(__ ter)
+  ))))
 
-// Parses `(x:A)->B`
-parse_all(code: String, vars: Vars) : Parsed
-  // Parses `(`
-  case consume("(",code) as got
-  |none => none(_)
-  |some => let code = got.value
+parse_slf(vars: Vars) : FParser(Term)
+  p_seql(___ p_symbol("type{"),
+  p_bind(___ parse_name, (nam) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol("}"),
+  p_bind(___ parse_term(cons(_ nam, vars)), (bod) =>
+  p_pure(__ slf(nam,bod))
+  )))))
 
-  // Parses variable name
-  get #[code, name] = parse_name(code)
+parse_ins(vars: Vars) : FParser(Term)
+  p_seql(___ p_symbol("inst{"),
+  p_bind(___ parse_term(vars), (typ) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol("}"),
+  p_bind(___ parse_term(vars), (bod) =>
+  p_pure(__  ins(typ,bod))
+  )))))
 
-  // Parses `:`
-  case consume(":",code) as got
-  |none => none(_)
-  |some => let code = got.value
+parse_eli(vars: Vars) : FParser(Term)
+  p_seql(___ p_symbol("elim{"),
+  p_bind(___ parse_term(vars), (exp) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_string(_ "}"),
+  p_pure(__  eli(exp))
+  ))))
 
-  // Parses variable type
-  case parse_term(code, vars) as got
-  |none => none(_)
-  |some => get #[code, type] = got.value
+parse_term.go(vars : Vars) : FParser(Term)
+  p_choice(__
+  [ parse_all(vars),
+    parse_lam(vars),
+    p_seql(___ p_string(_ "Type"),p_pure(__ typ)),
+    parse_slf(vars),
+    parse_ins(vars),
+    parse_eli(vars),
+    parse_refVar(vars),
+    parse_grp(vars),
+  ])
 
-  // Parses erasure
-  get #[code,eras] =
-    case consume(";",code) as got
-    |none => #[code, false]
-    |some => #[got.value, true]
+parse_app(fun: Term, vars: Vars) : FParser(Term)
+  p_seql(___ p_symbol("("),
+  p_bind(___ parse_term(vars), (arg) =>
+  p_bind(___ p_optional(__ p_string(_ ";")), (era) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_string(_ ")"),
+  p_pure(__
+    case era
+    |none app(fun,arg,false)
+    |some app(fun,arg,true)
+  ))))))
 
-  // Parses `)`
-  case consume(")",code) as got
-  |none => none(_)
-  |some => let code = got.value
+parse_ann(ter: Term, vars: Vars) : FParser(Term)
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol("::"),
+  p_bind(___ parse_term(vars), (typ) =>
+  p_pure(__ ann(typ,ter,false))
+  )))
 
-  // Parses `->`
-  case consume("->",code) as got
-  |none => none(_)
-  |some => let code = got.value
+parse_term(vars : Vars) : FParser(Term)
+  p_bind(___ parse_term.go(vars), (t) =>
+  p_choice(__
+  [ parse_app(t,vars),
+    parse_ann(t,vars),
+    p_pure(__ t)
+  ]
+  ))
 
-  // Parses body
-  case parse_term(code, cons(_ name, vars)) as got
-  |none => none(_)
-  |some => get #[code, body] = got.value
+parse_def : FParser(Pair(String,Def))
+  p_bind(___ parse_name, (nam) =>
+  p_seql(___ whitespace,
+  p_seql(___ p_symbol(":"),
+  p_bind(___ parse_term([]), (typ) =>
+  p_seql(___ whitespace,
+  p_bind(___ parse_term([]), (ter) =>
+  p_pure(__ pair(__ nam,def(typ,ter)))
+  ))))))
 
-  // Result
-  some(_ pair(__ code, all(name, type, body, eras)))
+parse_defs.go(defs : Defs) : FParser(Defs)
+  p_bind(___ parse_def, (x) =>
+  p_seql(___ whitespace,
+  get #[n,d] = x;
+  let bits = string_to_bits(n)
+  let defs = insert(_ bits, d, defs)
+  p_choice(__
+  [ p_seql(___ p_eof(_), p_pure(__ defs)), 
+  parse_defs.go(defs)
+  ])
+  ))
 
-// Parses `(x:A)=>B`
-parse_lam(code: String, vars: Vars) : Parsed
-  // Parses `(`
-  case consume("(",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  // Parses variable name
-  get #[code, name] = parse_name(code)
-
-  // Parses erasure
-  get #[code,eras] =
-    case consume(";",code) as got
-    |none => #[code, false]
-    |some => #[got.value, true]
-
-  // Parses `)`
-  case consume(")",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  // Parses `->`
-  case consume("=>",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  // Parses body
-  case parse_term(code, cons(_ name, vars)) as got
-  |none => none(_)
-  |some => get #[code, body] = got.value
-
-  // Result
-  some(_ pair(__ code, lam(name, body, eras)))
-
-// Parses `Type`
-parse_typ(code: String, vars: Vars) : Parsed
-  case consume("Type",code) as got
-  |none => none(_)
-  |some => some(_ pair(__ got.value, typ))
-
-// Parses variables
-parse_var(code: String, vars: Vars) : Parsed
-  get #[code,name] = parse_name(code)
-  case find_index(_ string.equal(name), vars) as found
-  |none =>
-    case name |nil none(_) |cons
-    some(_ pair(__ code, ref(name, false)))
-  |some =>
-    some(_ pair(__ code, var(found.value)))
-
-// Parses a self type
-parse_slf(code: String, vars: Vars) : Parsed
-  case consume("type{",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  get #[code,name] = parse_name(code)
-
-  case consume("}",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  case parse_term(code, cons(_ name, vars)) as got
-  |none => none(_)
-  |some => get #[code,body] = got.value
-
-  some(_ pair(__ code, slf(name, body)))
-
-// Parses a self instantiation
-parse_ins(code: String, vars: Vars) : Parsed
-  case consume("inst{",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  case parse_term(code,vars) as got
-  |none => none(_)
-  |some => get #[code,type] = got.value
-
-  case consume("}",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  case parse_term(code,vars) as got
-  |none => none(_)
-  |some => get #[code,expr] = got.value 
-
-  some(_ pair(__ code, ins(type, expr)))
-
-// Parses a self elimination
-parse_eli(code: String, vars: Vars) : Parsed
-  case consume("elim{",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  case parse_term(code,vars) as got
-  |none => none(_)
-  |some => get #[code,expr] = got.value
-
-  some(_ pair(__ code, eli(expr)))
-
-// Parses application
-parse_app(code: String, func: Term, vars: Vars) : Parsed
-  // Parses `(`
-  case consume("(",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  // Parses argument
-  case parse_term(code, vars) as got
-  |none => none(_)
-  |some => get #[code,argm] = got.value
-
-  // Parses `)`
-  case consume(")",code) as got
-  |none => none(_)
-  |some => let code = got.value
-
-  some(_ pair(__ code, app(func, argm, false)))
-
-// Postfix parses
-// Attempts each one repeatedly, until all fail
-parse_postfix(code: String, term: Term, vars: Vars) : Parsed
-  if line_has_chars(code) then
-    let parsed = none(_)
-    let parsed = try((x)=>parse_app(code, term, vars), parsed)
-    case parsed
-    |none some(_ pair(__ code, term))
-    |some get #[code,term] = parsed.value
-    parse_postfix(code, term, vars)
-  else
-    some(_ pair(__ code, term))
-
-// Parses terms
-parse_term(code: String, vars: Vars) : Parsed
-  let parsed = none(_)
-  let parsed = try((x)=>parse_all(code, vars), parsed)
-  let parsed = try((x)=>parse_lam(code, vars), parsed)
-  let parsed = try((x)=>parse_grp(code, vars), parsed)
-  let parsed = try((x)=>parse_typ(code, vars), parsed)
-  let parsed = try((x)=>parse_slf(code, vars), parsed)
-  let parsed = try((x)=>parse_ins(code, vars), parsed)
-  let parsed = try((x)=>parse_eli(code, vars), parsed)
-  let parsed = try((x)=>parse_var(code, vars), parsed)
-  case parsed |none none(_) |some
-  get #[code, term] = parsed.value
-  parse_postfix(code, term, vars)
-
-// Parses defs
-parse_defs.go(code: String, defs: Defs) : Defs
-  get #[code,name] = parse_name(code)
-  case name
-  with defs : Defs
-  | nil  => defs
-  | cons =>
-    let name = cons(_ name.head, name.tail)
-    case consume(":",code) as got
-    with defs : Defs
-    |none => defs
-    |some => let code = got.value
-    case parse_term(code, []) as got
-    with defs : Defs
-    |none => defs
-    |some => get #[code,type] = got.value
-    case parse_term(code, []) as got
-    with defs : Defs
-    |none => defs
-    |some => get #[code,term] = got.value
-    let bits = string_to_bits(name)
-    let defs = insert(_ bits, def(type,term), defs)
-    parse_defs.go(code, defs)
-
-// Parses defs
-parse_defs(code: String) : Defs
-  parse_defs.go(code, empty(_))
+parse_defs : FParser(Defs)
+  p_seql(___ whitespace, parse_defs.go(empty(_)))
 
 // ::::::::::::::
 // :: Equality ::
 // ::::::::::::::
 
-identical(a: Term, b: Term) : Bool
+eq(a: Term, b: Term) : Bool
   case a
   | typ =>
     case b
@@ -748,7 +608,7 @@ identical(a: Term, b: Term) : Bool
   | var =>
     case b
     | typ => false
-    | var => nat_equal(a.indx, b.indx) 
+    | var => nat_equal(a.indx, b.indx)
     | ref => false
     | all => false
     | lam => false
@@ -761,7 +621,7 @@ identical(a: Term, b: Term) : Bool
     case b
     | typ => false
     | var => false
-    | ref => string_equal(a.name,b.name)
+    | ref => string.equal(a.name,b.name)
     | all => false
     | lam => false
     | app => false
@@ -774,7 +634,7 @@ identical(a: Term, b: Term) : Bool
     | typ => false
     | var => false
     | ref => false
-    | all => and(equal(a.bind,b.bind),equal(a.body,b.body))
+    | all => and(eq(a.bind,b.bind),eq(a.body,b.body))
     | lam => false
     | app => false
     | slf => false
@@ -787,7 +647,7 @@ identical(a: Term, b: Term) : Bool
     | var => false
     | ref => false
     | all => false
-    | lam => and(equal(a.body,b.body))
+    | lam => eq(a.body,b.body)
     | app => false
     | slf => false
     | ins => false
@@ -800,7 +660,7 @@ identical(a: Term, b: Term) : Bool
     | ref => false
     | all => false
     | lam => false
-    | app => and(equal(a.func,b.func),equal(a.argm,b.argm))
+    | app => and(eq(a.func,b.func),eq(a.argm,b.argm))
     | slf => false
     | ins => false
     | eli => false
@@ -813,7 +673,7 @@ identical(a: Term, b: Term) : Bool
     | all => false
     | lam => false
     | app => false
-    | slf => equal(a.type,b.type)
+    | slf => eq(a.type,b.type)
     | ins => false
     | eli => false
     | ann => false
@@ -826,7 +686,7 @@ identical(a: Term, b: Term) : Bool
     | lam => false
     | app => false
     | slf => false
-    | ins => and(equal(a.type,b.type),equal(a.expr,b.expr))
+    | ins => and(eq(a.type,b.type),eq(a.expr,b.expr))
     | eli => false
     | ann => false
   | eli =>
@@ -839,7 +699,7 @@ identical(a: Term, b: Term) : Bool
     | app => false
     | slf => false
     | ins => false
-    | eli => equal(a.expr,b.expr)
+    | eli => eq(a.expr,b.expr)
     | ann => false
   | ann =>
     case b
@@ -852,7 +712,7 @@ identical(a: Term, b: Term) : Bool
     | slf => false
     | ins => false
     | eli => false
-    | ann => equal(a.expr,b.expr)
+    | ann => eq(a.expr,b.expr)
   
 // :::::::::::::::::::
 // :: Type-Checking ::
@@ -1020,47 +880,37 @@ show_equations(eqs: Equations) : String
 // :: Test ::
 // ::::::::::
 
-main
-  let defs = parse_defs("
-    Nat : Type
-      (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
-      
-    zero : (A: Type) -> (z : A) -> (s : (x:A) -> A) -> A
-      (A) => (z) => (s) => z
+main : IO(Unit)
+  let p = parse(__ parse_term([]), "Type")
+  case p
+  | p_err => print("Error")
+  | p_res => print(show(p.res))
 
-    succ : (n : Nat) -> Nat
-      (n) => (A) => (z) => (s) => s(n(A)(z)(s))
 
-    mul : (a : Nat) -> (b : Nat) -> Nat
-      (a) => (b) => (A) => (z) => (s) => a(A)(z)((x) => b(A)(x)(s))
 
-    main : Nat
-      mul(succ(succ(zero)))(succ(succ(zero)))
-  ")
+  -- case lookup(_ string_to_bits("main"), defs) as got
+  -- | none => print("Def not found.")
+  -- | some => case got.value |def do {
+  --   let type = got.value.type
+  --   let term = got.value.term
 
-  case lookup(_ string_to_bits("main"), defs) as got
-  | none => print("Def not found.")
-  | some => case got.value |def do {
-    let type = got.value.type
-    let term = got.value.term
-
-    case typecheck(term, some(_ type), defs, []) as term_t
-    | none => do {
-      print("Type error.")
-      print(show(term))
-      print(show(reduce(term,defs)))
-    }
-    | some => case term_t.value |pair do {
-      print("[Term]")
-      print(show(term))
-      print("")
-      print("[Norm]")
-      print(show(reduce(term,defs)))
-      print("")
-      print("[Type]")
-      print(show(term_t.value.snd))
-      print("")
-      print("[Equations]")
-      print(show_equations(term_t.value.fst))
-    }
-  }
+  --   case typecheck(term, some(_ type), defs, []) as term_t
+  --   | none => do {
+  --     print("Type error.")
+  --     print(show(term))
+  --     print(show(reduce(term,defs)))
+  --   }
+  --   | some => case term_t.value |pair do {
+  --     print("[Term]")
+  --     print(show(term))
+  --     print("")
+  --     print("[Norm]")
+  --     print(show(reduce(term,defs)))
+  --     print("")
+  --     print("[Type]")
+  --     print(show(term_t.value.snd))
+  --     print("")
+  --     print("[Equations]")
+  --     print(show_equations(term_t.value.fst))
+  --   }
+  --}
