@@ -3,98 +3,179 @@ import Nat
 import Number
 import String
 import Unit
+import Either
+import NonEmpty
 
-// Consumes a String and returns the rest and the parsed value, if any
-Parser(A) : Type
-  (str: String) -> Pair(String, Maybe(A))
+T ParserError{E}
+| p_err_empty
+| p_err_expected(msge : String)
+| p_err_unexpected(msge : String)
+| p_err_fancy(e : E)
 
-// Consumes nothing, returns `x`
-return(A; x: A) : Parser(A)
-  (str) => pair(__ str, some(A; x))
+T Parsed{E,A}
+| p_err(loc : Number, inp : String, err : ParserError(E))
+| p_res(loc : Number, inp : String, res : A)
 
-// Errors
-throw(A;) : Parser(A)
-  (str) => pair(__ str, none(A;))
+Parser(E: Type, A: Type) : Type
+  Number -> String -> Parsed(E,A)
 
-// Monadic composition of two parsers
-bind(A; B; x: Parser(A), f: A -> Parser(B)) : Parser(B)
-  (str) => case x(str) as p
-    | pair => case p.snd
-      with p.fst : String
-      | none => pair(__ p.fst, none(_))
-      | some => f(p.snd.value, p.fst)
-      : Pair(String, Maybe(B))
+parse(E:Type; A: Type; p : Parser(E,A), str : String) : Parsed(E,A)
+  p(0,str)
 
-// Consumes nothing, returns the next character
-peek : Parser(Char)
-  (str) =>
+// the empty parser consumes no input and errors with no message
+p_empty(E: Type; A: Type;) : Parser(E,A)
+  (i,str) => p_err(__ i,str,p_err_empty(_))
+
+// the pure parser consumes no input and returns its argument
+p_pure(E: Type; A: Type; x : A) : Parser(E,A)
+  (i,str) => p_res(__ i,str,x)
+
+// the throw parser consumes no input and throws its error
+p_throw(E: Type; A: Type; e : E) : Parser(E,A)
+  (i,str) => p_err(__ i,str, p_err_fancy(_ e))
+
+// map over Parser
+p_map(E: Type; A: Type; B: Type; f: A -> B, p: Parser(E,A)) : Parser(E,B)
+  (i,str) =>
+  case p(i,str) as a
+  |p_err p_err(__ a.loc,a.inp,a.err)
+  |p_res p_res(__ a.loc,a.inp,f(a.res))
+
+// lift an application over Parsers
+p_ap(E: Type; A: Type; B: Type; f: Parser(E,A -> B), p: Parser(E,A))
+: Parser(E,B)
+  (i,str) =>
+  case f(i,str) as fab
+  |p_err p_err(__ fab.loc,fab.inp,fab.err)
+  |p_res
+    case p(fab.loc,fab.inp) as a
+    |p_err p_err(__ a.loc,a.inp,a.err)
+    |p_res p_res(__ a.loc,a.inp,fab.res(a.res))
+
+p_bind(E: Type; A: Type; B: Type; p : Parser(E,A), f: A -> Parser(E,B))
+: Parser(E,B)
+  (i,str) => 
+  case p(i,str) as a
+  |p_err p_err(__ a.loc,a.inp,a.err)
+  |p_res
+    case f(a.res)(a.loc,a.inp) as b
+    |p_err p_err(__ b.loc,b.inp,b.err)
+    |p_res p_res(__ b.loc,b.inp,b.res)
+
+--// if `b` succeeds, choose `b`
+--// if `b` fails, backtrack and choose `a`
+p_choose(E: Type; A: Type; a: Parser(E,A), b: Parser(E,A)) : Parser(E,A)
+  (i,str) =>
+  case b(i,str) as b
+  |p_err a(i,str)
+  |p_res p_res(__ b.loc,b.inp,b.res)
+
+// choice of a list of parsers
+p_choice(E: Type; A: Type; ps: List(Parser(E,A))) : Parser(E,A)
+  case ps
+  |nil  p_empty(__)
+  |cons p_choose(__ ps.head, p_choice(__ ps.tail))
+
+// choice of a nonempty list of parsers
+p_choice1(E: Type; A: Type; ps: NonEmpty(Parser(E,A))) : Parser(E,A)
+  case ps
+  |ne_nil  ps.last
+  |ne_cons p_choose(__ ps.head, p_choice1(__ ps.tail))
+
+// make a parser optional by returning `none` if it fails
+// this parser backtracks on the `none` case
+p_optional(E: Type; A: Type; p: Parser(E,A)) : Parser(E,Maybe(A))
+  (i,str) =>
+  case p(i,str) as a
+  |p_err p_res(__ i,str,none(_))
+  |p_res p_res(__ a.loc,a.inp,some(_ a.res))
+
+// parse a parser 0 or more times
+p_many(E: Type; A: Type; p: Parser(E,A)) : Parser(E,List(A))
+  (i,str) =>
+  case p(i,str) as a
+  |p_err p_res(__ i,str,nil(_))
+  |p_res
+    case p_many(__ p)(a.loc,a.inp) as m
+    |p_err p_res(__ a.loc,a.inp, cons(_ a.res,nil(_)))
+    |p_res p_res(__ m.loc,m.inp, cons(_ a.res,m.res))
+
+--// parse a parser 1 or more times
+p_many1(E: Type; A: Type; p: Parser(E,A)) : Parser(E,NonEmpty(A))
+  (i,str) =>
+  case p(i,str) as a
+  |p_err p_err(__ a.loc,a.inp,a.err)
+  |p_res
+    case (p_many1(__ p)(a.loc,a.inp)) as m
+    |p_err p_res(__ a.loc,a.inp, ne_nil(_ a.res))
+    |p_res p_res(__ m.loc,m.inp, ne_cons(_ a.res,m.res))
+
+// parse a parser exactly n times 
+// TODO: use Vector?
+p_count(E: Type; A: Type; n : Nat, p: Parser(E,A)) : Parser(E,List(A))
+  case n
+  |zero p_pure(__ nil(_))
+  |succ
+    p_bind(___ p, (c) =>
+    p_bind(___ p_count(__ n.pred,p), (cs) =>
+    p_pure(__ cons(_ c,cs))))
+
+// sequence two parsers from left to right
+p_seql(E: Type; A: Type; B: Type; a : Parser(E,A), b : Parser(E,B))
+: Parser(E,B)
+  p_bind(___ a, (x) => b)
+
+// sequence two parsers from right to left
+p_seqr(E: Type; A: Type; B: Type; a : Parser(E,A), b : Parser(E,B))
+: Parser(E,A)
+  p_bind(___ a, (x) =>
+  p_bind(___ b, (y) =>
+  p_pure(__ x)))
+
+p_eof(E: Type) : Parser(E,Unit)
+  (i,str) => case str
+  | nil  p_res(__ i,nil(_),unit)
+  | cons p_err(__ i,str,p_err_expected(_ "\\EOF"))
+
+// take exactly n characters
+p_take(E: Type; n: Nat) : Parser(E,String)
+  case n
+  |zero p_pure(__ nil(_))
+  |succ (i,str) =>
     case str
-    | nil  => pair(__ nil(_), none(_))
-    | cons => pair(__ 
-      cons(_ str.head, str.tail),
-      some(_ str.head))
-    : Pair(String, Maybe(Char))
+    |nil p_err(__ i, nil(_), p_err_unexpected(_ "\\EOF"))
+    |cons
+      case p_take(_ n.pred)(i + 1,str.tail) as t
+        |p_err p_err(__ t.loc,t.inp,t.err)
+        |p_res p_res(__ t.loc,t.inp,cons(_ str.head,t.res))
 
-// Parses one character if possible
-next : Parser(Char)
-  (str) =>
-    case str
-    | nil  => pair(__ nil(_), none(_))
-    | cons => pair(__ str.tail, some(_ str.head))
-    : Pair(String, Maybe(Char))
+// take characters while a predicate is true
+p_take_while(E: Type; f: Char -> Number) : Parser(E,String)
+  (i,str) => case str
+  |nil p_pure(__ nil(_))(i,str)
+  |cons
+    if f(str.head)
+    then p_map(___ cons(_ str.head), p_take_while(_ f))(i + 1, str.tail)
+    else p_res(__ i,str, nil(_))
 
-// If first is `chr`, return true and consumes it
-match_one(chr: Char) : Parser(Bool)
-  (str) =>
-    case str
-    | nil  => pair(__ nil(_), some(_ false))
-    | cons => case number_equal(chr, str.head) as eq
-      with str.tail : String
-      | true  => pair(__ str.tail, some(_ true))
-      | false => pair(__
-        cons(_ str.head, str.tail),
-        some(_ false))
+p_satisfy(E: Type; f: Char -> Number) : Parser(E,Char)
+  (i,str) => case str
+  |nil p_err(__ i, nil(_), p_err_unexpected(_ "\\EOF"))
+  |cons
+    if f(str.head)
+    then p_res(__ i + 1,str.tail,str.head)
+    else p_err(__ i,str, p_err_unexpected(_ cons(_ str.head, nil(_))))
 
-// Parses exactly this character
-parse_exact(chr: Char) : Parser(Unit)
-  do {
-    var val = next;
-    case number_equal(chr, val) as eq
-    | true  => do { return unit; }
-    | false => do { throw; }
-  }
+// parse a literal string
+p_string(E: Type; x : String) : Parser(E,String)
+    case x
+    |nil  p_pure(__ nil(_))
+    |cons (i,str) => case str
+      |nil p_err(__ i,str, p_err_unexpected(_ "\\EOF"))
+      |cons
+        if x.head === str.head
+        then p_map(___ cons(_ str.head), p_string(_ x.tail))(i + 1, str.tail)
+        else p_err(__ i,str, p_err_unexpected(_ cons(_ str.head, nil(_))))
 
-// Skip whitespaces
-skip_whites : Parser(Unit)
-  do {
-    var found_white = match_one(' ');
-    case found_white
-    | true  => skip_whites
-    | false => do { return unit; }
-  }
-
-// Parses a nat on the form SSS...Z
-parse_nat : Parser(Nat)
-  do {
-    var chr = next;
-    case number_equal(chr, 'S') as eq
-    | true => do {
-      var pred = parse_nat;
-      return succ(pred);
-    }
-    | false => do {
-      return zero;
-    }
-  }
-
-// Parses a nat tuple on the form [SSS...Z,SSS...Z]
-parse_nats : Parser(Pair(Nat, Nat))
-  do {
-    parse_exact('[');
-    var nat0 = parse_nat;
-    parse_exact(',');
-    var nat1 = parse_nat;
-    parse_exact(']');
-    return pair(__ nat0, nat1);
-  }
-
+// main : Parsed(Unit,String)
+//   parse(Unit;String;p_string(_ "foobar"),"foobar")
