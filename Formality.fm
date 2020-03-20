@@ -872,87 +872,87 @@ ctx.nil : Context
 ctx.ext(ctx: Context, term: Term) : Context
   cons(_ term, ctx)
 
-Equations : Type
-  List(Pair(Term,Term))
-
 // Type-checks a term
 typecheck(
   term : Term,
   type : Maybe(Term),
   defs : Defs,
   ctx  : Context
-) : Maybe(Pair(Equations, Term))
+) : Maybe(Term)
   // TODO: weak reduce intead
   let type = case type
     | none => none(_)
-    | some => some(_reduce(type.value,defs))
+    | some => some(_ reduce(type.value,defs))
 
-  let chk = case term
+  // Pattern matches term
+  case term
 
-    // Type of Types
-    | typ =>
-      some(_ pair(__ [], typ))
+  // Type of Types
+  | typ =>
+    some(_ typ)
 
-    // Variables
-    | var =>
-      case ctx.get(ctx, term.indx) as got
-      | none => none(_)
-      | some => some(_ pair(__ [], got.value))
+  // Variables
+  | var =>
+    ctx.get(ctx, term.indx)
 
-    // Reference
-    | ref => 
-      case lookup(_ string_to_bits(term.name), defs) as got
+  // Reference
+  | ref => 
+    case lookup(_ string_to_bits(term.name), defs) as got
+    | none =>
+      none(_)
+    | some =>
+      case got.value
+      | def => some(_ got.value.type)
+
+  // Function Type (Universal Quantification)
+  | all =>
+    let bind_chk = typecheck(term.bind, some(_ typ), defs, ctx)
+    let ext_ctx  = ctx.ext(ctx, term.bind)
+    let body_chk = typecheck(term.body, some(_ typ), defs, ext_ctx)
+    case bind_chk
+    | none =>
+      none(_)
+    | some =>
+      let bind_typ = bind_chk.value
+      case body_chk
       | none =>
         none(_)
       | some =>
-        case got.value |def
-        some(_ pair(__ [], got.value.type))
+        let body_typ = body_chk.value
+        some(_ typ)
 
-    // Function Type (Universal Quantification)
+  // Function Value (Lambda)
+  | lam =>
+    case type
+    | none => none(_)
+    | some => case type.value as type
+    | typ => none(_)
+    | var => none(_)
+    | ref => none(_)
     | all =>
-      let bind_chk = typecheck(term.bind, some(_ typ), defs, ctx)
-      let ext_ctx  = ctx.ext(ctx, term.bind)
-      let body_chk = typecheck(term.body, some(_ typ), defs, ext_ctx)
-      case bind_chk
-      | none => none(_)
-      | some => get #[bind_eqs, bind_typ] = bind_chk.value
+      let ext_ctx = ctx.ext(ctx, type.bind)
+      let body_chk = typecheck(term.body, some(_ type.body), defs, ext_ctx)
       case body_chk
-      | none => none(_)
-      | some => get #[body_eqs, body_typ] = body_chk.value
-      let term_eqs = concat(_ bind_eqs, body_eqs)
-      let term_typ = typ
-      some(_ pair(__ term_eqs, term_typ))
-
-    // Function Value (Lambda)
-    | lam =>
-      case type
-      | none => none(_)
-      | some => case type.value as type
-      | typ => none(_)
-      | var => none(_)
-      | ref => none(_)
-      | all =>
-        let ext_ctx  = ctx.ext(ctx, type.bind)
-        let body_chk = typecheck(term.body, some(_ type.body), defs, ext_ctx)
-        case body_chk
-        | none => none(_)
-        | some => get #[body_eqs, body_typ] = body_chk.value
-        let term_eqs = body_eqs
+      | none =>
+        none(_)
+      | some =>
+        let body_typ = body_chk.value
         let term_typ = all(term.name, type.bind, body_typ, term.eras)
-        some(_ pair(__ term_eqs, term_typ))
-      | lam => none(_)
-      | app => none(_)
-      | slf => none(_)
-      | ins => none(_)
-      | eli => none(_)
-      | ann => none(_)
+        some(_ term_typ)
+    | lam => none(_)
+    | app => none(_)
+    | slf => none(_)
+    | ins => none(_)
+    | eli => none(_)
+    | ann => none(_)
 
-    // Function Elimination (application)
-    | app =>
-      let func_chk = typecheck(term.func, none(_), defs, ctx)
-      case func_chk
-      | none => none(_)
-      | some => get #[func_eqs, func_typ] = func_chk.value
+  // Function Elimination (application)
+  | app =>
+    let func_chk = typecheck(term.func, none(_), defs, ctx)
+    case func_chk
+    | none => none(_)
+    | some =>
+      let func_typ = func_chk.value
       case func_typ
       | typ => none(_)
       | var => none(_)
@@ -961,10 +961,10 @@ typecheck(
         let argm_chk = typecheck(term.argm, some(_ func_typ.bind), defs, ctx)
         case argm_chk
         | none => none(_)
-        | some => get #[argm_eqs, argm_typ] = argm_chk.value
-        let term_eqs = concat(_ func_eqs, argm_eqs)
-        let term_typ = subst(func_typ.body, term.argm, 0n)
-        some(_ pair(__ term_eqs, term_typ))
+        | some =>
+          let argm_typ = argm_chk.value
+          let term_typ = subst(func_typ.body, term.argm, 0n)
+          some(_ term_typ)
       | lam => none(_)
       | app => none(_)
       | slf => none(_)
@@ -972,49 +972,58 @@ typecheck(
       | eli => none(_)
       | ann => none(_)
 
-    // Self Type
-    | slf => none(_)
+  // Self Type
+  | slf =>
+    let ex_ctx = ctx.ext(ctx, term)
+    let type_chk = typecheck(term.type, some(_ typ), defs, ex_ctx)
+    case type_chk
+    | none =>
+      none(_)
+    | some =>
+      some(_ typ)
 
-    // Self Value
+  // Self Value
+  | ins =>
+    case term.type
+    | typ => none(_)
+    | var => none(_)
+    | ref => none(_)
+    | all => none(_)
+    | lam => none(_)
+    | app => none(_)
+    | slf =>
+      let self_typ = subst(term.type.type, ann(term.type, term, true), 0n)
+      let expr_chk = typecheck(term.expr, some(_ self_typ), defs, ctx)
+      case expr_chk
+      | none =>
+        none(_)
+      | some =>
+        some(_ term.type)
     | ins => none(_)
-
-    // Self Elimination
     | eli => none(_)
+    | ann => none(_)
 
-    // Annotation
-    | ann => some(_ pair(__ [], term.type))
+  // Self Elimination
+  | eli =>
+    let expr_chk = typecheck(term.expr, none(_), defs, ctx)
+    case expr_chk
+    | none =>
+      none(_)
+    | some => 
+      case expr_chk.value as expr_t
+      | typ => none(_)
+      | var => none(_)
+      | ref => none(_)
+      | all => none(_)
+      | lam => none(_)
+      | app => none(_)
+      | slf => some(_ subst(expr_t.type, term.expr, 0n))
+      | ins => none(_)
+      | eli => none(_)
+      | ann => none(_)
 
-  // Appends expected/inferred type to equations list
-  case chk
-  | none => none(_)
-  | some => get #[term_eqs, term_typ] = chk.value
-  let cons_eqs = 
-    case type
-    | none => (x) => x
-    | some => (x) => cons(_ pair(__ type.value, term_typ), x)
-    : Equations -> Equations
-  let term_eqs = cons_eqs(term_eqs)
-
-  // Return equations list and inferred type
-  some(_ pair(__ term_eqs, term_typ))
-
-show_equations.go(eqs: Equations) : Concat(Char)
-  case eqs
-  |nil =>
-    (x: List(Char)) => x
-  |cons =>
-    case eqs.head |pair
-    let s0 = list_to_concat(Char; "A== ")
-    let s1 = show.go(eqs.head.fst, [])
-    let s2 = list_to_concat(Char; [10])
-    let s3 = list_to_concat(Char; "B== ")
-    let s4 = show.go(eqs.head.snd, [])
-    let s5 = list_to_concat(Char; [10])
-    let s6 = show_equations.go(eqs.tail)
-    (x: List(Char)) => s0(s1(s2(s3(s4(s5(s6(x)))))))
-
-show_equations(eqs: Equations) : String
-  show_equations.go(eqs, [])
+  // Annotation
+  | ann => some(_ term.type)
 
 // ::::::::::
 // :: Test ::
@@ -1050,7 +1059,7 @@ main
       print(show(term))
       print(show(reduce(term,defs)))
     }
-    | some => case term_t.value |pair do {
+    | some => do {
       print("[Term]")
       print(show(term))
       print("")
@@ -1058,9 +1067,6 @@ main
       print(show(reduce(term,defs)))
       print("")
       print("[Type]")
-      print(show(term_t.value.snd))
-      print("")
-      print("[Equations]")
-      print(show_equations(term_t.value.fst))
+      print(show(term_t.value))
     }
   }
