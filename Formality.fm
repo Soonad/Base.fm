@@ -376,59 +376,100 @@ Seq(A: Type) : Type
   List(A) -> List(A)
 
 empty_seq(A;) : Seq(A)
-  (nil: List(A)) => nil
+  (xs: List(A)) => xs
 
 concat_seq(A; s1: Seq(A), s2: Seq(A)) : Seq(A)
-  (nil) => s1(s2(nil))
+  (xs) => s1(s2(xs))
 
 append_seq(A; s: Seq(A), a: A) : Seq(A)
-  concat_seq(_ s, (nil) => cons(_ a, nil))
+  concat_seq(_ s, (xs) => cons(_ a, xs))
 
 head_seq(A; s: Seq(A)) : Maybe(A)
   case s(nil(_)) as list
   | nil => none(_)
   | cons => some(_ list.head)
 
+seq_from_list(A; as: List(A)) : Seq(A)
+  case as
+  | nil => (xs: List(A)) => xs
+  | cons => (xs: List(A)) => cons(_ as.head, seq_from_list(_ as.tail, xs))
+
 // Constructors codified
+Constr : Type
+  Number
+
 enum | TYP | VAR | REF | ALL | LAM | APP | SLF | INS | ELI | ANN
 
-// Function that extracts the constructor and fields
-split_term(term: Term) : Pair(Number, Seq(Term))
-  let empty = empty_seq(Term;)
-  let append = append_seq(Term;)
+// Function that extracts the constructor and its children nodes
+split_term(term: Term) : #{Number, List(Term)}
   case term
   | typ =>
-    #[TYP, empty]
+    #[TYP, []]
   | var =>
-    #[VAR, empty]
+    #[VAR, []]
   | ref =>
-    #[REF, empty]
+    #[REF, []]
   | all =>
-    #[ALL, append(append(empty, term.bind), term.body)]
+    #[ALL, [term.bind, term.body]]
   | lam =>
-    #[LAM, append(empty, term.body)]
+    #[LAM, [term.body]]
   | app =>
-    #[APP, append(append(empty, term.func), term.argm)]
+    #[APP, [term.func, term.argm]]
   | slf =>
-    #[SLF, append(empty, term.type)]
+    #[SLF, [term.type]]
   | ins =>
-    #[INS, append(empty, term.expr)]
+    #[INS, [term.expr]]
   | eli =>
-    #[ELI, append(empty, term.expr)]
+    #[ELI, [term.expr]]
   | ann =>
-    #[ANN, append(empty, term.expr)]
+    #[ANN, [term.expr]]
+
+// Function that extracts the constructor and a pair containing children nodes and difference of depth
+split_term_with_depth(term: Term) : #{Number, List(#{Term, Nat})}
+  case term
+  | typ =>
+    #[TYP, []]
+  | var =>
+    #[VAR, []]
+  | ref =>
+    #[REF, []]
+  | all =>
+    #[ALL, [#[term.bind, zero], #[term.body, succ(zero)]]]
+  | lam =>
+    #[LAM, [#[term.body, succ(zero)]]]
+  | app =>
+    #[APP, [#[term.func, zero], #[term.argm, zero]]]
+  | slf =>
+    #[SLF, [#[term.type, succ(zero)]]]
+  | ins =>
+    #[INS, [#[term.expr, zero]]]
+  | eli =>
+    #[ELI, [#[term.expr, zero]]]
+  | ann =>
+    #[ANN, [#[term.expr, zero]]]
 
 // Equality
 equivalent_terms(encode: Term -> Bits, uf: UFind, map: Map(Number), x: Term, y: Term) : Bool
   case equivalent(uf, map, encode(x), encode(y)) as b | true => true | false =>
-    get #[cns_x, args_x] = split_term(x)
-    get #[cns_y, args_y] = split_term(y)
-    let args_x = args_x([])
-    let args_y = args_y([])
-    if cns_x === cns_y
-    then fold(__ true, and, ziply(__ list.map(__ equivalent_terms(encode, uf, map), args_x), args_y))
+    get #[constr_x, args_x] = split_term(x)
+    get #[constr_y, args_y] = split_term(y)
+    if constr_x === constr_y
+    then
+      let equiv_list = ziply(__ list.map(__ equivalent_terms(encode, uf, map), args_x), args_y)
+      fold(__ true, and, equiv_list)
     else false
 
+same_node(t1: Term, t2: Term, dep: Nat): Seq(#{Term, Term, Nat})
+    get #[constr1, args1] = split_term(t1)
+    get #[constr2, args2] = split_term_with_depth(t2)
+    if constr1 === constr2
+    then
+      let build_triple = (t1: Term, p: #{Term, Nat}) =>
+        get #[t2, incr_dep] = p
+        #[t1, t2, add(incr_dep, dep)]
+      let triples = ziply(__ list.map(__ build_triple, args1), args2)
+      seq_from_list(_ triples)
+    else empty_seq(_)
 
 // :::::::::::::::::
 // :: Stringifier ::
