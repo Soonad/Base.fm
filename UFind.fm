@@ -65,21 +65,19 @@ equivalent(uf: UFind, map: Map(Number), x: Bits, y: Bits) : Bool
   number_equal(unsafe_ufinder(uf, node_x.value), unsafe_ufinder(uf, node_x.value))
 
 equate(uf: UFind, map: Map(Number), x: Bits, y: Bits) : Pair(UFind, Map(Number))
-  get #[node_x, p] = case lookup(_ x, map) as node_x |none
+  get #[node_x, uf, map] = case lookup(_ x, map) as node_x |none
     get #[uf, new_node] = make_set(uf)
     let map = insert(_ x, new_node, map) 
-    pair(__ new_node, pair(__ uf, map))
-    |some pair(__ node_x.value, pair(__ uf, map))
-  get #[uf, map] = p
-  get #[node_y, p] = case lookup(_ y, map) as node_y |none
+    #[new_node, uf, map]
+    |some #[node_x.value, uf, map]
+  get #[node_y, uf, map] = case lookup(_ y, map) as node_y |none
     get #[uf, new_node] = make_set(uf)
     let map = insert(_ y, new_node, map) 
-    pair(__ new_node, pair(__ uf, map))
-    |some pair(__ node_y.value, pair(__ uf, map))
-  get #[uf, map] = p
-  pair(__ unsafe_union(uf, node_x, node_y), map)
+    #[new_node, uf, map]
+    |some #[node_y.value, uf, map]
+  #[unsafe_union(uf, node_x, node_y), map]
 
-main
+test
   let uf = new_ufind
   let map = empty(_)
   let x = 10b

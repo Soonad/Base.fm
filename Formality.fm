@@ -8,10 +8,12 @@
 import Bits
 import IO
 import Map
+list.map map
 import Nat
 import Number
 import String
 import Unit
+import UFind
 
 // :::::::::::
 // :: Utils ::
@@ -326,6 +328,107 @@ normalize(term: Hoas, defs: Defs) : Hoas
 
 reduce(term: Term, defs: Defs) : Term
   hoas_to_term(normalize(term_to_hoas(term, []), defs), 0n)
+
+// ::::::::::::::
+// :: Equality ::
+// ::::::::::::::
+
+weak_head_form(term: Term, defs: Defs) : Term
+  case term
+  | typ =>
+    typ
+  | var =>
+    var(term.indx)
+  | ref =>
+    case lookup(_ string_to_bits(term.name), defs) as got
+    | none => ref(term.name, term.eras)
+    | some => case got.value |def
+    weak_head_form(got.value.term, defs)
+  | all =>
+    all(term.name, term.bind, term.body, term.eras)
+  | lam =>
+    lam(term.name, term.body, term.eras)
+  | app =>
+    case weak_head_form(term.func, defs) as f
+    with term.argm as a : Term
+    with term.eras as e : Bool
+    | typ => app(typ, a, e)
+    | var => app(var(f.indx), a, e)
+    | ref => app(ref(f.name, f.eras), a, e)
+    | all => app(all(f.name, f.bind, f.body, f.eras), a, e)
+    | lam => weak_head_form(subst(f.body, a, zero), defs)
+    | app => app(app(f.func, f.argm, f.eras), a, e)
+    | slf => app(slf(f.name, f.type), a, e)
+    | ins => app(ins(f.type, f.expr), a, e)
+    | eli => app(eli(f.expr), a, e)
+    | ann => app(ann(f.type, f.expr, f.done), a, e)
+  | slf =>
+    slf(term.name, term.type)
+  | ins =>
+    ins(term.type, term.expr)
+  | eli =>
+    eli(term.expr)
+  | ann =>
+    ann(term.type, term.expr, term.done)
+
+// Sequence type, for fast concatenation
+Seq(A: Type) : Type
+  List(A) -> List(A)
+
+empty_seq(A;) : Seq(A)
+  (nil: List(A)) => nil
+
+concat_seq(A; s1: Seq(A), s2: Seq(A)) : Seq(A)
+  (nil) => s1(s2(nil))
+
+append_seq(A; s: Seq(A), a: A) : Seq(A)
+  concat_seq(_ s, (nil) => cons(_ a, nil))
+
+head_seq(A; s: Seq(A)) : Maybe(A)
+  case s(nil(_)) as list
+  | nil => none(_)
+  | cons => some(_ list.head)
+
+// Constructors codified
+enum | TYP | VAR | REF | ALL | LAM | APP | SLF | INS | ELI | ANN
+
+// Function that extracts the constructor and fields
+split_term(term: Term) : Pair(Number, Seq(Term))
+  let empty = empty_seq(Term;)
+  let append = append_seq(Term;)
+  case term
+  | typ =>
+    #[TYP, empty]
+  | var =>
+    #[VAR, empty]
+  | ref =>
+    #[REF, empty]
+  | all =>
+    #[ALL, append(append(empty, term.bind), term.body)]
+  | lam =>
+    #[LAM, append(empty, term.body)]
+  | app =>
+    #[APP, append(append(empty, term.func), term.argm)]
+  | slf =>
+    #[SLF, append(empty, term.type)]
+  | ins =>
+    #[INS, append(empty, term.expr)]
+  | eli =>
+    #[ELI, append(empty, term.expr)]
+  | ann =>
+    #[ANN, append(empty, term.expr)]
+
+// Equality
+equivalent_terms(encode: Term -> Bits, uf: UFind, map: Map(Number), x: Term, y: Term) : Bool
+  case equivalent(uf, map, encode(x), encode(y)) as b | true => true | false =>
+    get #[cns_x, args_x] = split_term(x)
+    get #[cns_y, args_y] = split_term(y)
+    let args_x = args_x([])
+    let args_y = args_y([])
+    if cns_x === cns_y
+    then fold(__ true, and, ziply(__ list.map(__ equivalent_terms(encode, uf, map), args_x), args_y))
+    else false
+
 
 // :::::::::::::::::
 // :: Stringifier ::
