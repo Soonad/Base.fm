@@ -1,0 +1,90 @@
+import Bool
+import Map
+import Pair
+import Number
+
+T UFind
+| ufind(
+  size: Number,
+  rank: Map(Number),
+  pare: Map(Number))
+
+new_ufind : UFind
+  ufind(0, empty(_), empty(_))
+
+ukey(node: Number) : Bits
+  number_to_bits(32, node)
+
+make_set(uf : UFind) : Pair(UFind, Number)
+  case uf |ufind
+  let node = uf.size
+  let size = uf.size + 1
+  let rank = insert(_ ukey(node), 0, uf.rank)
+  let pare = insert(_ ukey(node), node, uf.pare)
+  pair(__ ufind(size, rank, pare), node)
+
+ufinder(uf: UFind, node: Number) : Maybe(Number)
+  case uf |ufind
+  case lookup(_ ukey(node), uf.pare) as pare
+  | none => none(_)
+  | some => if pare.value === node
+    then some(_ node)
+    else ufinder(uf, pare.value)
+
+// Should only be used when `node` is a key
+unsafe_ufinder(uf: UFind, node: Number) : Number
+  case uf |ufind
+  case lookup(_ ukey(node), uf.pare) as pare
+  | none => 0
+  | some => if pare.value === node
+    then node
+    else unsafe_ufinder(uf, pare.value)
+
+// Should only be used when `node1` and `node2` are keys
+unsafe_union(uf: UFind, node1: Number, node2: Number) : UFind
+  case uf |ufind
+  let root1 = unsafe_ufinder(uf, node1)
+  let root2 = unsafe_ufinder(uf, node2)
+  if root1 === root2 then
+    uf
+  else
+    case lookup(_ ukey(root1), uf.rank) as root1_rank |none uf |some
+    case lookup(_ ukey(root2), uf.rank) as root2_rank |none uf |some
+    let size = uf.size
+    let rank = if root1_rank.value === root2_rank.value
+      then insert(_ ukey(root1), root1_rank.value + 1, uf.rank)
+      else uf.rank
+    let pare = if root1_rank.value < root2_rank.value
+      then insert(_ ukey(root1), root2, uf.pare)
+      else insert(_ ukey(root2), root1, uf.pare)
+    ufind(size, rank, pare)
+
+equivalent(uf: UFind, map: Map(Number), x: Bits, y: Bits) : Bool
+  case lookup(_ x, map) as node_x |none equal_bits(x, y)  |some
+  case lookup(_ y, map) as node_y |none false             |some
+  number_equal(unsafe_ufinder(uf, node_x.value), unsafe_ufinder(uf, node_x.value))
+
+equate(uf: UFind, map: Map(Number), x: Bits, y: Bits) : Pair(UFind, Map(Number))
+  get #[node_x, p] = case lookup(_ x, map) as node_x |none
+    get #[uf, new_node] = make_set(uf)
+    let map = insert(_ x, new_node, map) 
+    pair(__ new_node, pair(__ uf, map))
+    |some pair(__ node_x.value, pair(__ uf, map))
+  get #[uf, map] = p
+  get #[node_y, p] = case lookup(_ y, map) as node_y |none
+    get #[uf, new_node] = make_set(uf)
+    let map = insert(_ y, new_node, map) 
+    pair(__ new_node, pair(__ uf, map))
+    |some pair(__ node_y.value, pair(__ uf, map))
+  get #[uf, map] = p
+  pair(__ unsafe_union(uf, node_x, node_y), map)
+
+main
+  let uf = new_ufind
+  let map = empty(_)
+  let x = 10b
+  let y = 11b
+  let xy_before = equivalent(uf, map, x, y)
+  get #[uf, map] = equate(uf, map, x, y)
+  let xy_after = equivalent(uf, map, x, y)
+  pair(__ xy_before, xy_after)
