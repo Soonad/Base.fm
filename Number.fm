@@ -71,3 +71,16 @@ is_between(a: Number, b: Number, x: Number) : Number
 // Is x inside the a..b range, inclusive?
 is_within(a: Number, b: Number, x: Number) : Number
   (a === x) || (a === b) || ((a < x) && (x < b))
+
+// 32-bit Insigned Integer
+Uint32 : Type
+  Number
+
+// Murmurhash 32-bit finalizer
+bitmix(h: Uint32) : Uint32
+  let h = h ^ (h >>> 16)
+  let h = h * 0x85ebca6b
+  let h = h >>> 13
+  let h = h * 0xc2b2ae35
+  let h = h ^ (h >>> 16)
+  h

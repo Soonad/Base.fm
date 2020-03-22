@@ -38,12 +38,92 @@ T Term
 | ins(type: Term, expr: Term)
 | eli(expr: Term)
 | ann(type: Term, expr: Term, done: Bool)
-  
+
 T Def
 | def(type: Term, term: Term)
 
 Defs : Type
   Map(Def)
+
+// ::::::::::::::::::
+// :: Erased Terms ::
+// ::::::::::::::::::
+
+T Eras
+| etyp(hash: Number)
+| evar(hash: Number, indx: Nat)
+| eref(hash: Number, name: String)
+| eall(hash: Number, bind: Eras, body: Eras)
+| elam(hash: Number, body: Eras)
+| eapp(hash: Number, func: Eras, argm: Eras)
+| eslf(hash: Number, type: Eras)
+
+hash_of(eras: Eras) : Uint32
+  case eras
+  | etyp => eras.hash
+  | evar => eras.hash
+  | eref => eras.hash
+  | eall => eras.hash
+  | elam => eras.hash
+  | eapp => eras.hash
+  | eslf => eras.hash
+
+esame(a: Eras, b: Eras) : Bool
+  if hash_of(a) === hash_of(b)
+  then true
+  else false
+
+NUL 0x0 ZER 0x1 SUC 0x2 TYP 0x3
+VAR 0x4 REF 0x5 ALL 0x6 LAM 0x7
+APP 0x8 SLF 0x9 INS 0xA ELI 0xB
+ANN 0xC BTE 0xD BT0 0xE BT1 0xF
+
+hash2(a: Uint32, b: Uint32) : Uint32
+  bitmix(a ^ b) >>> 0
+
+hash_nat(n: Nat) : Uint32
+  case n
+  | zero => hash2(ZER, 0)
+  | succ => hash2(SUC, hash_nat(n.pred))
+
+hash_str(str: String) : Uint32
+  case str
+  | nil  => hash2(ZER, 0)
+  | cons => hash2(SUC, hash2(str.head, hash_str(str.tail)))
+
+mk_etyp : Eras
+  etyp(hash2(TYP, 0))
+
+mk_evar(indx: Nat) : Eras
+  evar(hash2(VAR, hash_nat(indx)), indx)
+
+mk_eref(name: String) : Eras
+  eref(hash2(REF, hash_str(name)), name)
+
+mk_eall(bind, body) : Eras
+  eall(hash2(ALL, hash2(hash_of(bind), hash_of(body))), bind, body)
+
+mk_elam(body) : Eras
+  elam(hash2(LAM, hash_of(body)), body)
+
+mk_eapp(func, argm) : Eras
+  eapp(hash2(APP, hash2(hash_of(func), hash_of(argm))), func, argm)
+
+mk_eslf(type) : Eras
+  eslf(hash2(SLF, hash_of(type)), type)
+
+erase(term: Term) : Eras
+  case term
+  | typ => mk_etyp
+  | var => mk_evar(term.indx)
+  | ref => mk_eref(term.name)
+  | all => mk_eall(erase(term.bind), erase(term.body))
+  | lam => mk_elam(erase(term.body))
+  | app => mk_eapp(erase(term.func), erase(term.argm))
+  | slf => mk_eslf(erase(term.type))
+  | ins => erase(term.expr)
+  | eli => erase(term.expr)
+  | ann => erase(term.expr)
 
 // ::::::::::::::::::
 // :: Substitution ::
@@ -156,103 +236,103 @@ subst_many(term: Term, vals: List(Term), inc: Nat, dep: Nat) : Term
 // :::::::::::::::::::
 
 T Hoas
-| typx
-| varx(indx: Nat)
-| refx(name: String, eras: Bool)
-| allx(name: String, bind: Hoas, body: Hoas -> Hoas, eras: Bool)
-| lamx(name: String, body: Hoas -> Hoas, eras: Bool)
-| appx(func: Hoas, argm: Hoas, eras: Bool)
-| slfx(name: String, type: Hoas -> Hoas)
-| insx(type: Hoas, expr: Hoas)
-| elix(expr: Hoas)
-| annx(type: Hoas, expr: Hoas, done: Bool)
+| xtyp
+| xvar(indx: Nat)
+| xref(name: String, eras: Bool)
+| xall(name: String, bind: Hoas, body: Hoas -> Hoas, eras: Bool)
+| xlam(name: String, body: Hoas -> Hoas, eras: Bool)
+| xapp(func: Hoas, argm: Hoas, eras: Bool)
+| xslf(name: String, type: Hoas -> Hoas)
+| xins(type: Hoas, expr: Hoas)
+| xeli(expr: Hoas)
+| xann(type: Hoas, expr: Hoas, done: Bool)
 
 term_to_hoas(term: Term, vals: List(Hoas)) : Hoas
   case term
   | typ =>
-    typx
+    xtyp
   | var =>
     case at(Hoas; term.indx, vals) as got
-    | none => varx(term.indx)
+    | none => xvar(term.indx)
     | some => got.value
   | ref =>
     let name = term.name
     let eras = term.eras
-    refx(name, eras)
+    xref(name, eras)
   | all =>
     let name = term.name
     let bind = term_to_hoas(term.bind, vals)
     let body = (x) => term_to_hoas(term.body,cons(_ x,vals))
     let eras = term.eras
-    allx(name, bind, body, eras)
+    xall(name, bind, body, eras)
   | lam =>
     let name = term.name
     let body = (x) => term_to_hoas(term.body,cons(_ x,vals))
     let eras = term.eras
-    lamx(name, body, eras)
+    xlam(name, body, eras)
   | app =>
     let func = term_to_hoas(term.func, vals)
     let argm = term_to_hoas(term.argm, vals)
     let eras = term.eras
-    appx(func, argm, eras)
+    xapp(func, argm, eras)
   | slf =>
     let name = term.name
     let type = (x) => term_to_hoas(term.type, cons(_ x, vals))
-    slfx(name, type)
+    xslf(name, type)
   | ins =>
     let type = term_to_hoas(term.type, vals)
     let expr = term_to_hoas(term.expr, vals)
-    insx(type, expr)
+    xins(type, expr)
   | eli =>
     let expr = term_to_hoas(term.expr, vals)
-    elix(expr)
+    xeli(expr)
   | ann =>
     let type = term_to_hoas(term.type, vals)
     let expr = term_to_hoas(term.expr, vals)
     let done = term.done
-    annx(type, expr, done)
+    xann(type, expr, done)
 
 hoas_to_term(term: Hoas, depth: Nat) : Term
   case term
-  | typx =>
+  | xtyp =>
     typ
-  | varx =>
+  | xvar =>
     case nat_compare(term.indx, depth) as cmp
     | less_than    => var(sub(depth, succ(term.indx)))
     | equal_to     => var(term.indx)
     | greater_than => var(term.indx)
-  | refx =>
+  | xref =>
     let name = term.name
     let eras = term.eras
     ref(name, eras)
-  | allx =>
+  | xall =>
     let name = term.name
     let bind = hoas_to_term(term.bind, depth)
-    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let body = hoas_to_term(term.body(xvar(depth)), succ(depth))
     let eras = term.eras
     all(name, bind, body, eras)
-  | lamx =>
+  | xlam =>
     let name = term.name
-    let body = hoas_to_term(term.body(varx(depth)), succ(depth))
+    let body = hoas_to_term(term.body(xvar(depth)), succ(depth))
     let eras = term.eras
     lam(name, body, eras)
-  | appx =>
+  | xapp =>
     let func = hoas_to_term(term.func, depth)
     let argm = hoas_to_term(term.argm, depth)
     let eras = term.eras
     app(func, argm, eras)
-  | slfx =>
+  | xslf =>
     let name = term.name
-    let type = hoas_to_term(term.type(varx(depth)), succ(depth))
+    let type = hoas_to_term(term.type(xvar(depth)), succ(depth))
     slf(name, type)
-  | insx =>
+  | xins =>
     let type = hoas_to_term(term.type, depth)
     let expr = hoas_to_term(term.expr, depth)
     ins(type, expr)
-  | elix =>
+  | xeli =>
     let expr = hoas_to_term(term.expr, depth)
     eli(expr)
-  | annx =>
+  | xann =>
     let type = hoas_to_term(term.type, depth)
     let expr = hoas_to_term(term.expr, depth)
     let done = term.done
@@ -260,69 +340,69 @@ hoas_to_term(term: Hoas, depth: Nat) : Term
 
 normalize(term: Hoas, defs: Defs) : Hoas
   case term
-  | typx =>
-    typx
-  | varx =>
-    varx(term.indx)
-  | refx =>
+  | xtyp =>
+    xtyp
+  | xvar =>
+    xvar(term.indx)
+  | xref =>
     let name = term.name
     let eras = term.eras
     case lookup(_ string_to_bits(name), defs) as got
-    | none => refx(name, eras)
+    | none => xref(name, eras)
     | some => case got.value |def
       term_to_hoas(got.value.term, [])
-  | allx =>
+  | xall =>
     let name = term.name
     let bind = normalize(term.bind, defs)
     let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
-    allx(name, bind, body, eras)
-  | lamx =>
+    xall(name, bind, body, eras)
+  | xlam =>
     let name = term.name
     let body = (x) => normalize(term.body(x), defs)
     let eras = term.eras
-    lamx(name, body, eras)
-  | appx =>
+    xlam(name, body, eras)
+  | xapp =>
     case unit with normalize(term.func, defs) as func : Hoas |unit
     case func
     with term.argm : Hoas
     with term.eras : Bool
-    | typx => appx(func, normalize(term.argm, defs), term.eras)
-    | varx => appx(func, normalize(term.argm, defs), term.eras)
-    | refx => appx(func, normalize(term.argm, defs), term.eras)
-    | allx => appx(func, normalize(term.argm, defs), term.eras)
-    | lamx => normalize(func.body(term.argm), defs)
-    | appx => appx(func, normalize(term.argm, defs), term.eras)
-    | slfx => appx(func, normalize(term.argm, defs), term.eras)
-    | insx => appx(func, normalize(term.argm, defs), term.eras)
-    | elix => appx(func, normalize(term.argm, defs), term.eras)
-    | annx => appx(func, normalize(term.argm, defs), term.eras)
-  | slfx =>
+    | xtyp => xapp(func, normalize(term.argm, defs), term.eras)
+    | xvar => xapp(func, normalize(term.argm, defs), term.eras)
+    | xref => xapp(func, normalize(term.argm, defs), term.eras)
+    | xall => xapp(func, normalize(term.argm, defs), term.eras)
+    | xlam => normalize(func.body(term.argm), defs)
+    | xapp => xapp(func, normalize(term.argm, defs), term.eras)
+    | xslf => xapp(func, normalize(term.argm, defs), term.eras)
+    | xins => xapp(func, normalize(term.argm, defs), term.eras)
+    | xeli => xapp(func, normalize(term.argm, defs), term.eras)
+    | xann => xapp(func, normalize(term.argm, defs), term.eras)
+  | xslf =>
     let name = term.name
     let type = (x) => normalize(term.type(x), defs)
-    slfx(name, type)
-  | insx =>
+    xslf(name, type)
+  | xins =>
     let type = normalize(term.type, defs)
     let expr = normalize(term.expr, defs)
-    insx(type, expr)
-  | elix =>
+    xins(type, expr)
+  | xeli =>
     case unit with normalize(term.expr, defs) as expr : Hoas |unit
     case expr
-    | typx => elix(expr)
-    | varx => elix(expr)
-    | refx => elix(expr)
-    | allx => elix(expr)
-    | lamx => elix(expr)
-    | appx => elix(expr)
-    | slfx => elix(expr)
-    | insx => elix(expr)
-    | elix => expr
-    | annx => elix(expr)
-  | annx =>
+    | xtyp => xeli(expr)
+    | xvar => xeli(expr)
+    | xref => xeli(expr)
+    | xall => xeli(expr)
+    | xlam => xeli(expr)
+    | xapp => xeli(expr)
+    | xslf => xeli(expr)
+    | xins => xeli(expr)
+    | xeli => expr
+    | xann => xeli(expr)
+  | xann =>
     let type = normalize(term.type, defs)
     let expr = normalize(term.expr, defs)
     let done = term.done
-    annx(type, expr, done)
+    xann(type, expr, done)
 
 reduce(term: Term, defs: Defs) : Term
   hoas_to_term(normalize(term_to_hoas(term, []), defs), 0n)
@@ -698,6 +778,12 @@ parse_term(code: String, vars: Vars) : Parsed
   case parsed |none none(_) |some
   get #[code, term] = parsed.value
   parse_postfix(code, term, vars)
+
+// Parses a term, drops leftover code
+parsed_term(code: String) : Maybe(Term)
+  case parse_term(code, []) as parsed
+  | none => none(_)
+  | some => case parsed.value |pair some(_ parsed.value.snd)
 
 // Parses defs
 parse_defs.go(code: String, defs: Defs) : Defs
