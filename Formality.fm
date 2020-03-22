@@ -384,10 +384,18 @@ concat_seq(A; s1: Seq(A), s2: Seq(A)) : Seq(A)
 append_seq(A; s: Seq(A), a: A) : Seq(A)
   concat_seq(_ s, (xs) => cons(_ a, xs))
 
+is_empty_seq(A; s: Seq(A)): Bool
+  case s(nil(_)) as list
+  | nil => true
+  | cons => false
+
 head_seq(A; s: Seq(A)) : Maybe(A)
   case s(nil(_)) as list
   | nil => none(_)
   | cons => some(_ list.head)
+
+tail_seq(A; s: Seq(A)) : Seq(A)
+  (xs: List(A)) => tail(_ s(xs))
 
 seq_from_list(A; as: List(A)) : Seq(A)
   case as
@@ -470,6 +478,32 @@ same_node(t1: Term, t2: Term, dep: Nat): Seq(#{Term, Term, Nat})
       let triples = ziply(__ list.map(__ build_triple, args1), args2)
       seq_from_list(_ triples)
     else empty_seq(_)
+
+equal_terms.go(defs: Defs, uf: UFind, map: Map(Number), seq: Seq(#{Term, Term, Nat})): Bool
+  let encode = (a: Term) => 1b // TODO
+  case head_seq(_ seq) as head
+  | none => true
+  | some =>
+    get #[a0, b0, dep] = head.value
+    let a1 = weak_head_form(a0, defs);
+    let b1 = weak_head_form(a1, defs);
+    let eq = equivalent_terms(encode, uf, map, a1, b1);
+    get #[uf, map] = equate(uf, map, encode(a0), encode(a1));
+    get #[uf, map] = equate(uf, map, encode(b0), encode(b1));
+    get #[uf, map] = equate(uf, map, encode(a1), encode(b1));
+    case eq
+    | true => equal_terms.go(defs, uf, map, tail_seq(_ seq))
+    | false =>
+      let res = same_node(a1, b1, dep)
+      case is_empty_seq(_ res) as b
+      | true => false
+      | false => equal_terms.go(defs, uf, map, concat_seq(_ tail_seq(_ seq), res));
+
+equal_terms(a: Term, b: Term, defs: Defs): Bool
+  let map = empty(Number;)
+  let uf = new_ufind
+  let seq = seq_from_list(_ [#[a, b, zero]])
+  equal_terms.go(defs, uf, map, seq)
 
 // :::::::::::::::::
 // :: Stringifier ::
